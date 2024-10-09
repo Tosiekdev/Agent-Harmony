@@ -3,6 +3,8 @@
 #include <tuple>
 #include <vector>
 
+namespace abmf {
+
 template<typename... Agents>
 class Model {
 public:
@@ -12,5 +14,7 @@ public:
 private:
     std::tuple<std::vector<Agents>...> agents;
 };
+
+}
 
 #include "ModelImpl.hpp"

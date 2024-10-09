@@ -4,4 +4,6 @@ project(ABMframework)
 set(CMAKE_CXX_STANDARD 20)
 
 add_library(ABMframework STATIC Model.cpp
-        ModelImpl.hpp)
+        ModelImpl.hpp
+        Agent.hpp
+)
