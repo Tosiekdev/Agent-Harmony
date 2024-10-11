@@ -5,11 +5,22 @@
 
 namespace abmf {
 
-template<typename... Agents>
+template<typename T>
+concept Agent = requires(T t) {
+    {t.step()};
+};
+
+template<Agent... Agents>
 class Model {
 public:
-    template<typename T>
-    std::vector<T> getAgents();
+    template<Agent T>
+    std::vector<T>& getAgents();
+
+    template<Agent T>
+    void addAgent(const T& agent);
+
+    template<Agent T, typename... Args>
+    void emplaceAgent(Args&&... args);
 
 private:
     std::tuple<std::vector<Agents>...> agents;
