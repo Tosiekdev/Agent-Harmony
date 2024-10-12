@@ -3,27 +3,26 @@
 #include <tuple>
 #include <vector>
 
+#include "AgentBase.hpp"
+
 namespace abmf {
 
-template<typename T>
-concept Agent = requires(T t) {
-    {t.step()};
-};
-
-template<Agent... Agents>
+template<ActiveAgent... Agents>
 class Model {
 public:
-    template<Agent T>
+    template<ActiveAgent T>
     std::vector<T>& getAgents();
 
-    template<Agent T>
+    template<ActiveAgent T>
     void addAgent(const T& agent);
 
-    template<Agent T, typename... Args>
+    template<ActiveAgent T, typename... Args>
     void emplaceAgent(Args&&... args);
 
+    void removeInactiveAgents();
+
 private:
-    std::tuple<std::vector<Agents>...> agents;
+    std::tuple<std::vector<Agents>...> agents{};
 };
 
 }

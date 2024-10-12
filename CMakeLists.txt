@@ -5,5 +5,5 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_library(ABMframework STATIC Model.cpp
         ModelImpl.hpp
-        Agent.hpp
+        AgentBase.hpp
 )
