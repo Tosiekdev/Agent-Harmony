@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "../Model.hpp"
+#include "../Schedule.hpp"
 
 struct MyAgent {
     int id;
@@ -38,4 +39,11 @@ TEST(AgentTest, RemovingAgent) {
 
     m.removeInactiveAgents();
     ASSERT_EQ(m.agentCount(), 2);
+}
+
+TEST(ActionTest, CreateAction) {
+    MyAgent a{1};
+    MyModel m;
+    abmf::Action<MyModel, MyAgent> action(a, 1, 1);
+    action.step(m);
 }
