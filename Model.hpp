@@ -21,7 +21,9 @@ public:
 
     void removeInactiveAgents();
 
-private:
+    size_t agentCount();
+
+protected:
     std::tuple<std::vector<Agents>...> agents{};
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <iostream>
 
 #include "Model.hpp"
 
@@ -30,5 +31,13 @@ void Model<Agents...>::removeInactiveAgents() {
         agents.erase(std::partition(agents.begin(), agents.end(), [](Agents a) { return a.isActive(); }),
                      agents.end());
     }(), ...);
+}
+
+template<ActiveAgent ... Agents>
+size_t Model<Agents...>::agentCount() {
+    return std::apply([](auto... v) {
+                          return (v.size() + ...);
+                      },
+                      agents);
 }
 }

@@ -16,16 +16,20 @@ struct MyAgent {
     }
 };
 
-// Demonstrate some basic assertions.
+struct MyModel : abmf::Model<MyAgent> {
+    void step() {
+        std::cout << agentCount() << std::endl;
+    }
+};
+
 TEST(AgentsTest, AddingAgent) {
-    abmf::Model<MyAgent> m;
-    MyAgent a{1};
-    m.addAgent(a);
-    ASSERT_EQ(m.getAgents<MyAgent>().size(), 1);
+    MyModel m;
+    m.emplaceAgent<MyAgent>(0);
+    ASSERT_EQ(m.agentCount(), 1);
 }
 
 TEST(AgentTest, RemovingAgent) {
-    abmf::Model<MyAgent> m;
+    MyModel m;
     m.emplaceAgent<MyAgent>(1);
     m.emplaceAgent<MyAgent>(2);
     m.emplaceAgent<MyAgent>(3);
@@ -33,5 +37,5 @@ TEST(AgentTest, RemovingAgent) {
     m.getAgents<MyAgent>()[0].active = false;
 
     m.removeInactiveAgents();
-    ASSERT_EQ(m.getAgents<MyAgent>().size(), 2);
+    ASSERT_EQ(m.agentCount(), 2);
 }
