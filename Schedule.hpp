@@ -22,6 +22,7 @@ struct Action {
     size_t time;
     size_t priority;
     size_t interval;
+    std::variant<std::reference_wrapper<Agents>...> agent;
 
     bool operator<(const Action& other) {
         if (time < other.time) {
@@ -29,19 +30,20 @@ struct Action {
         }
         return priority < other.priority;
     }
-
-private:
-    std::variant<std::reference_wrapper<Agents>...> agent;
 };
 
 template<typename M, Stepable<M>... Agents>
 class Schedule {
 public:
+    explicit Schedule(M& pModel) : model(pModel), epochs(0) {}
     void scheduleOnce(auto& agent, size_t time, size_t priority);
     void scheduleRepeating(auto& agent, size_t time, size_t priority, size_t interval);
     void scheduleRepeating(auto& agent, size_t time, size_t priority);
+    void step();
 
 private:
+    M& model;
+    size_t epochs;
     std::priority_queue<Action<M, Agents>...> actions;
 };
 }

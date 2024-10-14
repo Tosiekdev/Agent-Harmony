@@ -20,4 +20,36 @@ void Schedule<M, Agents...>::scheduleRepeating(auto &agent, const size_t time, c
     scheduleRepeating(agent, time, priority, 1);
 }
 
+template<typename M, Stepable<M> ... Agents>
+void Schedule<M, Agents...>::step() {
+    if (actions.empty()) {
+        return;
+    }
+
+    epochs = actions.top().time;
+
+    std::vector<Action<M, Agents...>> events;
+    events.reserve(actions.size());
+    while (true) {
+        if (actions.empty()) {
+            break;
+        }
+
+        if (actions.top().time > epochs) {
+            break;
+        }
+
+        events.push_back(actions.top());
+        actions.pop();
+    }
+
+    for (auto& event : events) {
+        event.step();
+
+        if (event.interval) {
+            scheduleRepeating(event.agent, event.time, event.priority, event.interval);
+        }
+    }
+}
+
 }
