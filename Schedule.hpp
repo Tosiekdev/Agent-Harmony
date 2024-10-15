@@ -43,14 +43,13 @@ public:
     void step();
     void execute();
 
-    size_t getEpochs() const;
+    [[nodiscard]] size_t getEpochs() const;
 
 private:
     M& model;
     size_t epochs;
     std::priority_queue<Action<M, Agents>...> actions;
 };
-
 }
 
 #include "ScheduleImpl.hpp"

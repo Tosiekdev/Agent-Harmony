@@ -6,7 +6,6 @@
 #include "AgentBase.hpp"
 
 namespace abmf {
-
 template<ActiveAgent... Agents>
 class Model {
 public:
@@ -26,7 +25,6 @@ public:
 protected:
     std::tuple<std::list<Agents>...> agents{};
 };
-
 }
 
 #include "ModelImpl.hpp"
