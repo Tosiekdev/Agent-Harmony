@@ -8,4 +8,6 @@ add_library(ABMframework STATIC Model.cpp
         AgentBase.hpp
         Schedule.hpp
         ScheduleImpl.hpp
+        ValueLayer.hpp
+        ValueLayer.cpp
 )
