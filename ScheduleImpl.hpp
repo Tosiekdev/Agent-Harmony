@@ -3,20 +3,19 @@
 #include "Schedule.hpp"
 
 namespace abmf {
-
-template<typename  M, Stepable<M>... Agents>
-void Schedule<M, Agents...>::scheduleOnce(auto &agent, const size_t time, const size_t priority) {
+template<typename M, Stepable<M>... Agents>
+void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t priority) {
     actions.emplace(agent, time, priority);
 }
 
 template<typename M, Stepable<M> ... Agents>
-void Schedule<M, Agents...>::scheduleRepeating(auto &agent, const size_t time, const size_t priority,
+void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t priority,
                                                const size_t interval) {
     actions.emplace(agent, time, priority, interval);
 }
 
 template<typename M, Stepable<M> ... Agents>
-void Schedule<M, Agents...>::scheduleRepeating(auto &agent, const size_t time, const size_t priority) {
+void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t priority) {
     scheduleRepeating(agent, time, priority, 1);
 }
 
@@ -48,7 +47,7 @@ void Schedule<M, Agents...>::step() {
         event.step(model);
 
         if (event.interval) {
-            scheduleRepeating(event.agent, epochs+event.interval, event.priority, event.interval);
+            scheduleRepeating(event.agent, epochs + event.interval, event.priority, event.interval);
         }
     }
 }
@@ -64,5 +63,4 @@ void Schedule<M, Agents...>::execute() {
         step();
     }
 }
-
 }

@@ -13,7 +13,7 @@ struct MyAgent {
     }
 
     template<typename T>
-    void step(T& model) {
+    void step(T &model) {
         run += 1;
     }
 };
@@ -33,6 +33,7 @@ struct MyModel : abmf::Model<MyAgent> {
     bool shouldEnd() const {
         return schedule.getEpochs() >= 10;
     }
+
     abmf::Schedule<MyModel, MyAgent> schedule;
     int run{};
 };
@@ -67,7 +68,7 @@ TEST(SchedulerTest, ScheduleEvent) {
     m.init();
     m.schedule.execute();
     EXPECT_EQ(m.run, 10);
-    for(const auto& agent : m.getAgents<MyAgent>()) {
+    for (const auto &agent : m.getAgents<MyAgent>()) {
         EXPECT_EQ(agent.run, 10);
     }
     EXPECT_EQ(m.schedule.getEpochs(), 10);
