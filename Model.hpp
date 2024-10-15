@@ -1,7 +1,7 @@
 #pragma once
 
+#include <list>
 #include <tuple>
-#include <vector>
 
 #include "AgentBase.hpp"
 
@@ -11,7 +11,7 @@ template<ActiveAgent... Agents>
 class Model {
 public:
     template<ActiveAgent T>
-    std::vector<T>& getAgents();
+    std::list<T>& getAgents();
 
     template<ActiveAgent T>
     T& addAgent(const T& agent);
@@ -24,7 +24,7 @@ public:
     size_t agentCount();
 
 protected:
-    std::tuple<std::vector<Agents>...> agents{};
+    std::tuple<std::list<Agents>...> agents{};
 };
 
 }

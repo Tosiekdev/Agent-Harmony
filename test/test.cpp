@@ -22,10 +22,8 @@ struct MyModel : abmf::Model<MyAgent> {
     explicit MyModel() : schedule(*this) {}
 
     void init() {
-        emplaceAgent<MyAgent>(0);
-        emplaceAgent<MyAgent>(1);
-        schedule.scheduleRepeating(getAgents<MyAgent>()[0], 1, 1, 1);
-        schedule.scheduleRepeating(getAgents<MyAgent>()[1], 1, 1, 1);
+        schedule.scheduleRepeating(emplaceAgent<MyAgent>(0), 1, 1, 1);
+        schedule.scheduleRepeating(emplaceAgent<MyAgent>(1), 1, 1, 1);
     }
 
     void step() {
@@ -51,7 +49,7 @@ TEST(AgentTest, RemovingAgent) {
     m.emplaceAgent<MyAgent>(2);
     m.emplaceAgent<MyAgent>(3);
 
-    m.getAgents<MyAgent>()[0].active = false;
+    m.getAgents<MyAgent>().front().active = false;
 
     m.removeInactiveAgents();
     ASSERT_EQ(m.agentCount(), 2);
@@ -69,7 +67,8 @@ TEST(SchedulerTest, ScheduleEvent) {
     m.init();
     m.schedule.execute();
     EXPECT_EQ(m.run, 10);
-    EXPECT_EQ(m.getAgents<MyAgent>()[0].run, 10);
-    EXPECT_EQ(m.getAgents<MyAgent>()[1].run, 10);
+    for(const auto& agent : m.getAgents<MyAgent>()) {
+        EXPECT_EQ(agent.run, 10);
+    }
     EXPECT_EQ(m.schedule.getEpochs(), 10);
 }

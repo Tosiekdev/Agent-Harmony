@@ -8,8 +8,8 @@
 namespace abmf {
 template<ActiveAgent... Agents>
 template<ActiveAgent T>
-std::vector<T>& Model<Agents...>::getAgents() {
-    return std::get<std::vector<T>>(agents);
+std::list<T>& Model<Agents...>::getAgents() {
+    return std::get<std::list<T>>(agents);
 }
 
 template<ActiveAgent... Agents>
