@@ -6,6 +6,7 @@
 struct MyAgent {
     int id;
     bool active{true};
+    int run{};
 
     bool isActive() const {
         return active;
@@ -13,14 +14,29 @@ struct MyAgent {
 
     template<typename T>
     void step(T& model) {
-        std::cout << id;
+        run += 1;
     }
 };
 
 struct MyModel : abmf::Model<MyAgent> {
-    void step() {
-        std::cout << agentCount() << std::endl;
+    explicit MyModel() : schedule(*this) {}
+
+    void init() {
+        emplaceAgent<MyAgent>(0);
+        emplaceAgent<MyAgent>(1);
+        schedule.scheduleRepeating(getAgents<MyAgent>()[0], 1, 1, 1);
+        schedule.scheduleRepeating(getAgents<MyAgent>()[1], 1, 1, 1);
     }
+
+    void step() {
+        run += 1;
+    }
+
+    bool shouldEnd() const {
+        return schedule.getEpochs() >= 10;
+    }
+    abmf::Schedule<MyModel, MyAgent> schedule;
+    int run{};
 };
 
 TEST(AgentsTest, AddingAgent) {
@@ -46,4 +62,14 @@ TEST(ActionTest, CreateAction) {
     MyModel m;
     abmf::Action<MyModel, MyAgent> action(a, 1, 1);
     action.step(m);
+}
+
+TEST(SchedulerTest, ScheduleEvent) {
+    MyModel m;
+    m.init();
+    m.schedule.execute();
+    EXPECT_EQ(m.run, 10);
+    EXPECT_EQ(m.getAgents<MyAgent>()[0].run, 10);
+    EXPECT_EQ(m.getAgents<MyAgent>()[1].run, 10);
+    EXPECT_EQ(m.schedule.getEpochs(), 10);
 }

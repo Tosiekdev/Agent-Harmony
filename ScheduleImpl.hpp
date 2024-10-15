@@ -4,15 +4,15 @@
 
 namespace abmf {
 
-template<typename M, Stepable<M>... Agents>
+template<typename  M, Stepable<M>... Agents>
 void Schedule<M, Agents...>::scheduleOnce(auto &agent, const size_t time, const size_t priority) {
-    actions.emplace_back(agent, time, priority);
+    actions.emplace(agent, time, priority);
 }
 
 template<typename M, Stepable<M> ... Agents>
 void Schedule<M, Agents...>::scheduleRepeating(auto &agent, const size_t time, const size_t priority,
                                                const size_t interval) {
-    actions.emplace_back(agent, time, priority, interval);
+    actions.emplace(agent, time, priority, interval);
 }
 
 template<typename M, Stepable<M> ... Agents>
@@ -22,6 +22,7 @@ void Schedule<M, Agents...>::scheduleRepeating(auto &agent, const size_t time, c
 
 template<typename M, Stepable<M> ... Agents>
 void Schedule<M, Agents...>::step() {
+    model.step();
     if (actions.empty()) {
         return;
     }
@@ -44,11 +45,23 @@ void Schedule<M, Agents...>::step() {
     }
 
     for (auto& event : events) {
-        event.step();
+        event.step(model);
 
         if (event.interval) {
-            scheduleRepeating(event.agent, event.time, event.priority, event.interval);
+            scheduleRepeating(event.agent, epochs+event.interval, event.priority, event.interval);
         }
+    }
+}
+
+template<typename M, Stepable<M> ... Agents>
+size_t Schedule<M, Agents...>::getEpochs() const {
+    return epochs;
+}
+
+template<typename M, Stepable<M> ... Agents>
+void Schedule<M, Agents...>::execute() {
+    while (!model.shouldEnd()) {
+        step();
     }
 }
 

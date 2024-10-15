@@ -14,10 +14,10 @@ public:
     std::vector<T>& getAgents();
 
     template<ActiveAgent T>
-    void addAgent(const T& agent);
+    T& addAgent(const T& agent);
 
     template<ActiveAgent T, typename... Args>
-    void emplaceAgent(Args&&... args);
+    T& emplaceAgent(Args&&... args);
 
     void removeInactiveAgents();
 

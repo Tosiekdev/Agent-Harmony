@@ -14,14 +14,16 @@ std::vector<T>& Model<Agents...>::getAgents() {
 
 template<ActiveAgent... Agents>
 template<ActiveAgent T>
-void Model<Agents...>::addAgent(const T& agent) {
+T& Model<Agents...>::addAgent(const T& agent) {
     getAgents<T>().push_back(agent);
+    return getAgents<T>().back();
 }
 
 template<ActiveAgent ... Agents>
 template<ActiveAgent T, typename... Args>
-void Model<Agents...>::emplaceAgent(Args&&... args) {
+T& Model<Agents...>::emplaceAgent(Args&&... args) {
     getAgents<T>().emplace_back(std::forward<Args>(args)...);
+    return getAgents<T>().back();
 }
 
 template<ActiveAgent ... Agents>
