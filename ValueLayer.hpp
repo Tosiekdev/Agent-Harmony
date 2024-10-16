@@ -6,7 +6,7 @@ namespace abmf {
 template<typename T>
 class ValueLayer {
 public:
-    explicit ValueLayer(size_t width, size_t height) : grid(std::vector<T>(width), height) {}
+    explicit ValueLayer(size_t width, size_t height) : grid(height, std::vector<T>(width)) {}
     std::vector<T>& operator[](size_t index);
 
 private:

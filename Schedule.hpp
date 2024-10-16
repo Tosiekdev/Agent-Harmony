@@ -5,19 +5,25 @@
 #include <variant>
 #include <queue>
 
+#include "AgentBase.hpp"
+
 namespace abmf {
 template<typename A, typename M>
-concept Stepable = requires(A a, M m) {
+concept Schedulable = requires(A a, M m) {
     a.step(m);
-};
+} && ActiveAgent<A>;
 
-template<typename M, Stepable<M>... Agents>
+template<typename M, Schedulable<M>... Agents>
 struct Action {
     Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0)
         : time(pTime), priority(pPriority), interval(pInterval), agent(pAgent) {}
 
     void step(M& model) {
         std::visit([&](auto& agent) { agent.get().step(model); }, agent);
+    }
+
+    bool isActive() const {
+        return std::visit([](auto agent){ return agent.get().isActive(); }, agent);
     }
 
     size_t time;
@@ -33,9 +39,10 @@ struct Action {
     }
 };
 
-template<typename M, Stepable<M>... Agents>
+template<typename M, Schedulable<M>... Agents>
 class Schedule {
 public:
+    using ActionItem = Action<M, Agents...>;
     explicit Schedule(M& pModel) : model(pModel), epochs(0) {}
     void scheduleOnce(auto& agent, size_t time, size_t priority);
     void scheduleRepeating(auto& agent, size_t time, size_t priority, size_t interval);
@@ -48,7 +55,7 @@ public:
 private:
     M& model;
     size_t epochs;
-    std::priority_queue<Action<M, Agents>...> actions;
+    std::priority_queue<ActionItem, std::vector<ActionItem>, std::greater<ActionItem>> actions;
 };
 }
 

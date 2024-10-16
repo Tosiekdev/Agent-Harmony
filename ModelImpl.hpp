@@ -8,8 +8,8 @@
 namespace abmf {
 template<ActiveAgent... Agents>
 template<ActiveAgent T>
-std::list<T>& Model<Agents...>::getAgents() {
-    return std::get<std::list<T>>(agents);
+std::deque<T>& Model<Agents...>::getAgents() {
+    return std::get<std::deque<T>>(agents);
 }
 
 template<ActiveAgent... Agents>
@@ -24,15 +24,6 @@ template<ActiveAgent T, typename... Args>
 T& Model<Agents...>::emplaceAgent(Args&&... args) {
     getAgents<T>().emplace_back(std::forward<Args>(args)...);
     return getAgents<T>().back();
-}
-
-template<ActiveAgent ... Agents>
-void Model<Agents...>::removeInactiveAgents() {
-    ([&] {
-        auto& agents = getAgents<Agents>();
-        agents.erase(std::partition(agents.begin(), agents.end(), [](Agents a) { return a.isActive(); }),
-                     agents.end());
-    }(), ...);
 }
 
 template<ActiveAgent ... Agents>
