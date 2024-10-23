@@ -2,7 +2,7 @@
 
 namespace abmf {
 struct Point {
-    size_t x{};
-    size_t y{};
+    int x{};
+    int y{};
 };
 }
