@@ -4,7 +4,7 @@ namespace abmf {
 namespace {
 template<typename T>
 auto visitNeighborhood(const ValueLayer<T>& layer, const Point pos, const int r, const bool moore,
-                       const bool center, auto f) -> std::vector<std::result_of_t<decltype(f)(Point)>> {
+                       const bool center, auto f) -> std::vector<std::invoke_result_t<decltype(f)(Point)>> {
     std::vector<std::result_of_t<decltype(f)(Point)>> result;
     if (moore) {
         result.reserve((2 * r + 1) * (2 * r + 1));
