@@ -3,23 +3,23 @@
 #include "Schedule.hpp"
 
 namespace abmf {
-template<typename M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents>
 void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t priority) {
     actions.emplace(agent, time, priority);
 }
 
-template<typename M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents>
 void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t priority,
                                                const size_t interval) {
     actions.emplace(agent, time, priority, interval);
 }
 
-template<typename M, Schedulable<M> ... Agents>
+template<SimState M, Schedulable<M> ... Agents>
 void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t priority) {
     scheduleRepeating(agent, time, priority, 1);
 }
 
-template<typename M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents>
 void Schedule<M, Agents...>::step() {
     model.beforeStep();
     if (actions.empty()) {
@@ -65,14 +65,14 @@ void Schedule<M, Agents...>::step() {
     model.afterStep();
 }
 
-template<typename M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents>
 size_t Schedule<M, Agents...>::getEpochs() const {
     return epochs;
 }
 
-template<typename M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents>
 void Schedule<M, Agents...>::execute() {
-    while (!model.shouldEnd()) {
+    while (!model.shouldEnd(epochs)) {
         step();
     }
 }

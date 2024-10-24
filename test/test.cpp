@@ -8,7 +8,7 @@ struct MyAgent {
     bool active{true};
     int run{};
 
-    bool isActive() const {
+    [[nodiscard]] bool isActive() const {
         return active;
     }
 
@@ -19,24 +19,34 @@ struct MyAgent {
 };
 
 struct MyModel : abmf::Model<MyAgent> {
-    explicit MyModel() : schedule(*this) {}
-
-    void init() {
-        schedule.scheduleRepeating(emplaceAgent<MyAgent>(0), 1, 1, 1);
-        schedule.scheduleRepeating(emplaceAgent<MyAgent>(1), 1, 1, 1);
-    }
+    explicit MyModel() = default;
 
     void beforeStep() {
         run += 1;
     }
+
     void afterStep() {}
 
-    bool shouldEnd() const {
-        return schedule.getEpochs() >= 10;
+    [[nodiscard]] bool shouldEnd(const int epochs) const {
+        return epochs >= 10;
     }
 
-    abmf::Schedule<MyModel, MyAgent> schedule;
     int run{};
+};
+
+struct Simulation {
+    explicit Simulation() : schedule(model) {}
+    MyModel model;
+    abmf::Schedule<MyModel, MyAgent> schedule;
+
+    void init() {
+        schedule.scheduleRepeating(model.emplaceAgent<MyAgent>(0), 1, 1, 1);
+        schedule.scheduleRepeating(model.emplaceAgent<MyAgent>(1), 1, 1, 1);
+    }
+
+    void start() {
+        schedule.execute();
+    }
 };
 
 TEST(AgentsTest, AddingAgent) {
@@ -53,12 +63,12 @@ TEST(ActionTest, CreateAction) {
 }
 
 TEST(SchedulerTest, ScheduleEvent) {
-    MyModel m;
-    m.init();
-    m.schedule.execute();
-    EXPECT_EQ(m.run, 10);
-    for (const auto& agent : m.getAgents<MyAgent>()) {
+    Simulation s;
+    s.init();
+    s.start();
+    EXPECT_EQ(s.model.run, 10);
+    for (const auto& agent : s.model.getAgents<MyAgent>()) {
         EXPECT_EQ(agent.run, 10);
     }
-    EXPECT_EQ(m.schedule.getEpochs(), 10);
+    EXPECT_EQ(s.schedule.getEpochs(), 10);
 }

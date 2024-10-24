@@ -13,6 +13,13 @@ concept Schedulable = requires(A a, M m) {
     a.step(m);
 } && ActiveAgent<A>;
 
+template<typename M>
+concept SimState = requires(M m) {
+    m.beforeStep();
+    m.afterStep();
+    {m.shouldEnd(int{})} -> std::same_as<bool>;
+};
+
 template<typename M, Schedulable<M>... Agents>
 struct Action {
     Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0)
@@ -22,8 +29,8 @@ struct Action {
         std::visit([&](auto& agent) { agent.get().step(model); }, agent);
     }
 
-    bool isActive() const {
-        return std::visit([](auto agent){ return agent.get().isActive(); }, agent);
+    [[nodiscard]] bool isActive() const {
+        return std::visit([](auto agent) { return agent.get().isActive(); }, agent);
     }
 
     size_t time;
@@ -39,7 +46,7 @@ struct Action {
     }
 };
 
-template<typename M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents>
 class Schedule {
 public:
     using ActionItem = Action<M, Agents...>;
