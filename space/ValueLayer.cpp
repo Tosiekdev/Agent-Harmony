@@ -1,5 +1,6 @@
 #include "ValueLayer.hpp"
 
+#include <functional>
 #include <type_traits>
 
 namespace abmf {
@@ -38,9 +39,37 @@ auto visitNeighborhood(const ValueLayer<T>& layer, const Point pos, const int r,
 }
 }
 
+template class ValueLayer<int>;
+template class ValueLayer<double>;
+
 template<typename T>
 T ValueLayer<T>::get(Point pos) {
     return read[pos.y][pos.x];
+}
+
+template<typename T>
+void ValueLayer<T>::set(Point pos, T value) {
+    write[pos.y][pos.x] = value;
+}
+
+template<typename T>
+template<std::invocable<T&> F>
+void ValueLayer<T>::apply(F&& f) {
+    for (auto& row : write) {
+        for (auto& val : row) {
+            std::invoke(std::forward<F>(f), val);
+        }
+    }
+}
+
+template<typename T>
+template<std::invocable<Point, T&> F>
+void ValueLayer<T>::forEach(F&& f) {
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            std::invoke(std::forward<F>(f), Point(x, y), write[y][x]);
+        }
+    }
 }
 
 template<typename T>
@@ -78,6 +107,4 @@ void ValueLayer<T>::swap() {
     read.swap(write);
 }
 
-template class ValueLayer<int>;
-template class ValueLayer<double>;
 }

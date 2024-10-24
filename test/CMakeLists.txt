@@ -22,6 +22,7 @@ add_executable(
 target_link_libraries(
         ABMframeworkTest
         GTest::gtest_main
+        /home/tosiek/CLionProjects/ABMframework/cmake-build-debug/libABMframework.a
 )
 include(GoogleTest)
 gtest_discover_tests(ABMframeworkTest)

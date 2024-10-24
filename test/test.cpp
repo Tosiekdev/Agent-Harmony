@@ -2,6 +2,7 @@
 
 #include "../Model.hpp"
 #include "../Schedule.hpp"
+#include "../space/ValueLayer.hpp"
 
 struct MyAgent {
     int id;
@@ -71,4 +72,15 @@ TEST(SchedulerTest, ScheduleEvent) {
         EXPECT_EQ(agent.run, 10);
     }
     EXPECT_EQ(s.schedule.getEpochs(), 10);
+}
+
+TEST(ValueLayerTest, ApplyUnary) {
+    abmf::IntValueLayer layer(2, 2, false);
+    layer.apply([](int& value) { value += 2; });
+    layer.swap();
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            EXPECT_EQ(layer.get({i, j}), 2);
+        }
+    }
 }
