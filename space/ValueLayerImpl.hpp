@@ -19,7 +19,7 @@ auto visitNeighborhood(const ValueLayer<T>& layer, const Point pos, const int r,
     }
     for (int dy = -r; dy <= r; ++dy) {
         for (int dx = -r; dx <= r; ++dx) {
-            if (!moore && dx + dy > r) continue;
+            if (!moore && abs(dx) + abs(dy) > r) continue;
 
             Point p = {pos.x + dx, pos.y + dy};
 
@@ -39,9 +39,6 @@ auto visitNeighborhood(const ValueLayer<T>& layer, const Point pos, const int r,
 
     return result;
 }
-
-template class ValueLayer<int>;
-template class ValueLayer<double>;
 
 template<typename T>
 T ValueLayer<T>::get(Point pos) {

@@ -84,3 +84,28 @@ TEST(ValueLayerTest, ApplyUnary) {
         }
     }
 }
+
+TEST(ValueLayerTest, ApplyBinary) {
+    abmf::RealValueLayer layer(2, 2, false, 1.);
+    layer.forEach([](abmf::Point p, double& value) { value += p.x + p.y; });
+    layer.swap();
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            EXPECT_EQ(layer.get({i, j}), i+j+1.);
+        }
+    }
+}
+
+TEST(ValueLayerTest, GetNeighborhood) {
+    abmf::RealValueLayer layer(3, 3, false, 1.);
+    auto moore = layer.getNeighborhood({1, 1}, 1, true, false);
+    auto mooreCenter = layer.getNeighborhood({1, 1}, 1, true, true);
+
+    auto vonNeumann = layer.getNeighborhood({1, 1}, 1, false, false);
+    auto vonNeumannCenter = layer.getNeighborhood({1, 1}, 1, false, true);
+
+    EXPECT_EQ(moore.size(), 8);
+    EXPECT_EQ(mooreCenter.size(), 9);
+    EXPECT_EQ(vonNeumann.size(), 4);
+    EXPECT_EQ(vonNeumannCenter.size(), 5);
+}
