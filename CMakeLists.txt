@@ -9,6 +9,6 @@ add_library(ABMframework STATIC Model.cpp
         Schedule.hpp
         ScheduleImpl.hpp
         space/ValueLayer.hpp
-        space/ValueLayer.cpp
+        space/ValueLayerImpl.hpp
         space/Point.hpp
 )

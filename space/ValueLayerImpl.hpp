@@ -1,10 +1,12 @@
+#pragma once
+
 #include "ValueLayer.hpp"
 
 #include <functional>
 #include <type_traits>
 
 namespace abmf {
-namespace {
+
 template<typename T>
 auto visitNeighborhood(const ValueLayer<T>& layer, const Point pos, const int r, const bool moore,
                        const bool center, auto f) -> std::vector<std::invoke_result_t<decltype(f), Point>> {
@@ -36,7 +38,6 @@ auto visitNeighborhood(const ValueLayer<T>& layer, const Point pos, const int r,
     }
 
     return result;
-}
 }
 
 template class ValueLayer<int>;

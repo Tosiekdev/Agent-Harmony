@@ -46,3 +46,5 @@ private:
 using IntValueLayer = ValueLayer<int>;
 using RealValueLayer = ValueLayer<double>;
 }
+
+#include "ValueLayerImpl.hpp"
