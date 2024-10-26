@@ -85,15 +85,22 @@ TEST(ValueLayerTest, ApplyUnary) {
     }
 }
 
-TEST(ValueLayerTest, ApplyBinary) {
+TEST(ValueLayerTest, Transform) {
     abmf::RealValueLayer layer(2, 2, false, 1.);
-    layer.forEach([](abmf::Point p, double& value) { value += p.x + p.y; });
+    layer.transform([](abmf::Point p, double& value) { value += p.x + p.y; });
     layer.swap();
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 2; ++j) {
             EXPECT_EQ(layer.get({i, j}), i+j+1.);
         }
     }
+}
+
+TEST(ValueLayerTest, Apply) {
+    abmf::RealValueLayer layer(2, 2, false, 1.);
+    std::vector<double> values;
+    layer.apply([&values](double value) mutable { values.push_back(value); });
+    EXPECT_EQ(values.size(), 2*2);
 }
 
 TEST(ValueLayerTest, GetNeighborhood) {

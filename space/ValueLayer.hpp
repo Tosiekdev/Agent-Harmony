@@ -15,13 +15,17 @@ public:
         : width(pWidth), height(pHeight), read(height, std::vector<T>(width, initValue)), write(read), toroidal(torus) {}
 
     T get(Point pos);
+    T getFromWrite(Point pos);
     void set(Point pos, T value);
 
     template<std::invocable<T&> F>
     void apply(F&& f);
 
-    template<std::invocable<Point, T&> F>
+    template<std::invocable<Point, T> F>
     void forEach(F&& f);
+
+    template<std::invocable<Point, T&> F>
+    void transform(F&& f);
 
     [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
     [[nodiscard]] std::vector<T> getNeighbors(Point pos, int r, bool moore, bool center);
