@@ -11,4 +11,5 @@ add_library(ABMframework STATIC Model.cpp
         space/ValueLayer.hpp
         space/ValueLayerImpl.hpp
         space/Point.hpp
+        space/Field.hpp
 )
