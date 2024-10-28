@@ -3,45 +3,9 @@
 #include "../Utils.hpp"
 #include "ValueLayer.hpp"
 
-#include <cmath>
 #include <functional>
-#include <type_traits>
 
 namespace abmf {
-
-template<typename T>
-auto visitNeighborhood(const ValueLayer<T>& layer, const Point pos, const int r, const bool moore,
-                       const bool center, auto f) -> std::vector<std::invoke_result_t<decltype(f), Point>> {
-    std::vector<std::invoke_result_t<decltype(f), Point>> result;
-    if (moore) {
-        result.reserve((2 * r + 1) * (2 * r + 1));
-    }
-    else {
-        result.reserve(r * r + (r + 1) * (r + 1));
-    }
-    for (int dy = -r; dy <= r; ++dy) {
-        for (int dx = -r; dx <= r; ++dx) {
-            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
-
-            Point p = {pos.x + dx, pos.y + dy};
-
-            if (p == pos && !center) continue;
-
-            if (layer.outOfBounds(p)) {
-                if (layer.isToroidal()) {
-                    p = layer.toToroidal(p);
-                    result.push_back(f(p));
-                }
-            }
-            else {
-                result.push_back(f(p));
-            }
-        }
-    }
-
-    return result;
-}
-
 template<typename T>
 T ValueLayer<T>::get(Point pos) {
     return read[pos.y][pos.x];
@@ -105,12 +69,11 @@ bool ValueLayer<T>::outOfBounds(const Point p) const {
 
 template<typename T>
 Point ValueLayer<T>::toToroidal(const Point p) const {
-    return toToroidal(p, width, height);
+    return convertToToroidal(p, width, height);
 }
 
 template<typename T>
 void ValueLayer<T>::swap() {
     read.swap(write);
 }
-
 }

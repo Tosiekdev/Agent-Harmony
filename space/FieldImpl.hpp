@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Utils.hpp"
 #include "Field.hpp"
 
 namespace abmf {
@@ -22,5 +23,65 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
     grid[pos.y][pos.y] = agent;
     agent.pos = pos;
     return true;
+}
+
+template<Positionable ... Agents>
+auto Field<Agents...>::getAgent(Point pos) -> OptAgentT {
+    return grid[pos.y][pos.x];
+}
+
+template<Positionable ... Agents>
+bool Field<Agents...>::isEmpty(Point p) const {
+    return grid[p.y][p.x].has_value();
+}
+
+template<Positionable ... Agents>
+std::vector<Point> Field<Agents...>::getNeighborhood(Point pos, int r, bool moore, bool center) const {
+    return visitNeighborhood(*this, pos, r, moore, center, [](Point p) { return p; });
+}
+
+template<Positionable ... Agents>
+std::vector<typename Field<Agents...>::AgentT> Field<Agents...>::getNeighbors(
+    const Point pos, int r, const bool moore, const bool center) {
+    std::vector<AgentT> result;
+    if (moore) {
+        result.reserve((2 * r + 1) * (2 * r + 1));
+    }
+    else {
+        result.reserve(r * r + (r + 1) * (r + 1));
+    }
+    for (int dy = -r; dy <= r; ++dy) {
+        for (int dx = -r; dx <= r; ++dx) {
+            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
+
+            Point p = {pos.x + dx, pos.y + dy};
+
+            if (p == pos && !center) continue;
+
+            if (outOfBounds(p)) {
+                if (isToroidal()) {
+                    p = toToroidal(p);
+                    if (isEmpty(pos)) continue;
+                    result.push_back(*getAgent(p));
+                }
+            }
+            else {
+                if (isEmpty(pos)) continue;
+                result.push_back(*getAgent(p));
+            }
+        }
+    }
+
+    return result;
+}
+
+template<Positionable ... Agents>
+bool Field<Agents...>::outOfBounds(const Point p) const {
+    return p.x < 0 || p.x > width || p.y < 0 || p.y > height;
+}
+
+template<Positionable ... Agents>
+Point Field<Agents...>::toToroidal(const Point p) const {
+    return convertToToroidal(p, width, height);
 }
 }

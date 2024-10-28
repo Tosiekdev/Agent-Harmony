@@ -2,8 +2,11 @@
 
 #include "space/Point.hpp"
 
+#include <cmath>
+#include <vector>
+
 namespace abmf {
-inline Point toToroidal(const Point p, const int width, const int height) {
+inline Point convertToToroidal(const Point p, const int width, const int height) {
     if (p.x < 0) {
         if (p.y < 0) {
             return {width + p.x % width, height + p.y % height};
@@ -14,5 +17,45 @@ inline Point toToroidal(const Point p, const int width, const int height) {
         return {p.x, height + p.y % height};
     }
     return {p.x % width, p.y % height};
+}
+
+template<typename T>
+concept Grid = requires(T t) {
+    { t.outOfBounds } -> std::same_as<bool>;
+    { t.isToroidal() } -> std::same_as<bool>;
+    { t.toToroidal(Point{}) } -> std::same_as<Point>;
+};
+
+template<Grid T>
+auto visitNeighborhood(const T& layer, const Point pos, const int r, const bool moore,
+                       const bool center, auto f) -> std::vector<std::invoke_result_t<decltype(f), Point>> {
+    std::vector<std::invoke_result_t<decltype(f), Point>> result;
+    if (moore) {
+        result.reserve((2 * r + 1) * (2 * r + 1));
+    }
+    else {
+        result.reserve(r * r + (r + 1) * (r + 1));
+    }
+    for (int dy = -r; dy <= r; ++dy) {
+        for (int dx = -r; dx <= r; ++dx) {
+            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
+
+            Point p = {pos.x + dx, pos.y + dy};
+
+            if (p == pos && !center) continue;
+
+            if (layer.outOfBounds(p)) {
+                if (layer.isToroidal()) {
+                    p = layer.toToroidal(p);
+                    result.push_back(f(p));
+                }
+            }
+            else {
+                result.push_back(f(p));
+            }
+        }
+    }
+
+    return result;
 }
 }
