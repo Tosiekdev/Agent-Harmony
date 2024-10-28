@@ -1,7 +1,9 @@
 #pragma once
 
+#include "../Utils.hpp"
 #include "ValueLayer.hpp"
 
+#include <cmath>
 #include <functional>
 #include <type_traits>
 
@@ -19,7 +21,7 @@ auto visitNeighborhood(const ValueLayer<T>& layer, const Point pos, const int r,
     }
     for (int dy = -r; dy <= r; ++dy) {
         for (int dx = -r; dx <= r; ++dx) {
-            if (!moore && abs(dx) + abs(dy) > r) continue;
+            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
 
             Point p = {pos.x + dx, pos.y + dy};
 
@@ -102,17 +104,8 @@ bool ValueLayer<T>::outOfBounds(const Point p) const {
 }
 
 template<typename T>
-Point ValueLayer<T>::toToroidal(Point p) const {
-    if (p.x < 0) {
-        if (p.y < 0) {
-            return {width + p.x % width, height + p.y % height};
-        }
-        return {width + p.x % width, p.y % height};
-    }
-    if (p.y < 0) {
-        return {p.x, height + p.y % height};
-    }
-    return {p.x % width, p.y % height};
+Point ValueLayer<T>::toToroidal(const Point p) const {
+    return toToroidal(p, width, height);
 }
 
 template<typename T>

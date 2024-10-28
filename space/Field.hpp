@@ -11,17 +11,23 @@
 namespace abmf {
 template<typename A>
 concept Positionable = requires(A a) {
-  { a.pos } -> std::same_as<Point>;
+  { a.pos } -> std::same_as<std::optional<Point>>;
 };
 
 template<Positionable... Agents>
 class Field {
 public:
-  using GridT = std::vector<std::vector<std::optional<std::variant<std::reference_wrapper<Agents>...>>>>;
-  explicit Field(const int pWidth, const int pHeight) : width(pWidth), height(pHeight), grid(height, GridT(width)) {}
+  using AgentT = std::optional<std::variant<std::reference_wrapper<Agents>...>>;
+  using GridT = std::vector<std::vector<AgentT>>;
+
+  explicit Field(const int pWidth, const int pHeight)
+    : width(pWidth), height(pHeight), grid(height, std::vector<AgentT>(width)) {}
 
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
-  bool addAgent(Agent agent, Point pos);
+  bool addAgent(Agent& agent, Point pos);
+
+  template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+  bool moveAgent(Agent& agent, Point pos);
 
 private:
   int width;
