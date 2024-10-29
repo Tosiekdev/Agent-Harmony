@@ -128,6 +128,9 @@ TEST(ValueLayerTest, GetNeighborhood) {
 
 TEST(FieldTest, Apply) {
     using FieldT = abmf::Field<MyAgent>;
+    MyAgent agent;
     FieldT field(2, 2);
+    field.addAgent(agent, {1,1});
     field.apply([](auto& a){a.get().value += 2;});
+    EXPECT_EQ(agent.value, 2);
 }
