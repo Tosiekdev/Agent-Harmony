@@ -24,7 +24,7 @@ void ValueLayer<T>::set(Point pos, T value) {
 template<typename T>
 template<std::invocable<T&> F>
 void ValueLayer<T>::apply(F&& f) {
-    for (auto& row : read) {
+    for (auto& row : write) {
         for (auto& val : row) {
             std::invoke(std::forward<F>(f), val);
         }

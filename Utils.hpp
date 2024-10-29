@@ -3,6 +3,8 @@
 #include "space/Point.hpp"
 
 #include <cmath>
+#include <concepts>
+#include <functional>
 #include <vector>
 
 namespace abmf {
@@ -21,15 +23,15 @@ inline Point convertToToroidal(const Point p, const int width, const int height)
 
 template<typename T>
 concept Grid = requires(T t) {
-    { t.outOfBounds } -> std::same_as<bool>;
+    { t.outOfBounds(Point{}) } -> std::same_as<bool>;
     { t.isToroidal() } -> std::same_as<bool>;
     { t.toToroidal(Point{}) } -> std::same_as<Point>;
 };
 
-template<Grid T>
+template<Grid T, std::invocable<Point> F>
 auto visitNeighborhood(const T& layer, const Point pos, const int r, const bool moore,
-                       const bool center, auto f) -> std::vector<std::invoke_result_t<decltype(f), Point>> {
-    std::vector<std::invoke_result_t<decltype(f), Point>> result;
+                       const bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
+    std::vector<std::invoke_result_t<F, Point>> result;
     if (moore) {
         result.reserve((2 * r + 1) * (2 * r + 1));
     }
@@ -47,15 +49,16 @@ auto visitNeighborhood(const T& layer, const Point pos, const int r, const bool 
             if (layer.outOfBounds(p)) {
                 if (layer.isToroidal()) {
                     p = layer.toToroidal(p);
-                    result.push_back(f(p));
+                    result.push_back(std::invoke(std::forward<F>(f), p));
                 }
             }
             else {
-                result.push_back(f(p));
+                result.push_back(std::invoke(std::forward<F>(f), p));
             }
         }
     }
 
     return result;
 }
+
 }

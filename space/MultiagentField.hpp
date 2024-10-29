@@ -24,3 +24,5 @@ private:
     GridT grid;
 };
 }
+
+#include "MultiagentFieldImpl.hpp"
