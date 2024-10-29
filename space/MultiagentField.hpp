@@ -37,6 +37,13 @@ public:
     template<typename Visitor>
     void apply(Visitor&& f);
 
+    [[nodiscard]] bool isEmpty(Point p) const;
+    [[nodiscard]] size_t agentCount(Point p) const;
+
+    [[nodiscard]] int getWidth() const { return width; }
+    [[nodiscard]] int getHeight() const { return height; }
+    [[nodiscard]] bool isToroidal() const { return toroidal; }
+
 private:
     int width;
     int height;

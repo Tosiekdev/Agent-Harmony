@@ -40,4 +40,14 @@ void MultiagentField<Agents...>::apply(Visitor&& f) {
         }
     });
 }
+
+template<Positionable ... Agents>
+bool MultiagentField<Agents...>::isEmpty(Point p) const {
+    return getAgents(p).empty();
+}
+
+template<Positionable ... Agents>
+size_t MultiagentField<Agents...>::agentCount(Point p) const {
+    return getAgents(p).size();
+}
 }
