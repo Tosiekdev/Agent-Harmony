@@ -14,10 +14,10 @@ public:
     using SquareT = std::vector<AgentT>;
     using GridT = std::vector<std::vector<SquareT>>;
 
-    explicit MultiagentField(const int pWidth, const int pHeight, const bool torus=false)
+    explicit MultiagentField(const int pWidth, const int pHeight, const bool torus = false)
         : width(pWidth), height(pHeight), grid(height, std::vector<SquareT>(width)), toroidal(torus) {}
 
-    explicit MultiagentField(const int pWidth, const int pHeight, size_t reservation, const bool torus=false)
+    explicit MultiagentField(const int pWidth, const int pHeight, size_t reservation, const bool torus = false)
         : width(pWidth), height(pHeight), grid(height, std::vector<SquareT>(width)), toroidal(torus) {
         for (auto& row : grid) {
             for (auto& square : row) {
@@ -30,6 +30,9 @@ public:
 
     template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
     void addAgent(Agent& agent, Point pos);
+
+    template<typename Visitor>
+    void apply(Visitor&& f);
 
 private:
     int width;

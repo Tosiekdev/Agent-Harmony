@@ -159,3 +159,15 @@ TEST(MultiagentFieldTest, AddAgent) {
     field.addAgent(agent2, {0,0});
     EXPECT_EQ(field.getAgents({0,0}).size(), 2);
 }
+
+TEST(MultiagentFieldTest, Apply) {
+    using Field = abmf::MultiagentField<MyAgent>;
+    MyAgent agent;
+    MyAgent agent2;
+    Field field(2,2);
+    field.addAgent(agent, {0,0});
+    field.addAgent(agent2, {0,0});
+    field.apply([](auto a){a.get().value += 2;});
+    EXPECT_EQ(agent.value, 2);
+    EXPECT_EQ(agent2.value, 2);
+}

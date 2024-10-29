@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Utils.hpp"
 #include "MultiagentField.hpp"
 
 namespace abmf {
@@ -13,5 +14,15 @@ template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
     agent.pos = pos;
     getAgents(pos).push_back(agent);
+}
+
+template<Positionable ... Agents>
+template<typename Visitor>
+void MultiagentField<Agents...>::apply(Visitor&& f) {
+    applyToAll(grid, [&](SquareT& square) {
+        for(auto agent : square) {
+            std::visit(std::forward<Visitor>(f), agent);
+        }
+    });
 }
 }
