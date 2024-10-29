@@ -52,6 +52,11 @@ size_t MultiagentField<Agents...>::agentCount(Point p) const {
 }
 
 template<Positionable ... Agents>
+std::vector<Point> MultiagentField<Agents...>::getNeighborhood(Point pos, int r, bool moore, bool center) const {
+    return visitNeighborhood(*this, pos, r, moore, center, [](Point p) { return p; });
+}
+
+template<Positionable ... Agents>
 bool MultiagentField<Agents...>::outOfBounds(const Point p) const {
     return p.x < 0 || p.x > width || p.y < 0 || p.y > height;
 }

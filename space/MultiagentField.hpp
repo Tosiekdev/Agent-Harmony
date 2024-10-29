@@ -40,6 +40,7 @@ public:
     [[nodiscard]] bool isEmpty(Point p) const;
     [[nodiscard]] size_t agentCount(Point p) const;
 
+    [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
     [[nodiscard]] bool outOfBounds(Point p) const;
     [[nodiscard]] Point toToroidal(Point p) const;
 

@@ -185,3 +185,18 @@ TEST(MultiagentFieldTest, RemoveAgent) {
     field.removeAgent(agent);
     EXPECT_EQ(field.getAgents({0,0}).size(), 1);
 }
+
+TEST(MultiagentFieldTest, GetNeighborhood) {
+    using Field = abmf::MultiagentField<MyAgent>;
+    Field field(3,3);
+    auto moore = field.getNeighborhood({1, 1}, 1, true, false);
+    auto mooreCenter = field.getNeighborhood({1, 1}, 1, true, true);
+
+    auto vonNeumann = field.getNeighborhood({1, 1}, 1, false, false);
+    auto vonNeumannCenter = field.getNeighborhood({1, 1}, 1, false, true);
+
+    EXPECT_EQ(moore.size(), 8);
+    EXPECT_EQ(mooreCenter.size(), 9);
+    EXPECT_EQ(vonNeumann.size(), 4);
+    EXPECT_EQ(vonNeumannCenter.size(), 5);
+}
