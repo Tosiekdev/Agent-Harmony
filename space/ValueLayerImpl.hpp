@@ -24,11 +24,7 @@ void ValueLayer<T>::set(Point pos, T value) {
 template<typename T>
 template<std::invocable<T&> F>
 void ValueLayer<T>::apply(F&& f) {
-    for (auto& row : write) {
-        for (auto& val : row) {
-            std::invoke(std::forward<F>(f), val);
-        }
-    }
+    applyToAll(write, std::forward<F>(f));
 }
 
 template<typename T>
@@ -36,7 +32,7 @@ template<std::invocable<Point, T> F>
 void ValueLayer<T>::forEach(F&& f) {
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            std::invoke(std::forward<F>(f), Point(x, y), write[y][x]);
+            std::invoke(std::forward<F>(f), Point(x, y), read[y][x]);
         }
     }
 }
@@ -44,11 +40,7 @@ void ValueLayer<T>::forEach(F&& f) {
 template<typename T>
 template<std::invocable<Point, T&> F>
 void ValueLayer<T>::transform(F&& f) {
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            std::invoke(std::forward<F>(f), Point(x, y), write[y][x]);
-        }
-    }
+    transformAll(write, std::forward<F>(f));
 }
 
 template<typename T>

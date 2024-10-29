@@ -103,6 +103,10 @@ TEST(ValueLayerTest, Apply) {
     EXPECT_EQ(values.size(), 2*2);
 }
 
+TEST(ValueLayerTest, ForEach) {
+
+}
+
 TEST(ValueLayerTest, GetNeighborhood) {
     abmf::RealValueLayer layer(3, 3, false, 1.);
     auto moore = layer.getNeighborhood({1, 1}, 1, true, false);
