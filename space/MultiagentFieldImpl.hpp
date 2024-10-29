@@ -17,6 +17,21 @@ void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
 }
 
 template<Positionable ... Agents>
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+void MultiagentField<Agents...>::removeAgent(Agent& agent) {
+    if (agent.pos) {
+        std::erase_if(getAgents(*agent.pos), [&](AgentT agentVariant) {
+            return std::visit([&](auto a) {
+                if constexpr (std::is_same_v<decltype(a), std::reference_wrapper<Agent>>) {
+                    return a.get() == agent;
+                }
+                return false;
+            }, agentVariant);
+        });
+    }
+}
+
+template<Positionable ... Agents>
 template<typename Visitor>
 void MultiagentField<Agents...>::apply(Visitor&& f) {
     applyToAll(grid, [&](SquareT& square) {

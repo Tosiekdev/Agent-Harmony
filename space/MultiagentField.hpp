@@ -31,6 +31,9 @@ public:
     template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
     void addAgent(Agent& agent, Point pos);
 
+    template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+    void removeAgent(Agent& agent);
+
     template<typename Visitor>
     void apply(Visitor&& f);
 

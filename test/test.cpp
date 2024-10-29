@@ -23,6 +23,9 @@ struct MyAgent {
     void step(T& model) {
         run += 1;
     }
+    bool operator==(const MyAgent& rhs) const {
+        return id == rhs.id;
+    }
 };
 
 struct MyModel : abmf::Model<MyAgent> {
@@ -170,4 +173,15 @@ TEST(MultiagentFieldTest, Apply) {
     field.apply([](auto a){a.get().value += 2;});
     EXPECT_EQ(agent.value, 2);
     EXPECT_EQ(agent2.value, 2);
+}
+
+TEST(MultiagentFieldTest, RemoveAgent) {
+    using Field = abmf::MultiagentField<MyAgent>;
+    MyAgent agent{1};
+    MyAgent agent2{2};
+    Field field(2,2);
+    field.addAgent(agent, {0,0});
+    field.addAgent(agent2, {0,0});
+    field.removeAgent(agent);
+    EXPECT_EQ(field.getAgents({0,0}).size(), 1);
 }
