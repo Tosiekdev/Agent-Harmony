@@ -40,6 +40,9 @@ public:
     [[nodiscard]] bool isEmpty(Point p) const;
     [[nodiscard]] size_t agentCount(Point p) const;
 
+    [[nodiscard]] bool outOfBounds(Point p) const;
+    [[nodiscard]] Point toToroidal(Point p) const;
+
     [[nodiscard]] int getWidth() const { return width; }
     [[nodiscard]] int getHeight() const { return height; }
     [[nodiscard]] bool isToroidal() const { return toroidal; }

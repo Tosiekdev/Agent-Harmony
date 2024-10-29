@@ -50,4 +50,14 @@ template<Positionable ... Agents>
 size_t MultiagentField<Agents...>::agentCount(Point p) const {
     return getAgents(p).size();
 }
+
+template<Positionable ... Agents>
+bool MultiagentField<Agents...>::outOfBounds(const Point p) const {
+    return p.x < 0 || p.x > width || p.y < 0 || p.y > height;
+}
+
+template<Positionable ... Agents>
+Point MultiagentField<Agents...>::toToroidal(const Point p) const {
+    return convertToToroidal(p, width, height);
+}
 }
