@@ -26,16 +26,33 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
 }
 
 template<Positionable ... Agents>
-template<typename Visitor>
-void Field<Agents...>::apply(Visitor&& f) {
-    applyToAll(grid, [&](OptAgentT& agent) {
-        if (!agent.has_value()) return;
-        std::visit(std::forward<Visitor>(f), *agent);
-    });
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+void Field<Agents...>::removeAgent(Agent& agent) {
+    if (agent.pos) {
+        getAgent(*agent.pos) = std::nullopt;
+    }
+    agent.pos = std::nullopt;
 }
 
 template<Positionable ... Agents>
-auto Field<Agents...>::getAgent(Point pos) -> OptAgentT {
+void Field<Agents...>::removeAgent(const Point pos) {
+    if (OptAgentT& square = getAgent(pos)) {
+        std::visit([&](auto agent) { removeAgent(agent.get()); }, *square);
+    }
+}
+
+template<Positionable ... Agents>
+template<typename Visitor>
+void Field<Agents...>::apply(Visitor&& f) {
+    applyToAll(grid,
+               [&](OptAgentT& agent) {
+                   if (!agent.has_value()) return;
+                   std::visit(std::forward<Visitor>(f), *agent);
+               });
+}
+
+template<Positionable ... Agents>
+auto Field<Agents...>::getAgent(Point pos) -> OptAgentT& {
     return grid[pos.y][pos.x];
 }
 

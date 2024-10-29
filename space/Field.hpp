@@ -28,10 +28,15 @@ public:
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
   bool moveAgent(Agent& agent, Point pos);
 
+  template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+  void removeAgent(Agent& agent);
+
+  void removeAgent(Point pos);
+
   template<typename Visitor>
   void apply(Visitor&& f);
 
-  OptAgentT getAgent(Point pos);
+  OptAgentT& getAgent(Point pos);
 
   [[nodiscard]] bool isEmpty(Point p) const;
 
