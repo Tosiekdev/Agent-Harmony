@@ -8,10 +8,7 @@ namespace abmf {
 template<typename T>
 class ValueLayer {
 public:
-    explicit ValueLayer(const int pWidth, const int pHeight, const bool torus)
-        : width(pWidth), height(pHeight), read(height, std::vector<T>(width)), write(read), toroidal(torus) {}
-
-    explicit ValueLayer(const int pWidth, const int pHeight, const bool torus, const T initValue)
+    explicit ValueLayer(const int pWidth, const int pHeight, const bool torus=false, const T initValue=T())
         : width(pWidth), height(pHeight), read(height, std::vector<T>(width, initValue)), write(read), toroidal(torus) {}
 
     T get(Point pos);

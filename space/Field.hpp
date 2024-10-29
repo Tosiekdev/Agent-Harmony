@@ -10,9 +10,7 @@
 
 namespace abmf {
 template<typename A>
-concept Positionable = requires(A a) {
-  { a.pos } -> std::same_as<std::optional<Point>>;
-};
+concept Positionable = std::same_as<decltype(std::declval<A>().pos), std::optional<Point>>;
 
 template<Positionable... Agents>
 class Field {
@@ -21,7 +19,7 @@ public:
   using OptAgentT = std::optional<AgentT>;
   using GridT = std::vector<std::vector<OptAgentT>>;
 
-  explicit Field(const int pWidth, const int pHeight, const bool torus)
+  explicit Field(const int pWidth, const int pHeight, const bool torus=false)
     : width(pWidth), height(pHeight), grid(height, std::vector<OptAgentT>(width)), toroidal(torus) {}
 
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
@@ -29,6 +27,9 @@ public:
 
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
   bool moveAgent(Agent& agent, Point pos);
+
+  template<typename Visitor>
+  void apply(Visitor&& f);
 
   OptAgentT getAgent(Point pos);
 

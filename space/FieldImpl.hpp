@@ -26,6 +26,15 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
 }
 
 template<Positionable ... Agents>
+template<typename Visitor>
+void Field<Agents...>::apply(Visitor&& f) {
+    applyToAll(grid, [&](OptAgentT& agent) {
+        if (!agent.has_value()) return;
+        std::visit(std::forward<Visitor>(f), *agent);
+    });
+}
+
+template<Positionable ... Agents>
 auto Field<Agents...>::getAgent(Point pos) -> OptAgentT {
     return grid[pos.y][pos.x];
 }

@@ -1,13 +1,18 @@
 #include <gtest/gtest.h>
 
+#include <optional>
+
 #include "../Model.hpp"
 #include "../Schedule.hpp"
+#include "../space/Field.hpp"
 #include "../space/ValueLayer.hpp"
 
 struct MyAgent {
     int id;
     bool active{true};
     int run{};
+    int value{};
+    std::optional<abmf::Point> pos;
 
     [[nodiscard]] bool isActive() const {
         return active;
@@ -119,4 +124,10 @@ TEST(ValueLayerTest, GetNeighborhood) {
     EXPECT_EQ(mooreCenter.size(), 9);
     EXPECT_EQ(vonNeumann.size(), 4);
     EXPECT_EQ(vonNeumannCenter.size(), 5);
+}
+
+TEST(FieldTest, Apply) {
+    using FieldT = abmf::Field<MyAgent>;
+    FieldT field(2, 2);
+    field.apply([](auto& a){a.get().value += 2;});
 }
