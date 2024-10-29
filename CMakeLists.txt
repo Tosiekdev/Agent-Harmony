@@ -16,4 +16,5 @@ add_library(ABMframework STATIC Model.cpp
         Utils.hpp
         space/MultiagentField.hpp
         space/MultiagentFieldImpl.hpp
+        Concepts.hpp
 )

@@ -1,16 +1,14 @@
 #pragma once
 
+#include "../Concepts.hpp"
 #include "Point.hpp"
 
-#include <concepts>
 #include <functional>
 #include <optional>
 #include <variant>
 #include <vector>
 
 namespace abmf {
-template<typename A>
-concept Positionable = std::same_as<decltype(std::declval<A>().pos), std::optional<Point>>;
 
 template<Positionable... Agents>
 class Field {

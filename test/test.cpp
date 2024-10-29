@@ -5,6 +5,7 @@
 #include "../Model.hpp"
 #include "../Schedule.hpp"
 #include "../space/Field.hpp"
+#include "../space/MultiagentField.hpp"
 #include "../space/ValueLayer.hpp"
 
 struct MyAgent {
@@ -147,4 +148,14 @@ TEST(FieldTest, RemoveAgent) {
     EXPECT_TRUE(field.getAgent({1,1}).has_value());
     field.removeAgent(agent);
     EXPECT_FALSE(field.getAgent({1,1}).has_value());
+}
+
+TEST(MultiagentFieldTest, AddAgent) {
+    using Field = abmf::MultiagentField<MyAgent>;
+    MyAgent agent;
+    MyAgent agent2;
+    Field field(2,2);
+    field.addAgent(agent, {0,0});
+    field.addAgent(agent2, {0,0});
+    EXPECT_EQ(field.getAgents({0,0}).size(), 2);
 }
