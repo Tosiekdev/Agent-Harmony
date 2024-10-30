@@ -58,6 +58,16 @@ void MultiagentField<Agents...>::apply(Visitor&& f) {
 }
 
 template<Positionable ... Agents>
+template<std::invocable<Point, std::variant<std::reference_wrapper<Agents>...>&> F>
+void MultiagentField<Agents...>::transform(F&& f) {
+    transformAll(grid, [&](Point p, SquareT& agents) {
+        for (auto& agent : agents) {
+            std::invoke(std::forward<F>(f), p, agent);
+        }
+    });
+}
+
+template<Positionable ... Agents>
 bool MultiagentField<Agents...>::isEmpty(Point p) const {
     return getAgents(p).empty();
 }

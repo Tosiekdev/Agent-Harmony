@@ -186,6 +186,23 @@ TEST(MultiagentFieldTest, Apply) {
     EXPECT_EQ(agent2.value, 2);
 }
 
+TEST(MultiagentFieldTest, Transform) {
+    using Field = abmf::MultiagentField<MyAgent>;
+    MyAgent agent;
+    MyAgent agent2;
+    MyAgent agent3;
+    Field field(2,2);
+    field.addAgent(agent, {0,1});
+    field.addAgent(agent2, {1,1});
+    field.addAgent(agent3, {1,1});
+    field.transform([](abmf::Point p, Field::AgentT a) {
+        std::visit([&](auto ag){ ag.get().value += p.x + p.y; }, a);
+    });
+    EXPECT_EQ(agent.value, 1);
+    EXPECT_EQ(agent2.value, 2);
+    EXPECT_EQ(agent3.value, 2);
+}
+
 TEST(MultiagentFieldTest, RemoveAgent) {
     using Field = abmf::MultiagentField<MyAgent>;
     MyAgent agent{1};

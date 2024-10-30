@@ -41,6 +41,9 @@ public:
     template<typename Visitor>
     void apply(Visitor&& f);
 
+    template<std::invocable<Point, AgentT&> F>
+    void transform(F&& f);
+
     [[nodiscard]] bool isEmpty(Point p) const;
     [[nodiscard]] size_t agentCount(Point p) const;
 
