@@ -139,6 +139,17 @@ TEST(FieldTest, Apply) {
     EXPECT_EQ(agent.value, 2);
 }
 
+TEST(FieldTest, Transform) {
+    using FieldT = abmf::Field<MyAgent>;
+    MyAgent agent;
+    FieldT field(2, 2);
+    field.addAgent(agent, {1,1});
+    field.transform([](abmf::Point p, FieldT::AgentT a) {
+        std::visit([&](auto ag){ ag.get().value += p.x + p.y; }, a);
+    });
+    EXPECT_EQ(agent.value, 2);
+}
+
 TEST(FieldTest, RemoveAgent) {
     using FieldT = abmf::Field<MyAgent>;
     MyAgent agent;

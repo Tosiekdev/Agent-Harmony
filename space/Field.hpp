@@ -9,7 +9,6 @@
 #include <vector>
 
 namespace abmf {
-
 template<Positionable... Agents>
 class Field {
 public:
@@ -17,7 +16,7 @@ public:
   using OptAgentT = std::optional<AgentT>;
   using GridT = std::vector<std::vector<OptAgentT>>;
 
-  explicit Field(const int pWidth, const int pHeight, const bool torus=false)
+  explicit Field(const int pWidth, const int pHeight, const bool torus = false)
     : width(pWidth), height(pHeight), grid(height, std::vector<OptAgentT>(width)), toroidal(torus) {}
 
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
@@ -32,6 +31,9 @@ public:
 
   template<typename Visitor>
   void apply(Visitor&& f);
+
+  template<std::invocable<Point, AgentT&> F>
+  void transform(F&& f);
 
   OptAgentT& getAgent(Point pos);
 

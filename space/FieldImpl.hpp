@@ -52,6 +52,15 @@ void Field<Agents...>::apply(Visitor&& f) {
 }
 
 template<Positionable ... Agents>
+template<std::invocable<Point, std::variant<std::reference_wrapper<Agents>...>&> F>
+void Field<Agents...>::transform(F&& f) {
+    transformAll(grid, [&](Point p, OptAgentT& agent) {
+        if (!agent.has_value()) return;
+        std::invoke(std::forward<F>(f), p, *agent);
+    });
+}
+
+template<Positionable ... Agents>
 auto Field<Agents...>::getAgent(Point pos) -> OptAgentT& {
     return grid[pos.y][pos.x];
 }
