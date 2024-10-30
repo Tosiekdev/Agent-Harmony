@@ -18,6 +18,13 @@ void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
 
 template<Positionable ... Agents>
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
+    removeAgent(agent);
+    addAgent(agent, pos);
+}
+
+template<Positionable ... Agents>
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void MultiagentField<Agents...>::removeAgent(Agent& agent) {
     if (agent.pos) {
         std::erase_if(getAgents(*agent.pos), [&](AgentT agentVariant) {
