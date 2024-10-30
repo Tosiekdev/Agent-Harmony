@@ -28,7 +28,16 @@ void MultiagentField<Agents...>::removeAgent(Agent& agent) {
                 return false;
             }, agentVariant);
         });
+        agent.pos = std::nullopt;
     }
+}
+
+template<Positionable ... Agents>
+void MultiagentField<Agents...>::removeAgents(const Point pos) {
+    for (auto& agent : getAgents(pos)) {
+        std::visit([&](auto a) { a.get().pos = std::nullopt; }, agent);
+    }
+    getAgents(pos).clear();
 }
 
 template<Positionable ... Agents>

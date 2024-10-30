@@ -28,7 +28,6 @@ public:
 
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
   void removeAgent(Agent& agent);
-
   void removeAgent(Point pos);
 
   template<typename Visitor>

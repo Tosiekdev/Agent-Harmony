@@ -184,6 +184,20 @@ TEST(MultiagentFieldTest, RemoveAgent) {
     field.addAgent(agent2, {0,0});
     field.removeAgent(agent);
     EXPECT_EQ(field.getAgents({0,0}).size(), 1);
+    EXPECT_FALSE(agent.pos.has_value());
+}
+
+TEST(MultiagentFieldTest, RemoveAgents) {
+    using Field = abmf::MultiagentField<MyAgent>;
+    MyAgent agent{1};
+    MyAgent agent2{2};
+    Field field(2,2);
+    field.addAgent(agent, {0,0});
+    field.addAgent(agent2, {0,0});
+    field.removeAgents({0,0});
+    EXPECT_EQ(field.getAgents({0,0}).size(), 0);
+    EXPECT_FALSE(agent.pos.has_value());
+    EXPECT_FALSE(agent2.pos.has_value());
 }
 
 TEST(MultiagentFieldTest, GetNeighborhood) {
