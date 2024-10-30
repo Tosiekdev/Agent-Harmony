@@ -7,5 +7,7 @@
 
 namespace abmf {
 template<typename A>
-concept Positionable = std::same_as<decltype(std::declval<A>().pos), std::optional<Point>>;
+concept Positionable = requires(A a) {
+    { a.pos } -> std::convertible_to<std::optional<Point>>;
+};
 }
