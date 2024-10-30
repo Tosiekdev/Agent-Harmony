@@ -27,14 +27,17 @@ template<Positionable ... Agents>
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void MultiagentField<Agents...>::removeAgent(Agent& agent) {
     if (agent.pos) {
-        std::erase_if(getAgents(*agent.pos), [&](AgentT agentVariant) {
-            return std::visit([&](auto a) {
-                if constexpr (std::is_same_v<decltype(a), std::reference_wrapper<Agent>>) {
-                    return a.get() == agent;
-                }
-                return false;
-            }, agentVariant);
-        });
+        std::erase_if(getAgents(*agent.pos),
+                      [&](AgentT agentVariant) {
+                          return std::visit([&](auto a) {
+                                                if constexpr (std::is_same_v<
+                                                    decltype(a), std::reference_wrapper<Agent>>) {
+                                                    return a.get() == agent;
+                                                }
+                                                return false;
+                                            },
+                                            agentVariant);
+                      });
         agent.pos = std::nullopt;
     }
 }
@@ -50,21 +53,23 @@ void MultiagentField<Agents...>::removeAgents(const Point pos) {
 template<Positionable ... Agents>
 template<typename Visitor>
 void MultiagentField<Agents...>::apply(Visitor&& f) {
-    applyToAll(grid, [&](SquareT& square) {
-        for(auto agent : square) {
-            std::visit(std::forward<Visitor>(f), agent);
-        }
-    });
+    applyToAll(grid,
+               [&](SquareT& square) {
+                   for (auto agent : square) {
+                       std::visit(std::forward<Visitor>(f), agent);
+                   }
+               });
 }
 
 template<Positionable ... Agents>
 template<std::invocable<Point, std::variant<std::reference_wrapper<Agents>...>&> F>
 void MultiagentField<Agents...>::transform(F&& f) {
-    transformAll(grid, [&](Point p, SquareT& agents) {
-        for (auto& agent : agents) {
-            std::invoke(std::forward<F>(f), p, agent);
-        }
-    });
+    transformAll(grid,
+                 [&](Point p, SquareT& agents) {
+                     for (auto& agent : agents) {
+                         std::invoke(std::forward<F>(f), p, agent);
+                     }
+                 });
 }
 
 template<Positionable ... Agents>
@@ -80,6 +85,43 @@ size_t MultiagentField<Agents...>::agentCount(Point p) const {
 template<Positionable ... Agents>
 std::vector<Point> MultiagentField<Agents...>::getNeighborhood(Point pos, int r, bool moore, bool center) const {
     return visitNeighborhood(*this, pos, r, moore, center, [](Point p) { return p; });
+}
+
+template<Positionable ... Agents>
+std::vector<typename MultiagentField<Agents...>::AgentT> MultiagentField<Agents...>::getNeighbors(
+    const Point pos, int r, const bool moore, const bool center) {
+    std::vector<AgentT> result;
+    if (moore) {
+        result.reserve((2 * r + 1) * (2 * r + 1));
+    }
+    else {
+        result.reserve(r * r + (r + 1) * (r + 1));
+    }
+    for (int dy = -r; dy <= r; ++dy) {
+        for (int dx = -r; dx <= r; ++dx) {
+            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
+
+            Point p = {pos.x + dx, pos.y + dy};
+
+            if (p == pos && !center) continue;
+
+            if (outOfBounds(p)) {
+                if (isToroidal()) {
+                    p = toToroidal(p);
+                    for(auto& agent : getAgents(p)) {
+                        result.push_back(agent);
+                    }
+                }
+            }
+            else {
+                for(auto& agent : getAgents(p)) {
+                    result.push_back(agent);
+                }
+            }
+        }
+    }
+
+    return result;
 }
 
 template<Positionable ... Agents>

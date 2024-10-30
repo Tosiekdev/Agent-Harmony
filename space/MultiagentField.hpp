@@ -48,6 +48,7 @@ public:
     [[nodiscard]] size_t agentCount(Point p) const;
 
     [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
+    [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r, bool moore, bool center);
     [[nodiscard]] bool outOfBounds(Point p) const;
     [[nodiscard]] Point toToroidal(Point p) const;
 
