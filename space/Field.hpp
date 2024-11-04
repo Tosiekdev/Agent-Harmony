@@ -31,10 +31,10 @@ public:
   void removeAgent(Agent& agent);
   void removeAgent(Point pos);
 
-  template<typename Visitor>
-  void apply(Visitor&& f);
+  template<typename F> requires (std::invocable<F, Agents&> || ...)
+  void apply(F&& f);
 
-  template<std::invocable<Point, AgentT&> F>
+  template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
   void transform(F&& f);
 
   [[nodiscard]] bool isEmpty(Point p) const;

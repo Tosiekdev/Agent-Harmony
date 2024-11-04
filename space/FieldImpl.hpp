@@ -42,7 +42,7 @@ void Field<Agents...>::removeAgent(const Point pos) {
 }
 
 template<Positionable ... Agents>
-template<typename Visitor>
+template<typename Visitor> requires (std::invocable<Visitor, Agents&> || ...)
 void Field<Agents...>::apply(Visitor&& f) {
     applyToAll(grid,
                [&](OptAgentT& agent) {
@@ -52,11 +52,11 @@ void Field<Agents...>::apply(Visitor&& f) {
 }
 
 template<Positionable ... Agents>
-template<std::invocable<Point, std::variant<Agents*...>&> F>
+template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
 void Field<Agents...>::transform(F&& f) {
     transformAll(grid, [&](Point p, OptAgentT& agent) {
         if (!agent.has_value()) return;
-        std::invoke(std::forward<F>(f), p, *agent);
+        std::visit([&](auto a){std::invoke(std::forward<F>(f), p, *a);}, *agent);
     });
 }
 
