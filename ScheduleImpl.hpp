@@ -56,7 +56,7 @@ void Schedule<M, Agents...>::step() {
 
     for (auto& event : events) {
         std::visit([&](auto agent) {
-            if (agent.get().isActive() && event.interval) {
+            if (agent->isActive() && event.interval) {
                 scheduleRepeating(event.agent, epochs + event.interval, event.priority, event.interval);
             }
         }, event.agent);

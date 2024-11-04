@@ -17,26 +17,29 @@ template<typename M>
 concept SimState = requires(M m) {
     m.beforeStep();
     m.afterStep();
-    {m.shouldEnd(int{})} -> std::same_as<bool>;
+    { m.shouldEnd(int{}) } -> std::same_as<bool>;
 };
 
 template<typename M, Schedulable<M>... Agents>
 struct Action {
     Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0)
-        : time(pTime), priority(pPriority), interval(pInterval), agent(pAgent) {}
+        : time(pTime), priority(pPriority), interval(pInterval), agent(&pAgent) {}
+
+    Action(const std::variant<Agents*...> pAgent, const size_t pTime, const size_t pPriority,
+           const size_t pInterval = 0) : time(pTime), priority(pPriority), interval(pInterval), agent(pAgent) {}
 
     void step(M& model) {
-        std::visit([&](auto& agent) { agent.get().step(model); }, agent);
+        std::visit([&](auto agent) { agent->step(model); }, agent);
     }
 
     [[nodiscard]] bool isActive() const {
-        return std::visit([](auto agent) { return agent.get().isActive(); }, agent);
+        return std::visit([](auto agent) { return agent->isActive(); }, agent);
     }
 
     size_t time;
     size_t priority;
     size_t interval;
-    std::variant<std::reference_wrapper<Agents>...> agent;
+    std::variant<Agents*...> agent;
 
     auto operator<=>(const Action& rhs) const {
         if (auto relation = time <=> rhs.time; relation != 0) {
