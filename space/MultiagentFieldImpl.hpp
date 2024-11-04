@@ -51,23 +51,23 @@ void MultiagentField<Agents...>::removeAgents(const Point pos) {
 }
 
 template<Positionable ... Agents>
-template<typename Visitor>
-void MultiagentField<Agents...>::apply(Visitor&& f) {
+template<typename F> requires (std::invocable<F, Agents&> || ...)
+void MultiagentField<Agents...>::apply(F&& f) {
     applyToAll(grid,
                [&](SquareT& square) {
                    for (auto agent : square) {
-                       std::visit(std::forward<Visitor>(f), agent);
+                       std::visit([&](auto a) { std::invoke(std::forward<F>(f), *a); }, agent);
                    }
                });
 }
 
 template<Positionable ... Agents>
-template<std::invocable<Point, std::variant<Agents*...>&> F>
+template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
 void MultiagentField<Agents...>::transform(F&& f) {
     transformAll(grid,
                  [&](Point p, SquareT& agents) {
                      for (auto& agent : agents) {
-                         std::invoke(std::forward<F>(f), p, agent);
+                         std::visit([&](auto a) { std::invoke(std::forward<F>(f), p, *a); }, agent);
                      }
                  });
 }
@@ -108,13 +108,13 @@ std::vector<typename MultiagentField<Agents...>::AgentT> MultiagentField<Agents.
             if (outOfBounds(p)) {
                 if (isToroidal()) {
                     p = toToroidal(p);
-                    for(auto& agent : getAgents(p)) {
+                    for (auto& agent : getAgents(p)) {
                         result.push_back(agent);
                     }
                 }
             }
             else {
-                for(auto& agent : getAgents(p)) {
+                for (auto& agent : getAgents(p)) {
                     result.push_back(agent);
                 }
             }
