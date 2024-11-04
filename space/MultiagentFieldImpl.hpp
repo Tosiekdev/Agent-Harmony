@@ -13,7 +13,7 @@ template<Positionable ... Agents>
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
     agent.pos = pos;
-    getAgents(pos).push_back(agent);
+    getAgents(pos).push_back(&agent);
 }
 
 template<Positionable ... Agents>
@@ -31,8 +31,8 @@ void MultiagentField<Agents...>::removeAgent(Agent& agent) {
                       [&](AgentT agentVariant) {
                           return std::visit([&](auto a) {
                                                 if constexpr (std::is_same_v<
-                                                    decltype(a), std::reference_wrapper<Agent>>) {
-                                                    return a.get() == agent;
+                                                    std::remove_reference_t<decltype(*a)>, Agent>) {
+                                                    return *a == agent;
                                                 }
                                                 return false;
                                             },
@@ -45,7 +45,7 @@ void MultiagentField<Agents...>::removeAgent(Agent& agent) {
 template<Positionable ... Agents>
 void MultiagentField<Agents...>::removeAgents(const Point pos) {
     for (auto& agent : getAgents(pos)) {
-        std::visit([&](auto a) { a.get().pos = std::nullopt; }, agent);
+        std::visit([&](auto a) { a->pos = std::nullopt; }, agent);
     }
     getAgents(pos).clear();
 }
@@ -62,7 +62,7 @@ void MultiagentField<Agents...>::apply(Visitor&& f) {
 }
 
 template<Positionable ... Agents>
-template<std::invocable<Point, std::variant<std::reference_wrapper<Agents>...>&> F>
+template<std::invocable<Point, std::variant<Agents*...>&> F>
 void MultiagentField<Agents...>::transform(F&& f) {
     transformAll(grid,
                  [&](Point p, SquareT& agents) {

@@ -180,7 +180,7 @@ TEST(MultiagentFieldTest, Apply) {
     Field field(2, 2);
     field.addAgent(agent, {0, 0});
     field.addAgent(agent2, {0, 0});
-    field.apply([](auto a) { a.get().value += 2; });
+    field.apply([](auto a) { a->value += 2; });
     EXPECT_EQ(agent.value, 2);
     EXPECT_EQ(agent2.value, 2);
 }
@@ -195,7 +195,7 @@ TEST(MultiagentFieldTest, Transform) {
     field.addAgent(agent2, {1, 1});
     field.addAgent(agent3, {1, 1});
     field.transform([](abmf::Point p, Field::AgentT a) {
-        std::visit([&](auto ag) { ag.get().value += p.x + p.y; }, a);
+        std::visit([&](auto ag) { ag->value += p.x + p.y; }, a);
     });
     EXPECT_EQ(agent.value, 1);
     EXPECT_EQ(agent2.value, 2);
@@ -261,7 +261,7 @@ TEST(MultiagentFieldTest, GetMooreNeighbors) {
     auto moore = field.getNeighbors({1, 1}, 1, true, false);
 
     auto equalityCheck = [](Field::AgentT agent, MyAgent& expect) {
-        return std::visit([&](auto a) { return a.get() == expect; }, agent);
+        return std::visit([&](auto a) { return *a == expect; }, agent);
     };
 
     ASSERT_EQ(moore.size(), 8);
@@ -283,7 +283,7 @@ TEST(MultiagentFieldTest, GetMooreNeighborsNoCenter) {
     auto mooreCenter = field.getNeighbors({1, 1}, 1, true, true);
 
     auto equalityCheck = [](Field::AgentT agent, MyAgent& expect) {
-        return std::visit([&](auto a) { return a.get() == expect; }, agent);
+        return std::visit([&](auto a) { return *a == expect; }, agent);
     };
 
     ASSERT_EQ(mooreCenter.size(), 9);
@@ -300,7 +300,7 @@ TEST(MultiagentFieldTest, GetVonNeumannNeighbors) {
     auto vonNeumann = field.getNeighbors({1, 1}, 1, false, false);
 
     auto equalityCheck = [](Field::AgentT agent, MyAgent& expect) {
-        return std::visit([&](auto a) { return a.get() == expect; }, agent);
+        return std::visit([&](auto a) { return *a == expect; }, agent);
     };
 
     ASSERT_EQ(vonNeumann.size(), 4);
@@ -314,7 +314,7 @@ TEST(MultiagentFieldTest, GetVonNeumannNeighborsNoCenter) {
     auto vonNeumannCenter = field.getNeighbors({1, 1}, 1, false, true);
 
     auto equalityCheck = [](Field::AgentT agent, MyAgent& expect) {
-        return std::visit([&](auto a) { return a.get() == expect; }, agent);
+        return std::visit([&](auto a) { return *a == expect; }, agent);
     };
 
     ASSERT_EQ(vonNeumannCenter.size(), 5);

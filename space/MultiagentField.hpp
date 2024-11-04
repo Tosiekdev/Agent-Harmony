@@ -10,7 +10,7 @@ namespace abmf {
 template<Positionable... Agents>
 class MultiagentField {
 public:
-    using AgentT = std::variant<std::reference_wrapper<Agents>...>;
+    using AgentT = std::variant<Agents*...>;
     using SquareT = std::vector<AgentT>;
     using GridT = std::vector<std::vector<SquareT>>;
 
