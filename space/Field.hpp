@@ -12,7 +12,7 @@ namespace abmf {
 template<Positionable... Agents>
 class Field {
 public:
-  using AgentT = std::variant<std::reference_wrapper<Agents>...>;
+  using AgentT = std::variant<Agents*...>;
   using OptAgentT = std::optional<AgentT>;
   using GridT = std::vector<std::vector<OptAgentT>>;
 

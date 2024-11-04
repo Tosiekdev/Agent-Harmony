@@ -8,7 +8,7 @@ template<Positionable ... Agents>
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
     if (grid[pos.y][pos.x]) return false;
-    grid[pos.y][pos.x] = agent;
+    grid[pos.y][pos.x] = &agent;
     agent.pos = pos;
     return true;
 }
@@ -20,7 +20,7 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
     if (grid[agent.pos.y][agent.pos.x]) {
         grid[agent.pos.y][agent.pos.x] = std::nullopt;
     }
-    grid[pos.y][pos.y] = agent;
+    grid[pos.y][pos.y] = &agent;
     agent.pos = pos;
     return true;
 }
@@ -37,7 +37,7 @@ void Field<Agents...>::removeAgent(Agent& agent) {
 template<Positionable ... Agents>
 void Field<Agents...>::removeAgent(const Point pos) {
     if (OptAgentT& square = getAgent(pos)) {
-        std::visit([&](auto agent) { removeAgent(agent.get()); }, *square);
+        std::visit([&](auto agent) { removeAgent(*agent); }, *square);
     }
 }
 
@@ -47,12 +47,12 @@ void Field<Agents...>::apply(Visitor&& f) {
     applyToAll(grid,
                [&](OptAgentT& agent) {
                    if (!agent.has_value()) return;
-                   std::visit(std::forward<Visitor>(f), *agent);
+                   std::visit([&](auto a){std::invoke(std::forward<Visitor>(f), *a);}, *agent);
                });
 }
 
 template<Positionable ... Agents>
-template<std::invocable<Point, std::variant<std::reference_wrapper<Agents>...>&> F>
+template<std::invocable<Point, std::variant<Agents*...>&> F>
 void Field<Agents...>::transform(F&& f) {
     transformAll(grid, [&](Point p, OptAgentT& agent) {
         if (!agent.has_value()) return;

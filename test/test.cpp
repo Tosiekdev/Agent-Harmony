@@ -134,7 +134,7 @@ TEST(FieldTest, Apply) {
     MyAgent agent;
     FieldT field(2, 2);
     field.addAgent(agent, {1, 1});
-    field.apply([](auto& a) { a.get().value += 2; });
+    field.apply([](auto& a) { a.value += 2; });
     EXPECT_EQ(agent.value, 2);
 }
 
@@ -144,7 +144,7 @@ TEST(FieldTest, Transform) {
     FieldT field(2, 2);
     field.addAgent(agent, {1, 1});
     field.transform([](abmf::Point p, FieldT::AgentT a) {
-        std::visit([&](auto ag) { ag.get().value += p.x + p.y; }, a);
+        std::visit([&](auto ag) { ag->value += p.x + p.y; }, a);
     });
     EXPECT_EQ(agent.value, 2);
 }
