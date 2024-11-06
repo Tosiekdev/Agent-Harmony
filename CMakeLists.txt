@@ -18,4 +18,6 @@ add_library(ABMframework STATIC Model.cpp
         space/MultiagentFieldImpl.hpp
         Concepts.hpp
         space/Edge.hpp
+        space/Network.hpp
+        space/NetworkImpl.hpp
 )
