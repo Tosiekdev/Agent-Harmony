@@ -14,11 +14,13 @@ class Network {
 public:
     explicit Network(const bool isDirected = false) : directed(isDirected) {};
 
-    void addNode(const Node& node);
+    Node& addNode(const Node& node);
+
+    void addEdge(Node& from, Node& to, EdgeOptions<Label> options);
 
 private:
     std::list<Node> nodes;
-    std::unordered_map<Node*, std::unordered_set<Edge<Label>>> labels;
+    std::unordered_map<Node*, std::unordered_set<Edge<Node, Label>>> edges;
     bool directed;
 };
 }
