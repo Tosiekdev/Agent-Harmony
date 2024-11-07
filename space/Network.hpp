@@ -18,6 +18,8 @@ public:
 
     void addEdge(Node& from, Node& to, EdgeOptions<Label> options);
 
+    std::unordered_set<Node*> getNeighborhood(const Node& node, size_t radius, bool center);
+
 private:
     std::list<Node> nodes;
     std::unordered_map<Node*, std::unordered_set<Edge<Node, Label>>> edges;
