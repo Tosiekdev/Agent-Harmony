@@ -7,6 +7,7 @@
 #include "../space/Field.hpp"
 #include "../space/MultiagentField.hpp"
 #include "../space/ValueLayer.hpp"
+#include "../space/Network.hpp"
 
 struct MyAgent {
     int id;
@@ -321,5 +322,12 @@ TEST(MultiagentFieldTest, GetVonNeumannNeighborsNoCenter) {
     EXPECT_TRUE(equalityCheck(vonNeumannCenter[2], agents[4]));
     EXPECT_TRUE(equalityCheck(vonNeumannCenter[3], agents[5]));
     EXPECT_TRUE(equalityCheck(vonNeumannCenter[4], agents[7]));
+}
+
+TEST(NetworkTest, AddingNode) {
+    abmf::Network<int, int> network;
+    auto n1 = network.addNode(5);
+    auto n2 = network.addNode(6);
+
 }
 }

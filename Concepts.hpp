@@ -14,13 +14,13 @@ concept Positionable = requires(A a) {
 
 template<typename L>
 concept Label = requires(L l) {
-    { std::hash<L>() } -> std::same_as<size_t>;
+    std::hash<L>();
     requires std::equality_comparable<L>;
 };
 
 template<typename N>
 concept Node = requires(N n) {
-    { std::hash<N*>() } -> std::same_as<size_t>;
+    std::hash<N*>();
     requires std::equality_comparable<N>;
 };
 }

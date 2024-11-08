@@ -7,7 +7,27 @@
 namespace abmf {
 template<Node N, Label L>
 N& Network<N, L>::addNode(const N& node) {
-    return *nodes.emplace_back(node);
+    nodes.push_back(node);
+    return nodes.back();
+}
+
+template<Node N, Label L>
+void Network<N, L>::deleteNode(const N& node) {
+    if (!directed) {
+        std::unordered_set<N*> nghs;
+        for (const auto& e : edges[&node]) {
+            nghs.insert(&e.to);
+        }
+        for (auto n : nghs) {
+            std::erase_if(edges[n], [&](const auto& e){ return e.to == node;});
+        }
+    } else {
+        for (auto& [n, e] : edges) {
+            std::erase_if(e[n], [&](const auto& edge){ return edge.to == node;});
+        }
+    }
+    edges.erase(&node);
+    nodes.erase(&node);
 }
 
 template<Node N, Label L>

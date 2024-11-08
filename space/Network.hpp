@@ -13,6 +13,7 @@ public:
     explicit Network(const bool isDirected = false) : directed(isDirected) {};
 
     N& addNode(const N& node);
+    void deleteNode(const N& node);
 
     void addEdge(N& from, N& to, EdgeOptions<L> options);
 
