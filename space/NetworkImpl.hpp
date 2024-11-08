@@ -2,7 +2,7 @@
 
 #include "Network.hpp"
 
-#include <queue>
+#include <algorithm>
 
 namespace abmf {
 template<Node N, Label L>

@@ -7,6 +7,11 @@
 #include "space/Point.hpp"
 
 namespace abmf {
+template<typename T>
+concept ActiveAgent = requires(T t) {
+    { t.isActive() } -> std::same_as<bool>;
+};
+
 template<typename A>
 concept Positionable = requires(A a) {
     { a.pos } -> std::convertible_to<std::optional<Point>>;

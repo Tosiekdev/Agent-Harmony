@@ -17,7 +17,12 @@ include_directories(..)
 
 add_executable(
         ABMframeworkTest
-        test.cpp
+        ModelTest.cpp
+        ScheduleTest.cpp
+        ValueLayerTest.cpp
+        FieldTest.cpp
+        MultiagentFieldTest.cpp
+        NetworkTest.cpp
 )
 target_link_libraries(
         ABMframeworkTest

@@ -3,7 +3,7 @@
 #include <deque>
 #include <tuple>
 
-#include "AgentBase.hpp"
+#include "Concepts.hpp"
 
 namespace abmf {
 template<ActiveAgent... Agents>

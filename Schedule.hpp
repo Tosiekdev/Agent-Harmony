@@ -5,7 +5,7 @@
 #include <variant>
 #include <queue>
 
-#include "AgentBase.hpp"
+#include "Concepts.hpp"
 
 namespace abmf {
 template<typename A, typename M>
