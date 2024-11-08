@@ -31,11 +31,16 @@ void Network<N, L>::deleteNode(const N& node) {
 }
 
 template<Node N, Label L>
+bool Network<N, L>::hasNode(const N& node) {
+    return std::find(nodes.begin(), nodes.end(), node) == nodes.end();
+}
+
+template<Node N, Label L>
 void Network<N, L>::addEdge(N& from, N& to, EdgeOptions<L> options) {
-    if (!nodes.contains(&from)) {
+    if (!hasNode(from)) {
         from = addNode(from);
     }
-    if (!nodes.contains(&to)) {
+    if (!hasNode(to)) {
         to = addNode(to);
     }
     edges[&from].insert(Edge<N, L>(from, to, options));

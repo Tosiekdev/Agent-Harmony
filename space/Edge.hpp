@@ -13,31 +13,33 @@ struct EdgeOptions {
 
 template<Node N, Label L> requires std::equality_comparable<N> && std::equality_comparable<L>
 struct Edge {
-    explicit Edge(const size_t fromNode, const size_t toNode) : from(fromNode), to(toNode) {}
+    explicit Edge(N& fromNode, N& toNode) : from(fromNode), to(toNode) {}
 
-    explicit Edge(const size_t fromNode, const size_t toNode, EdgeOptions<L> options)
+    explicit Edge(N& fromNode, N& toNode, EdgeOptions<L> options)
         : from(fromNode), to(toNode), label(std::move(options.label)), weight(std::move(options.weight)) {}
 
-    explicit Edge(const size_t fromNode, const size_t toNode, const L& l) : from(fromNode), to(toNode), label(l) {}
+    explicit Edge(N& fromNode, N& toNode, const L& l) : from(fromNode), to(toNode), label(l) {}
 
-    explicit Edge(const size_t fromNode, const size_t toNode, const double w) : from(fromNode), to(toNode), weight(w) {}
+    explicit Edge(N& fromNode, N& toNode, const double w) : from(fromNode), to(toNode), weight(w) {}
 
-    explicit Edge(const size_t fromNode, const size_t toNode, L const& l, const double w)
+    explicit Edge(N& fromNode, N& toNode, L const& l, const double w)
         : from(fromNode), to(toNode), label(l), weight(w) {}
 
     N& from;
     N& to;
     std::optional<L> label;
     std::optional<double> weight;
-    bool operator==(const Edge&) const = default;
+    bool operator==(const Edge& rhs) const {
+        return from == rhs.from && to == rhs.to && label == rhs.label && weight == rhs.weight;
+    };
 };
 }
 
 template<abmf::Node N, abmf::Label L>
 struct std::hash<abmf::Edge<N, L>> {
-    size_t operator()(const abmf::Edge<N, L>& e) {
-        size_t h1 = std::hash<N>(e.from);
-        size_t h2 = std::hash<N>(e.to);
+    size_t operator()(const abmf::Edge<N, L>& e) const {
+        size_t h1 = std::hash<N>{}(e.from);
+        size_t h2 = std::hash<N>{}(e.to);
         h1 = h1 ^ (h2 << 1);
         h2 = std::hash<std::optional<L>>{}(e.label);
         h1 = h1 ^ (h2 << 1);
