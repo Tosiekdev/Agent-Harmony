@@ -12,7 +12,7 @@ N& Network<N, L>::addNode(const N& node) {
 }
 
 template<Node N, Label L>
-void Network<N, L>::deleteNode(const N& node) {
+void Network<N, L>::deleteNode(N& node) {
     if (!directed) {
         std::unordered_set<N*> nghs;
         for (const auto& e : edges[&node]) {
@@ -23,16 +23,31 @@ void Network<N, L>::deleteNode(const N& node) {
         }
     } else {
         for (auto& [n, e] : edges) {
-            std::erase_if(e[n], [&](const auto& edge){ return edge.to == node;});
+            std::erase_if(e, [&](const auto& edge){ return edge.to == node;});
         }
     }
     edges.erase(&node);
-    nodes.erase(&node);
+    auto it = std::find(nodes.begin(), nodes.end(), node);
+    nodes.erase(it);
 }
 
 template<Node N, Label L>
 bool Network<N, L>::hasNode(const N& node) {
-    return std::find(nodes.begin(), nodes.end(), node) == nodes.end();
+    return std::find(nodes.begin(), nodes.end(), node) != nodes.end();
+}
+
+template<Node N, Label L>
+void Network<N, L>::addEdge(N& from, N& to) {
+    if (!hasNode(from)) {
+        from = addNode(from);
+    }
+    if (!hasNode(to)) {
+        to = addNode(to);
+    }
+    edges[&from].insert(Edge<N, L>(from, to));
+    if (directed) {
+        edges[&to].insert(Edge<N, L>(to, from));
+    }
 }
 
 template<Node N, Label L>
