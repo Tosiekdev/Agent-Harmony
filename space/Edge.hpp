@@ -22,7 +22,7 @@ struct Edge {
 
     explicit Edge(N& fromNode, N& toNode, const double w) : from(fromNode), to(toNode), weight(w) {}
 
-    explicit Edge(N& fromNode, N& toNode, L const& l, const double w)
+    explicit Edge(N& fromNode, N& toNode, const L& l, const double w)
         : from(fromNode), to(toNode), label(l), weight(w) {}
 
     N& from;

@@ -20,10 +20,13 @@ public:
     const std::list<N>& getNodes() const { return nodes; }
     const EdgeSet& getEdges(const N& node) const { return edges.at(&node); }
 
-    bool hasNode(const N& node);
-
     void addEdge(N& from, N& to);
     void addEdge(N& from, N& to, EdgeOptions<L> options);
+
+    void removeEdge(const EdgeT& edge);
+    void removeEdges(const N& node);
+
+    bool hasNode(const N& node);
 
     std::unordered_set<N*> getNeighborhood(const N& node, size_t radius, bool center);
 

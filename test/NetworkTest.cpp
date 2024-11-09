@@ -54,4 +54,29 @@ TEST(NetworkTest, DeleteNode) {
     EXPECT_EQ(network.getNodes().size(), 1);
     EXPECT_EQ(network.getEdges(n2).size(), 0);
 }
+
+TEST(NetworkTest, RemoveEdge) {
+    abmf::Network<int, int> network;
+    auto& n1 = network.addNode(5);
+    auto& n2 = network.addNode(6);
+    const abmf::Edge<int, int> edge(n1, n2);
+    network.addEdge(n1, n2);
+    network.removeEdge(edge);
+    EXPECT_EQ(network.getEdges(n1).size(), 0);
+    EXPECT_EQ(network.getEdges(n2).size(), 0);
+}
+
+TEST(NetworkTest, RemoveEdges) {
+    abmf::Network<int, int> network;
+    auto& n1 = network.addNode(5);
+    auto& n2 = network.addNode(6);
+    auto& n3 = network.addNode(7);
+    network.addEdge(n1, n2);
+    network.addEdge(n1, n3);
+    network.addEdge(n2, n3);
+    network.removeEdges(n1);
+    EXPECT_EQ(network.getEdges(n1).size(), 0);
+    EXPECT_EQ(network.getEdges(n2).size(), 1);
+    EXPECT_EQ(network.getEdges(n3).size(), 1);
+}
 }
