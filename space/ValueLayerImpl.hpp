@@ -22,6 +22,11 @@ void ValueLayer<T>::set(Point pos, T value) {
 }
 
 template<typename T>
+void ValueLayer<T>::setOnRead(Point pos, T value) {
+    read[pos.y][pos.x] = value;
+}
+
+template<typename T>
 template<std::invocable<T&> F>
 void ValueLayer<T>::apply(F&& f) {
     applyToAll(write, std::forward<F>(f));

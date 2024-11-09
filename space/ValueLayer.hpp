@@ -14,6 +14,7 @@ public:
     T get(Point pos);
     T getFromWrite(Point pos);
     void set(Point pos, T value);
+    void setOnRead(Point pos, T value);
 
     template<std::invocable<T&> F>
     void apply(F&& f);
