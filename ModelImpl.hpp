@@ -33,4 +33,10 @@ size_t Model<Agents...>::agentCount() {
                       },
                       agents);
 }
+
+template<ActiveAgent ... Agents>
+template<ActiveAgent T>
+size_t Model<Agents...>::agentCount() {
+    return getAgents<T>().size();
+}
 }

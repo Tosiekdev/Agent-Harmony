@@ -20,6 +20,9 @@ public:
 
     size_t agentCount();
 
+    template<ActiveAgent T>
+    size_t agentCount();
+
 protected:
     std::tuple<std::deque<Agents>...> agents{};
 };
