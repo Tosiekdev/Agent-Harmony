@@ -8,7 +8,9 @@ namespace abmf {
 template<Node N, Label L>
 N& Network<N, L>::addNode(const N& node) {
     nodes.push_back(node);
-    return nodes.back();
+    auto& newNode = nodes.back();
+    edges.insert({&newNode, EdgeSet()});
+    return newNode;
 }
 
 template<Node N, Label L>

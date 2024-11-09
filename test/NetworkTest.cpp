@@ -12,8 +12,8 @@ TEST(NetworkTest, AddingNode) {
 
 TEST(NetworkTest, AddingEdgeUndirected) {
     abmf::Network<int, int> network;
-    auto n1 = network.addNode(5);
-    auto n2 = network.addNode(6);
+    auto& n1 = network.addNode(5);
+    auto& n2 = network.addNode(6);
     network.addEdge(n1, n2, abmf::EdgeOptions<int>{1, 2});
     for(const auto& edge : network.getEdges(n1)) {
         EXPECT_EQ(edge.from, n1);
@@ -31,8 +31,8 @@ TEST(NetworkTest, AddingEdgeUndirected) {
 
 TEST(NetworkTest, AddingEdgeDirected) {
     abmf::Network<int, int> network(false);
-    auto n1 = network.addNode(5);
-    auto n2 = network.addNode(6);
+    auto& n1 = network.addNode(5);
+    auto& n2 = network.addNode(6);
     network.addEdge(n1, n2, abmf::EdgeOptions<int>{1, 2});
     for(const auto& edge : network.getEdges(n1)) {
         EXPECT_EQ(edge.from, n1);
@@ -40,13 +40,13 @@ TEST(NetworkTest, AddingEdgeDirected) {
         EXPECT_EQ(edge.label, 1);
         EXPECT_EQ(edge.weight, 2);
     }
-    EXPECT_THROW(network.getEdges(n2), std::out_of_range);
+    EXPECT_EQ(network.getEdges(n2).size(), 0);
 }
 
 TEST(NetworkTest, DeleteNode) {
     abmf::Network<int, int> network;
-    auto n1 = network.addNode(5);
-    auto n2 = network.addNode(6);
+    auto& n1 = network.addNode(5);
+    auto& n2 = network.addNode(6);
     network.addEdge(n1, n2);
     EXPECT_EQ(network.getNodes().size(), 2);
     EXPECT_EQ(network.getEdges(n2).size(), 1);
