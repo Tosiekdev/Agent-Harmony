@@ -56,7 +56,7 @@ std::vector<T> ValueLayer<T>::getNeighbors(const Point pos, const int r, const b
 
 template<typename T>
 bool ValueLayer<T>::outOfBounds(const Point p) const {
-    return p.x < 0 || p.x > width || p.y < 0 || p.y > height;
+    return p.x < 0 || p.x >= width || p.y < 0 || p.y >= height;
 }
 
 template<typename T>
