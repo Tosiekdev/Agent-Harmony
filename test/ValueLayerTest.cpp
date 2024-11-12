@@ -3,6 +3,18 @@
 #include "../space/ValueLayer.hpp"
 
 namespace test::value_layer {
+TEST(ValueLayerTest, GetSetRead) {
+    abmf::IntValueLayer layer(2, 2);
+    layer.setOnRead({0, 0}, 2);
+    EXPECT_EQ(layer.get({0, 0}), 2);
+}
+
+TEST(ValueLayerTest, GetSetWrite) {
+    abmf::IntValueLayer layer(2, 2);
+    layer.set({0, 0}, 2);
+    EXPECT_EQ(layer.getFromWrite({0, 0}), 2);
+}
+
 TEST(ValueLayerTest, ApplyUnary) {
     abmf::IntValueLayer layer(2, 2, false);
     layer.apply([](int& value) { value += 2; });

@@ -19,13 +19,13 @@ T ValueLayer<T>::getFromWrite(const Point pos) {
 }
 
 template<typename T>
-void ValueLayer<T>::set(Point pos, T value) {
-    write[pos.y][pos.x] = value;
+void ValueLayer<T>::set(const Point pos, T value) {
+    write[pos.y * width + pos.x] = value;
 }
 
 template<typename T>
-void ValueLayer<T>::setOnRead(Point pos, T value) {
-    read[pos.y][pos.x] = value;
+void ValueLayer<T>::setOnRead(const Point pos, T value) {
+    read[pos.y * width + pos.x] = value;
 }
 
 template<typename T>
