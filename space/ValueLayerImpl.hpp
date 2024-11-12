@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "../Utils.hpp"
 #include "ValueLayer.hpp"
 
@@ -7,13 +9,13 @@
 
 namespace abmf {
 template<typename T>
-T ValueLayer<T>::get(Point pos) {
-    return read[pos.y][pos.x];
+T ValueLayer<T>::get(const Point pos) {
+    return read[pos.y * width + pos.x];
 }
 
 template<typename T>
-T ValueLayer<T>::getFromWrite(Point pos) {
-    return write[pos.y][pos.x];
+T ValueLayer<T>::getFromWrite(const Point pos) {
+    return write[pos.y * width + pos.x];
 }
 
 template<typename T>
@@ -29,7 +31,7 @@ void ValueLayer<T>::setOnRead(Point pos, T value) {
 template<typename T>
 template<std::invocable<T&> F>
 void ValueLayer<T>::apply(F&& f) {
-    applyToAll(write, std::forward<F>(f));
+    std::for_each(write.begin(), write.end(), f);
 }
 
 template<typename T>
@@ -37,7 +39,7 @@ template<std::invocable<Point, T> F>
 void ValueLayer<T>::forEach(F&& f) {
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            std::invoke(std::forward<F>(f), Point(x, y), read[y][x]);
+            std::invoke(std::forward<F>(f), Point(x, y), read[y * width + x]);
         }
     }
 }
@@ -45,7 +47,7 @@ void ValueLayer<T>::forEach(F&& f) {
 template<typename T>
 template<std::invocable<Point, T&> F>
 void ValueLayer<T>::transform(F&& f) {
-    transformAll(write, std::forward<F>(f));
+    transformAll(write, std::forward<F>(f), width, height);
 }
 
 template<typename T>

@@ -80,5 +80,15 @@ void transformAll(std::vector<std::vector<T>>& grid, F&& f) {
         }
     }
 }
+
+template<typename T, std::invocable<Point, T&> F>
+void transformAll(std::vector<T>& grid, F&& f, const int width, const int height) {
+    if (grid.empty()) return;
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            std::invoke(std::forward<F>(f), Point(x, y), grid[y * width + x]);
+        }
+    }
+}
 }
 
