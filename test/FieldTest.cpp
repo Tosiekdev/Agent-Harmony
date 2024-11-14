@@ -8,6 +8,16 @@ struct MyAgent {
     int value{};
 };
 
+TEST(FieldTest, MoveAgent) {
+    using FieldT = abmf::Field<MyAgent>;
+    MyAgent agent;
+    FieldT field(2, 2);
+    field.addAgent(agent, {1, 1});
+    field.moveAgent(agent, {0, 0});
+    EXPECT_EQ(*agent.pos, abmf::Point(0,0));
+    EXPECT_TRUE(field.isEmpty(abmf::Point(1, 1)));
+}
+
 TEST(FieldTest, Apply) {
     using FieldT = abmf::Field<MyAgent>;
     MyAgent agent;

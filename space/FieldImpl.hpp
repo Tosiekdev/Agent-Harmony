@@ -20,9 +20,7 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
     if (!agent.pos) {
         return addAgent(agent, pos);
     }
-    if (grid[agent.pos.value().y][agent.pos.value().x]) {
-        grid[agent.pos.value().y][agent.pos.value().x] = std::nullopt;
-    }
+    grid[agent.pos->y][agent.pos->x] = std::nullopt;
     grid[pos.y][pos.y] = &agent;
     agent.pos = pos;
     return true;
@@ -70,7 +68,7 @@ auto Field<Agents...>::getAgent(Point pos) -> OptAgentT& {
 
 template<Positionable ... Agents>
 bool Field<Agents...>::isEmpty(Point p) const {
-    return grid[p.y][p.x].has_value();
+    return !grid[p.y][p.x].has_value();
 }
 
 template<Positionable ... Agents>
