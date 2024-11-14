@@ -13,8 +13,8 @@ TEST(FieldTest, MoveAgent) {
     MyAgent agent;
     FieldT field(2, 2);
     field.addAgent(agent, {1, 1});
-    field.moveAgent(agent, {0, 0});
-    EXPECT_EQ(*agent.pos, abmf::Point(0,0));
+    field.moveAgent(agent, {1, 0});
+    EXPECT_EQ(*agent.pos, abmf::Point(1,0));
     EXPECT_TRUE(field.isEmpty(abmf::Point(1, 1)));
 }
 

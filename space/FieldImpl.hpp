@@ -7,8 +7,8 @@ namespace abmf {
 template<Positionable ... Agents>
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
-    if (grid[pos.y][pos.x]) return false;
-    grid[pos.y][pos.x] = &agent;
+    if (getAgent(pos)) return false;
+    getAgent(pos) = &agent;
     agent.pos = pos;
     return true;
 }
@@ -16,12 +16,12 @@ bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents>
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
-    if (grid[pos.y][pos.x]) return false;
+    if (getAgent(pos)) return false;
     if (!agent.pos) {
         return addAgent(agent, pos);
     }
-    grid[agent.pos->y][agent.pos->x] = std::nullopt;
-    grid[pos.y][pos.x] = &agent;
+    getAgent(*agent.pos) = std::nullopt;
+    getAgent(pos) = &agent;
     agent.pos = pos;
     return true;
 }
@@ -49,7 +49,7 @@ void Field<Agents...>::apply(Visitor&& f) {
                [&](OptAgentT& agent) {
                    if (!agent.has_value()) return;
                    std::visit([&](auto a){std::invoke(std::forward<Visitor>(f), *a);}, *agent);
-               });
+               }, width, height);
 }
 
 template<Positionable ... Agents>
@@ -58,17 +58,17 @@ void Field<Agents...>::transform(F&& f) {
     transformAll(grid, [&](Point p, OptAgentT& agent) {
         if (!agent.has_value()) return;
         std::visit([&](auto a){std::invoke(std::forward<F>(f), p, *a);}, *agent);
-    });
+    }, width, height);
 }
 
 template<Positionable ... Agents>
-auto Field<Agents...>::getAgent(Point pos) -> OptAgentT& {
-    return grid[pos.y][pos.x];
+auto Field<Agents...>::getAgent(const Point pos) -> OptAgentT& {
+    return grid[pos.y * width + pos.x];
 }
 
 template<Positionable ... Agents>
-bool Field<Agents...>::isEmpty(Point p) const {
-    return !grid[p.y][p.x].has_value();
+bool Field<Agents...>::isEmpty(Point p) {
+    return !getAgent(p).has_value();
 }
 
 template<Positionable ... Agents>

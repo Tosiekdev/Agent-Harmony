@@ -14,10 +14,10 @@ class Field {
 public:
   using AgentT = std::variant<Agents*...>;
   using OptAgentT = std::optional<AgentT>;
-  using GridT = std::vector<std::vector<OptAgentT>>;
+  using GridT = std::vector<OptAgentT>;
 
   explicit Field(const int pWidth, const int pHeight, const bool torus = false)
-    : width(pWidth), height(pHeight), grid(height, std::vector<OptAgentT>(width)), toroidal(torus) {}
+    : width(pWidth), height(pHeight), grid(height *width), toroidal(torus) {}
 
   OptAgentT& getAgent(Point pos);
 
@@ -37,7 +37,7 @@ public:
   template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
   void transform(F&& f);
 
-  [[nodiscard]] bool isEmpty(Point p) const;
+  [[nodiscard]] bool isEmpty(Point p);
 
   [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
   [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r, bool moore, bool center);

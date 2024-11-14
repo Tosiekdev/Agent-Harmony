@@ -71,6 +71,16 @@ void applyToAll(std::vector<std::vector<T>>& grid, F&& f) {
     }
 }
 
+template<typename T, std::invocable<T&> F>
+void applyToAll(std::vector<T>& grid, F&& f, const int width, const int height) {
+    if (grid.empty()) return;
+    for (size_t y = 0; y < height; ++y) {
+        for (size_t x = 0; x < width; ++x) {
+            std::invoke(std::forward<F>(f), grid[y * width + x]);
+        }
+    }
+}
+
 template<typename T, std::invocable<Point, T&> F>
 void transformAll(std::vector<std::vector<T>>& grid, F&& f) {
     if (grid.empty()) return;
