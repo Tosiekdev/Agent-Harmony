@@ -21,7 +21,7 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
         return addAgent(agent, pos);
     }
     grid[agent.pos->y][agent.pos->x] = std::nullopt;
-    grid[pos.y][pos.y] = &agent;
+    grid[pos.y][pos.x] = &agent;
     agent.pos = pos;
     return true;
 }
