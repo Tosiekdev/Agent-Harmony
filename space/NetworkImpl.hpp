@@ -59,14 +59,19 @@ void Network<N, L>::addEdge(N& from, N& to) {
 
 template<Node N, Label L>
 void Network<N, L>::addEdge(N& from, N& to, EdgeOptions<L> options) {
-    N* f = &from;
-    N* t = &to;
-    if (!hasNode(from)) {
+    N* f = nullptr;
+    N* t = nullptr;
+    if (auto it = std::find(nodes.begin(), nodes.end(), from); it != nodes.end()) {
+        f = &*it;
+    } else {
         f = &addNode(from);
     }
-    if (!hasNode(to)) {
-        t = &addNode(to);
+    if (auto it = std::find(nodes.begin(), nodes.end(), to); it != nodes.end()) {
+        t = &*it;
+    } else {
+        t = &addNode(from);
     }
+
     edges[f].insert(Edge<N, L>(*f, *t, options));
     if (directed) {
         edges[t].insert(Edge<N, L>(*t, *f, options));
