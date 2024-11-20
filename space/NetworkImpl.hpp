@@ -48,7 +48,7 @@ void Network<N, L>::addEdge(N& from, N& to) {
     if (auto it = std::find(nodes.begin(), nodes.end(), to); it != nodes.end()) {
         t = &*it;
     } else {
-        t = &addNode(from);
+        t = &addNode(to);
     }
 
     edges[f].insert(Edge<N, L>(*f, *t));
@@ -69,7 +69,7 @@ void Network<N, L>::addEdge(N& from, N& to, EdgeOptions<L> options) {
     if (auto it = std::find(nodes.begin(), nodes.end(), to); it != nodes.end()) {
         t = &*it;
     } else {
-        t = &addNode(from);
+        t = &addNode(to);
     }
 
     edges[f].insert(Edge<N, L>(*f, *t, options));
