@@ -35,29 +35,33 @@ void Network<N, L>::deleteNode(N& node) {
 
 template<Node N, Label L>
 void Network<N, L>::addEdge(N& from, N& to) {
+    N* f = &from;
+    N* t = &to;
     if (!hasNode(from)) {
-        from = addNode(from);
+        f = &addNode(from);
     }
     if (!hasNode(to)) {
-        to = addNode(to);
+        t = &addNode(to);
     }
-    edges[&from].insert(Edge<N, L>(from, to));
+    edges[f].insert(Edge<N, L>(*f, *t));
     if (directed) {
-        edges[&to].insert(Edge<N, L>(to, from));
+        edges[t].insert(Edge<N, L>(*t, *f));
     }
 }
 
 template<Node N, Label L>
 void Network<N, L>::addEdge(N& from, N& to, EdgeOptions<L> options) {
+    N* f = &from;
+    N* t = &to;
     if (!hasNode(from)) {
-        from = addNode(from);
+        f = &addNode(from);
     }
     if (!hasNode(to)) {
-        to = addNode(to);
+        t = &addNode(to);
     }
-    edges[&from].insert(Edge<N, L>(from, to, options));
+    edges[f].insert(Edge<N, L>(*f, *t, options));
     if (directed) {
-        edges[&to].insert(Edge<N, L>(to, from, options));
+        edges[t].insert(Edge<N, L>(*t, *f, options));
     }
 }
 
