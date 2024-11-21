@@ -20,8 +20,8 @@ public:
     const std::list<N>& getNodes() const { return nodes; }
     const EdgeSet& getEdges(const N& node) const { return edges.at(&node); }
 
-    void addEdge(N& from, N& to);
-    void addEdge(N& from, N& to, EdgeOptions<L> options);
+    void addEdge(const N& from, const N& to);
+    void addEdge(const N& from, const N& to, EdgeOptions<L> options);
 
     void removeEdge(const EdgeT& edge);
     void removeEdges(const N& node);
@@ -32,6 +32,7 @@ public:
 
 private:
     std::list<N> nodes;
+    std::unordered_map<N, N*> lookup;
     std::unordered_map<const N*, EdgeSet> edges;
     bool directed;
 };
