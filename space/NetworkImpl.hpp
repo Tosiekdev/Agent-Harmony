@@ -64,6 +64,15 @@ void Network<N, L>::addEdge(const N& from, const N& to, EdgeOptions<L> options) 
 }
 
 template<Node N, Label L>
+void Network<N, L>::updateNode(const N& node) {
+    auto it = lookup.find(node);
+    if (it == lookup.end()) {
+        return;
+    }
+    *it->second = node;
+}
+
+template<Node N, Label L>
 void Network<N, L>::removeEdge(const EdgeT& edge) {
     edges[&edge.from].erase(edge);
     if (directed) {

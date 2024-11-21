@@ -2,6 +2,22 @@
 
 #include "../space/Network.hpp"
 
+struct X {
+    explicit X(const int i) : id(i) {}
+    int id;
+    int value{};
+    bool operator==(const X& x) const {
+        return id == x.id;
+    }
+};
+
+template<>
+struct std::hash<X> {
+    size_t operator()(const X& x) const noexcept {
+        return std::hash<int>()(x.id);
+    }
+};
+
 namespace test::network {
 TEST(NetworkTest, AddingNode) {
     abmf::Network<int, int> network;
@@ -105,5 +121,17 @@ TEST(NetworkTest, RemoveEdges) {
     EXPECT_EQ(network.getEdges(n1).size(), 0);
     EXPECT_EQ(network.getEdges(n2).size(), 1);
     EXPECT_EQ(network.getEdges(n3).size(), 1);
+}
+
+TEST(NetworkTest, UpdateNode) {
+    abmf::Network<X, int> network;
+    auto& node = network.addNode(X(5));
+    EXPECT_EQ(network.getNodes().size(), 1);
+    EXPECT_EQ(node.value, 0);
+    X newNode(5);
+    newNode.value = 7;
+    network.updateNode(newNode);
+    EXPECT_EQ(network.getNodes().size(), 1);
+    EXPECT_EQ(node.value, 7);
 }
 }

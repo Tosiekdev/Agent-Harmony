@@ -23,6 +23,8 @@ public:
     void addEdge(const N& from, const N& to);
     void addEdge(const N& from, const N& to, EdgeOptions<L> options);
 
+    void updateNode(const N& node);
+
     void removeEdge(const EdgeT& edge);
     void removeEdges(const N& node);
 
