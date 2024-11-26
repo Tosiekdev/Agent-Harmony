@@ -2,6 +2,8 @@
 
 #include "Schedule.hpp"
 
+#include <chrono>
+
 namespace abmf {
 template<SimState M, Schedulable<M>... Agents>
 void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t priority) {
