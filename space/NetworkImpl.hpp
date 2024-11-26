@@ -108,20 +108,29 @@ bool Network<N, L>::hasNode(const N& node) {
 }
 
 template<Node N, Label L>
-std::unordered_set<N*> Network<N, L>::getNeighborhood(const N& node, const size_t radius,
+std::vector<N*> Network<N, L>::getNeighborhood(const N& node, const size_t radius,
                                                                 const bool center) {
     auto it = lookup.find(node);
     if (it == lookup.end()) {
         return {};
     }
-    std::unordered_set<N*> neighborhood;
 
     if (!radius) {
-        return neighborhood;
+        return {};
     }
 
+    std::vector<N*> result;
+
+    if (radius == 1) {
+        result.reserve(edges[it->second].size());
+        std::for_each(edges[it->second].begin(), edges[it->second].end(), [&result](const auto& edge) {result.emplace_back(&edge.to);});
+        return result;
+    }
+
+    std::unordered_set<N*> neighborhood;
     std::unordered_set<N*> toVisit;
     for (const auto& edge : edges[it->second]) {
+        result.push_back(&edge.to);
         if (neighborhood.insert(&edge.to).second) {
             toVisit.insert(&edge.to);
         }
@@ -133,8 +142,8 @@ std::unordered_set<N*> Network<N, L>::getNeighborhood(const N& node, const size_
         }
 
         std::unordered_set<N*> nextToVisit;
-        for (const auto& n : toVisit) {
-            for (const auto& edge : edges[&n]) {
+        for (auto n : toVisit) {
+            for (const auto& edge : edges[n]) {
                 if (neighborhood.insert(&edge.to).second) {
                     nextToVisit.insert(&edge.to);
                 }
@@ -143,10 +152,12 @@ std::unordered_set<N*> Network<N, L>::getNeighborhood(const N& node, const size_
         toVisit = std::move(nextToVisit);
     }
 
+    result.insert(result.end(), neighborhood.begin(), neighborhood.end());
+
     if (center) {
-        neighborhood.insert(it->second);
+        result.push_back(it->second);
     }
 
-    return neighborhood;
+    return result;
 }
 }
