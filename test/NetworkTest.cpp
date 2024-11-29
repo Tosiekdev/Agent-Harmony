@@ -134,4 +134,37 @@ TEST(NetworkTest, UpdateNode) {
     EXPECT_EQ(network.getNodes().size(), 1);
     EXPECT_EQ(node.value, 7);
 }
+
+TEST(NetworkTest, GetNeighbourhood) {
+    abmf::Network<int, int> network;
+    network.addEdge(5, 6);
+    network.addEdge(5, 7);
+    network.addEdge(5, 8);
+    EXPECT_EQ(network.getNodes().size(), 4);
+    const auto nghs = network.getNeighborhood(5);
+    EXPECT_EQ(nghs.size(), 3);
+    EXPECT_TRUE(std::find_if(nghs.begin(), nghs.end(), [](const int* n) { return *n == 8; }) != nghs.end());
+    EXPECT_TRUE(std::find_if(nghs.begin(), nghs.end(), [](const int* n) { return *n == 7; }) != nghs.end());
+    EXPECT_TRUE(std::find_if(nghs.begin(), nghs.end(), [](const int* n) { return *n == 6; }) != nghs.end());
+}
+
+TEST(NetworkTest, GetNeighbourhoodRadiusGreaterThanOne) {
+    abmf::Network<int, int> network;
+    network.addEdge(1, 2);
+    network.addEdge(1, 3);
+    network.addEdge(2, 4);
+    network.addEdge(5, 4);
+    EXPECT_EQ(network.getNodes().size(), 5);
+    auto nghs = network.getNeighborhood(1, 2);
+    EXPECT_EQ(nghs.size(), 3);
+    EXPECT_TRUE(std::ranges::find_if(nghs, [](const int* n) { return *n == 2; }) != nghs.end());
+    EXPECT_TRUE(std::ranges::find_if(nghs, [](const int* n) { return *n == 3; }) != nghs.end());
+    EXPECT_TRUE(std::ranges::find_if(nghs, [](const int* n) { return *n == 4; }) != nghs.end());
+    nghs = network.getNeighborhood(1, 3);
+    EXPECT_EQ(nghs.size(), 4);
+    EXPECT_TRUE(std::ranges::find_if(nghs, [](const int* n) { return *n == 2; }) != nghs.end());
+    EXPECT_TRUE(std::ranges::find_if(nghs, [](const int* n) { return *n == 3; }) != nghs.end());
+    EXPECT_TRUE(std::ranges::find_if(nghs, [](const int* n) { return *n == 4; }) != nghs.end());
+    EXPECT_TRUE(std::ranges::find_if(nghs, [](const int* n) { return *n == 5; }) != nghs.end());
+}
 }

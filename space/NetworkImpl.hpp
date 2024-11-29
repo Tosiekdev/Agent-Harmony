@@ -3,6 +3,7 @@
 #include "Network.hpp"
 
 #include <algorithm>
+#include <queue>
 
 namespace abmf {
 template<Node N, Label L>
@@ -29,16 +30,23 @@ void Network<N, L>::deleteNode(N& node) {
             nghs.insert(&e.to);
         }
         for (auto n : nghs) {
-            std::erase_if(edges[n], [&node](const auto& e){ return e.to == node;});
+            std::erase_if(edges[n], [&node](const auto& e) { return e.to == node; });
         }
-    } else {
+    }
+    else {
         for (auto& [n, e] : edges) {
-            std::erase_if(e, [&node](const auto& edge){ return edge.to == node;});
+            std::erase_if(e, [&node](const auto& edge) { return edge.to == node; });
         }
     }
     edges.erase(it->second);
     auto i = std::find(nodes.begin(), nodes.end(), node);
     nodes.erase(i);
+}
+
+template<Node N, Label L>
+const typename Network<N, L>::EdgeSet& Network<N, L>::getEdges(const N& node) const {
+    auto it = lookup.find(node);
+    return edges.at(it->second);
 }
 
 template<Node N, Label L>
@@ -92,11 +100,12 @@ void Network<N, L>::removeEdges(const N& node) {
             nghs.insert(&e.to);
         }
         for (auto n : nghs) {
-            std::erase_if(edges[n], [&node](const auto& e){ return e.to == node;});
+            std::erase_if(edges[n], [&node](const auto& e) { return e.to == node; });
         }
-    } else {
+    }
+    else {
         for (auto& [n, e] : edges) {
-            std::erase_if(e, [&node](const auto& edge){ return edge.to == node;});
+            std::erase_if(e, [&node](const auto& edge) { return edge.to == node; });
         }
     }
     edges[it->second].clear();
@@ -109,50 +118,44 @@ bool Network<N, L>::hasNode(const N& node) {
 
 template<Node N, Label L>
 std::vector<N*> Network<N, L>::getNeighborhood(const N& node, const size_t radius,
-                                                                const bool center) {
+                                               const bool center) {
+    struct NodeHelper {
+        N* node;
+        size_t distance;
+    };
+
     auto it = lookup.find(node);
     if (it == lookup.end()) {
         return {};
     }
 
     if (!radius) {
-        return {};
+        return center ? std::vector<N*>{it->second} : std::vector<N*>{};
     }
 
     std::vector<N*> result;
+    std::queue<NodeHelper> q;
+    std::unordered_set<N*> visited;
+    q.push(NodeHelper{it->second, 0});
+    visited.insert(it->second);
 
-    if (radius == 1) {
-        result.reserve(edges[it->second].size());
-        std::for_each(edges[it->second].begin(), edges[it->second].end(), [&result](const auto& edge) {result.emplace_back(&edge.to);});
-        return result;
-    }
-
-    std::unordered_set<N*> neighborhood;
-    std::unordered_set<N*> toVisit;
-    for (const auto& edge : edges[it->second]) {
-        result.push_back(&edge.to);
-        if (neighborhood.insert(&edge.to).second) {
-            toVisit.insert(&edge.to);
+    while (!q.empty()) {
+        auto u = q.front();
+        q.pop();
+        if (u.distance == radius) {
+            continue;
         }
+        std::for_each(edges[u.node].begin(),
+                      edges[u.node].end(),
+                      [&](const auto& edge) {
+                          if (visited.contains(&edge.to)) {
+                              return;
+                          }
+                          visited.insert(&edge.to);
+                          result.emplace_back(&edge.to);
+                          q.push(NodeHelper{&edge.to, u.distance + 1});
+                      });
     }
-
-    for (size_t i = 2; i < radius; ++i) {
-        if (toVisit.empty()) {
-            break;
-        }
-
-        std::unordered_set<N*> nextToVisit;
-        for (auto n : toVisit) {
-            for (const auto& edge : edges[n]) {
-                if (neighborhood.insert(&edge.to).second) {
-                    nextToVisit.insert(&edge.to);
-                }
-            }
-        }
-        toVisit = std::move(nextToVisit);
-    }
-
-    result.insert(result.end(), neighborhood.begin(), neighborhood.end());
 
     if (center) {
         result.push_back(it->second);

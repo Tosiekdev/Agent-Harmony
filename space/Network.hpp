@@ -19,7 +19,7 @@ public:
 
     std::list<N>& getNodes() { return nodes; }
     const std::list<N>& getNodes() const { return nodes; }
-    const EdgeSet& getEdges(const N& node) const { return edges.at(&node); }
+    const EdgeSet& getEdges(const N& node) const;
 
     void addEdge(const N& from, const N& to);
     void addEdge(const N& from, const N& to, EdgeOptions<L> options);
@@ -31,7 +31,7 @@ public:
 
     bool hasNode(const N& node);
 
-    std::vector<N*> getNeighborhood(const N& node, size_t radius, bool center);
+    std::vector<N*> getNeighborhood(const N& node, size_t radius=1, bool center=false);
 
 private:
     std::list<N> nodes;
