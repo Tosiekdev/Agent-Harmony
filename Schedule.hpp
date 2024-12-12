@@ -20,7 +20,7 @@ concept SimState = requires(M m) {
     { m.shouldEnd(int{}) } -> std::same_as<bool>;
 };
 
-template<typename M, Schedulable<M>... Agents>
+template<typename M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 struct Action {
     Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0)
         : time(pTime), priority(pPriority), interval(pInterval), agent(&pAgent) {}
@@ -49,7 +49,7 @@ struct Action {
     }
 };
 
-template<SimState M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 class Schedule {
 public:
     using ActionItem = Action<M, Agents...>;

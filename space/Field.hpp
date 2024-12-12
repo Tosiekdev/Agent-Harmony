@@ -3,13 +3,12 @@
 #include "../Concepts.hpp"
 #include "Point.hpp"
 
-#include <functional>
 #include <optional>
 #include <variant>
 #include <vector>
 
 namespace abmf {
-template<Positionable... Agents>
+template<Positionable... Agents> requires (sizeof...(Agents) > 0)
 class Field {
 public:
   using AgentT = std::variant<Agents*...>;

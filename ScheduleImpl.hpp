@@ -5,23 +5,23 @@
 #include <chrono>
 
 namespace abmf {
-template<SimState M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t priority) {
     actions.emplace(agent, time, priority);
 }
 
-template<SimState M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t priority,
                                                const size_t interval) {
     actions.emplace(agent, time, priority, interval);
 }
 
-template<SimState M, Schedulable<M> ... Agents>
+template<SimState M, Schedulable<M> ... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t priority) {
     scheduleRepeating(agent, time, priority, 1);
 }
 
-template<SimState M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::step() {
     model.beforeStep();
     if (actions.empty()) {
@@ -67,12 +67,12 @@ void Schedule<M, Agents...>::step() {
     model.afterStep();
 }
 
-template<SimState M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 size_t Schedule<M, Agents...>::getEpochs() const {
     return epochs;
 }
 
-template<SimState M, Schedulable<M>... Agents>
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::execute() {
     while (!model.shouldEnd(epochs)) {
         step();

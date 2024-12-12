@@ -6,7 +6,7 @@
 #include "Concepts.hpp"
 
 namespace abmf {
-template<ActiveAgent... Agents>
+template<ActiveAgent... Agents> requires (sizeof...(Agents) > 0)
 class Model {
 public:
     template<ActiveAgent T>

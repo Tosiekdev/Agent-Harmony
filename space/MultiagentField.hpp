@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace abmf {
-template<Positionable... Agents>
+template<Positionable... Agents> requires (sizeof...(Agents) > 0)
 class MultiagentField {
 public:
     using AgentT = std::variant<Agents*...>;

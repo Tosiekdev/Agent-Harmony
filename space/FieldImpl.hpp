@@ -4,7 +4,7 @@
 #include "Field.hpp"
 
 namespace abmf {
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
     if (getAgent(pos)) return false;
@@ -13,7 +13,7 @@ bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
     return true;
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
     if (getAgent(pos)) return false;
@@ -26,7 +26,7 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
     return true;
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void Field<Agents...>::removeAgent(Agent& agent) {
     if (agent.pos) {
@@ -35,14 +35,14 @@ void Field<Agents...>::removeAgent(Agent& agent) {
     agent.pos = std::nullopt;
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 void Field<Agents...>::removeAgent(const Point pos) {
     if (OptAgentT& square = getAgent(pos)) {
         std::visit([&](auto agent) { removeAgent(*agent); }, *square);
     }
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<typename Visitor> requires (std::invocable<Visitor, Agents&> || ...)
 void Field<Agents...>::apply(Visitor&& f) {
     applyToAll(grid,
@@ -52,7 +52,7 @@ void Field<Agents...>::apply(Visitor&& f) {
                }, width, height);
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
 void Field<Agents...>::transform(F&& f) {
     transformAll(grid, [&](Point p, OptAgentT& agent) {
@@ -61,22 +61,22 @@ void Field<Agents...>::transform(F&& f) {
     }, width, height);
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto Field<Agents...>::getAgent(const Point pos) -> OptAgentT& {
     return grid[pos.y * width + pos.x];
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 bool Field<Agents...>::isEmpty(Point p) {
     return !getAgent(p).has_value();
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<Point> Field<Agents...>::getNeighborhood(Point pos, int r, bool moore, bool center) const {
     return visitNeighborhood(*this, pos, r, moore, center, [](Point p) { return p; });
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<typename Field<Agents...>::AgentT> Field<Agents...>::getNeighbors(
     const Point pos, int r, const bool moore, const bool center) {
     std::vector<AgentT> result;
@@ -111,12 +111,12 @@ std::vector<typename Field<Agents...>::AgentT> Field<Agents...>::getNeighbors(
     return result;
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 bool Field<Agents...>::outOfBounds(const Point p) const {
     return p.x < 0 || p.x >= width || p.y < 0 || p.y >= height;
 }
 
-template<Positionable ... Agents>
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 Point Field<Agents...>::toToroidal(const Point p) const {
     return convertToToroidal(p, width, height);
 }
