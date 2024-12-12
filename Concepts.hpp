@@ -43,6 +43,6 @@ template<typename M>
 concept SimState = requires(M m) {
     m.beforeStep();
     m.afterStep();
-    { m.shouldEnd(int{}) } -> std::same_as<bool>;
+    { m.shouldEnd(int{}) } -> std::convertible_to<bool>;
 };
 }
