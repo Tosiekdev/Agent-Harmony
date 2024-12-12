@@ -28,4 +28,16 @@ concept Node = requires(N n) {
     std::hash<N*>();
     requires std::equality_comparable<N>;
 };
+
+template<typename A, typename M>
+concept Schedulable = requires(A a, M m) {
+    a.step(m);
+} && ActiveAgent<A>;
+
+template<typename M>
+concept SimState = requires(M m) {
+    m.beforeStep();
+    m.afterStep();
+    { m.shouldEnd(int{}) } -> std::same_as<bool>;
+};
 }

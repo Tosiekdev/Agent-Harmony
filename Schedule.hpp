@@ -8,18 +8,6 @@
 #include "Concepts.hpp"
 
 namespace abmf {
-template<typename A, typename M>
-concept Schedulable = requires(A a, M m) {
-    a.step(m);
-} && ActiveAgent<A>;
-
-template<typename M>
-concept SimState = requires(M m) {
-    m.beforeStep();
-    m.afterStep();
-    { m.shouldEnd(int{}) } -> std::same_as<bool>;
-};
-
 template<typename M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 struct Action {
     Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0)
