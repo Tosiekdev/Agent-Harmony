@@ -56,6 +56,12 @@ void Schedule<M, Agents...>::step() {
         event.step(model);
     }
 
+    if constexpr ((Advanceable<Agents, M> && ...)) {
+        for (auto& event : events) {
+            event.advance(model);
+        }
+    }
+
     for (auto& event : events) {
         std::visit([&](auto agent) {
             if (agent->isActive() && event.interval) {

@@ -20,6 +20,10 @@ struct Action {
         std::visit([&](auto agent) { agent->step(model); }, agent);
     }
 
+    void advance(M& model) requires (Advanceable<Agents, M> && ...) {
+        std::visit([&](auto agent) { agent->advance(model); }, agent);
+    }
+
     [[nodiscard]] bool isActive() const {
         return std::visit([](auto agent) { return agent->isActive(); }, agent);
     }

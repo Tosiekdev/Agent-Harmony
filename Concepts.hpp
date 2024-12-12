@@ -9,7 +9,7 @@
 namespace abmf {
 template<typename T>
 concept ActiveAgent = requires(T t) {
-    { t.isActive() } -> std::same_as<bool>;
+    { t.isActive() } -> std::convertible_to<bool>;
 };
 
 template<typename A>
@@ -33,6 +33,11 @@ template<typename A, typename M>
 concept Schedulable = requires(A a, M m) {
     a.step(m);
 } && ActiveAgent<A>;
+
+template<typename A, typename M>
+concept Advanceable = requires(A a, M m) {
+  a.advance(m);
+};
 
 template<typename M>
 concept SimState = requires(M m) {
