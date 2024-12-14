@@ -1,11 +1,9 @@
 #pragma once
 
-#include <compare>
-#include <functional>
 #include <variant>
 #include <queue>
 
-#include "Concepts.hpp"
+#include "../utilities/Concepts.hpp"
 
 namespace abmf {
 template<typename M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)

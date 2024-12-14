@@ -3,7 +3,7 @@
 #include <deque>
 #include <tuple>
 
-#include "Concepts.hpp"
+#include "../utilities/Concepts.hpp"
 
 namespace abmf {
 template<ActiveAgent... Agents> requires (sizeof...(Agents) > 0)

@@ -4,19 +4,19 @@ project(ABMframework)
 set(CMAKE_CXX_STANDARD 20)
 
 add_library(ABMframework STATIC Model.cpp
-        ModelImpl.hpp
-        Schedule.hpp
-        ScheduleImpl.hpp
-        space/ValueLayer.hpp
-        space/ValueLayerImpl.hpp
-        space/Point.hpp
-        space/Field.hpp
-        space/FieldImpl.hpp
-        Utils.hpp
-        space/MultiagentField.hpp
-        space/MultiagentFieldImpl.hpp
-        Concepts.hpp
-        space/Edge.hpp
-        space/Network.hpp
-        space/NetworkImpl.hpp
+        include/model/ModelImpl.hpp
+        include/schedule/Schedule.hpp
+        include/schedule/ScheduleImpl.hpp
+        include/space/ValueLayer.hpp
+        include/space/ValueLayerImpl.hpp
+        include/space/Point.hpp
+        include/space/Field.hpp
+        include/space/FieldImpl.hpp
+        include/utilities/Utils.hpp
+        include/space/MultiagentField.hpp
+        include/space/MultiagentFieldImpl.hpp
+        include/utilities/Concepts.hpp
+        include/space/Edge.hpp
+        include/space/Network.hpp
+        include/space/NetworkImpl.hpp
 )

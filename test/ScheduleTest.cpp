@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "../Model.hpp"
-#include "../Schedule.hpp"
+#include "../include/model/Model.hpp"
+#include "../include/schedule/Schedule.hpp"
 
 namespace test::schedule {
 struct MyAgent {

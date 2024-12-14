@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "../Model.hpp"
+#include "../include/model/Model.hpp"
 
 namespace test::model {
 struct MyAgent {

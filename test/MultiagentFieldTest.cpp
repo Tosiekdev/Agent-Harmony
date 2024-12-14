@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "../space/MultiagentField.hpp"
+#include "../include/space/MultiagentField.hpp"
 
 namespace test::multiagent_field {
 struct MyAgent {

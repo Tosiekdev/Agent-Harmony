@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../space/Field.hpp"
+#include "../include/space/Field.hpp"
 
 namespace test::field {
 struct MyAgent {

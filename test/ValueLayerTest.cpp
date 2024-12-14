@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../space/ValueLayer.hpp"
+#include "../include/space/ValueLayer.hpp"
 
 namespace test::value_layer {
 TEST(ValueLayerTest, GetSetRead) {

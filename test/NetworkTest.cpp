@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../space/Network.hpp"
+#include "../include/space/Network.hpp"
 
 struct X {
     explicit X(const int i) : id(i) {}

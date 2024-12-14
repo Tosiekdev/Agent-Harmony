@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Concepts.hpp"
+#include "../utilities/Concepts.hpp"
 #include "Point.hpp"
 
 #include <variant>

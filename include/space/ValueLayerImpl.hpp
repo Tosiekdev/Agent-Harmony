@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "../Utils.hpp"
+#include "../utilities/Utils.hpp"
 #include "ValueLayer.hpp"
 
 #include <functional>
