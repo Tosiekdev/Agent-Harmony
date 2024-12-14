@@ -19,4 +19,6 @@ add_library(ABMframework STATIC Model.cpp
         include/space/Edge.hpp
         include/space/Network.hpp
         include/space/NetworkImpl.hpp
+        include/space/Space.hpp
+        include/AgentHarmony.hpp
 )
