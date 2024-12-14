@@ -30,7 +30,7 @@ struct Edge {
     std::optional<L> label;
     std::optional<double> weight;
     bool operator==(const Edge& rhs) const {
-        return from == rhs.from && to == rhs.to && label == rhs.label && weight == rhs.weight;
+        return from == rhs.from && to == rhs.to && label == rhs.label;
     };
 };
 }
@@ -38,12 +38,6 @@ struct Edge {
 template<abmf::Node N, abmf::Label L>
 struct std::hash<abmf::Edge<N, L>> {
     size_t operator()(const abmf::Edge<N, L>& e) const {
-        size_t h1 = std::hash<N>{}(e.from);
-        size_t h2 = std::hash<N>{}(e.to);
-        h1 = h1 ^ (h2 << 1);
-        h2 = std::hash<std::optional<L>>{}(e.label);
-        h1 = h1 ^ (h2 << 1);
-        h2 = std::hash<std::optional<double>>{}(e.weight);
-        return h1 ^ (h2 << 1);
+        return std::hash<N>{}(e.from) ^ (std::hash<N>{}(e.to) << 1);
     }
 };
