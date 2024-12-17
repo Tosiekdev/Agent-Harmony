@@ -55,7 +55,7 @@ public:
 private:
     M& model;
     size_t epochs;
-    std::priority_queue<ActionItem> actions;
+    std::priority_queue<ActionItem, std::vector<ActionItem>, std::greater<ActionItem>> actions;
 };
 }
 
