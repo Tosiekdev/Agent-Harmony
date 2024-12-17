@@ -39,8 +39,7 @@ void Network<N, L>::deleteNode(N& node) {
         }
     }
     edges.erase(it->second);
-    auto i = std::find(nodes.begin(), nodes.end(), node);
-    nodes.erase(i);
+    nodes.remove(node);
 }
 
 template<Node N, Label L>
