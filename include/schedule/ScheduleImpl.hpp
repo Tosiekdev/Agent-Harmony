@@ -11,9 +11,9 @@ void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const 
 }
 
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
-void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t priority,
+void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t order,
                                                const size_t interval) {
-    actions.emplace(agent, time, priority, interval);
+    actions.emplace(agent, time, order, interval);
 }
 
 template<SimState M, Schedulable<M> ... Agents> requires (sizeof...(Agents) > 0)
@@ -65,7 +65,7 @@ void Schedule<M, Agents...>::step() {
     for (auto& event : events) {
         std::visit([&](auto agent) {
             if (agent->isActive() && event.interval) {
-                scheduleRepeating(event.agent, epochs + event.interval, event.priority, event.interval);
+                scheduleRepeating(event.agent, epochs + event.interval, event.order, event.interval);
             }
         }, event.agent);
     }

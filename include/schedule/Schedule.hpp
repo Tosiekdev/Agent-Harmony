@@ -9,10 +9,10 @@ namespace abmf {
 template<typename M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 struct Action {
     Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0)
-        : time(pTime), priority(pPriority), interval(pInterval), agent(&pAgent) {}
+        : time(pTime), order(pPriority), interval(pInterval), agent(&pAgent) {}
 
     Action(const std::variant<Agents*...> pAgent, const size_t pTime, const size_t pPriority,
-           const size_t pInterval = 0) : time(pTime), priority(pPriority), interval(pInterval), agent(pAgent) {}
+           const size_t pInterval = 0) : time(pTime), order(pPriority), interval(pInterval), agent(pAgent) {}
 
     void step(M& model) {
         std::visit([&](auto agent) { agent->step(model); }, agent);
@@ -27,7 +27,7 @@ struct Action {
     }
 
     size_t time;
-    size_t priority;
+    size_t order;
     size_t interval;
     std::variant<Agents*...> agent;
 
@@ -35,7 +35,7 @@ struct Action {
         if (auto relation = time <=> rhs.time; relation != 0) {
             return relation;
         }
-        return priority <=> rhs.priority;
+        return order <=> rhs.order;
     }
 };
 
@@ -45,7 +45,7 @@ public:
     using ActionItem = Action<M, Agents...>;
     explicit Schedule(M& pModel) : model(pModel), epochs(0) {}
     void scheduleOnce(auto& agent, size_t time, size_t priority);
-    void scheduleRepeating(auto& agent, size_t time, size_t priority, size_t interval);
+    void scheduleRepeating(auto& agent, size_t time, size_t order, size_t interval);
     void scheduleRepeating(auto& agent, size_t time, size_t priority);
     void step();
     void execute();
