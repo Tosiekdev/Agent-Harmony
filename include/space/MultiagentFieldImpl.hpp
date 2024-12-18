@@ -90,38 +90,17 @@ std::vector<Point> MultiagentField<Agents...>::getNeighborhood(Point pos, int r,
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<typename MultiagentField<Agents...>::AgentT> MultiagentField<Agents...>::getNeighbors(
     const Point pos, int r, const bool moore, const bool center) {
-    std::vector<AgentT> result;
-    if (moore) {
-        result.reserve((2 * r + 1) * (2 * r + 1));
-    }
-    else {
-        result.reserve(r * r + (r + 1) * (r + 1));
-    }
-    for (int dy = -r; dy <= r; ++dy) {
-        for (int dx = -r; dx <= r; ++dx) {
-            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
-
-            Point p = {pos.x + dx, pos.y + dy};
-
-            if (p == pos && !center) continue;
-
-            if (outOfBounds(p)) {
-                if (isToroidal()) {
-                    p = toToroidal(p);
-                    for (auto& agent : getAgents(p)) {
-                        result.push_back(agent);
-                    }
-                }
-            }
-            else {
-                for (auto& agent : getAgents(p)) {
-                    result.push_back(agent);
-                }
-            }
+    auto f = [&](const Point p, std::vector<AgentT>& result) {
+        for (auto& agent : getAgents(p)) {
+            result.push_back(agent);
         }
-    }
-
-    return result;
+    };
+    return visitNeighbors<MultiagentField, AgentT, decltype(f)>(*this,
+                                                                pos,
+                                                                r,
+                                                                moore,
+                                                                center,
+                                                                std::forward<decltype(f)>(f));
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)

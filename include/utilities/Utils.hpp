@@ -61,6 +61,39 @@ auto visitNeighborhood(const T& layer, const Point pos, const int r, const bool 
     return result;
 }
 
+template<Grid T, typename A, std::invocable<Point, std::vector<A>&> F>
+auto visitNeighbors(const T& layer, const Point pos, const int r, const bool moore,
+                       const bool center, F&& f) -> std::vector<A> {
+    std::vector<A> result;
+    if (moore) {
+        result.reserve((2 * r + 1) * (2 * r + 1));
+    }
+    else {
+        result.reserve(r * r + (r + 1) * (r + 1));
+    }
+    for (int dy = -r; dy <= r; ++dy) {
+        for (int dx = -r; dx <= r; ++dx) {
+            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
+
+            Point p = {pos.x + dx, pos.y + dy};
+
+            if (p == pos && !center) continue;
+
+            if (layer.outOfBounds(p)) {
+                if (layer.isToroidal()) {
+                    p = layer.toToroidal(p);
+                    std::invoke(std::forward<F>(f), p, result);
+                }
+            }
+            else {
+                std::invoke(std::forward<F>(f), p, result);
+            }
+        }
+    }
+
+    return result;
+}
+
 template<typename T, std::invocable<T&> F>
 void applyToAll(std::vector<std::vector<T>>& grid, F&& f) {
     if (grid.empty()) return;
