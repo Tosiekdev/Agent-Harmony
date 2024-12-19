@@ -100,4 +100,20 @@ template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 Point Field<Agents...>::toToroidal(const Point p) const {
     return convertToToroidal(p, width, height);
 }
+
+template<Positionable... Agents> requires (sizeof...(Agents) > 0)
+std::vector<Point> Field<Agents...>::getEmpty() {
+    std::vector<Point> result;
+    result.reserve(width*height / 2);
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < height; ++x) {
+            if (isEmpty({x,y})) {
+                result.push_back({x, y});
+            }
+        }
+    }
+
+    return result;
+}
 }

@@ -49,4 +49,19 @@ TEST(FieldTest, RemoveAgent) {
     field.removeAgent(agent);
     EXPECT_FALSE(field.getAgent({1,1}).has_value());
 }
+
+TEST(FieldTest, GetEmpty) {
+    using FieldT = abmf::Field<MyAgent>;
+    MyAgent agent;
+    FieldT field(2, 2);
+    EXPECT_EQ(field.getEmpty().size(), 4);
+    field.addAgent(agent, {1, 1});
+    EXPECT_EQ(field.getEmpty().size(), 3);
+    field.addAgent(agent, {1, 0});
+    EXPECT_EQ(field.getEmpty().size(), 2);
+    field.addAgent(agent, {0, 1});
+    EXPECT_EQ(field.getEmpty().size(), 1);
+    field.addAgent(agent, {0, 0});
+    EXPECT_EQ(field.getEmpty().size(), 0);
+}
 }
