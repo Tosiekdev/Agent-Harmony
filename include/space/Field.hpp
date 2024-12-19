@@ -38,8 +38,8 @@ public:
 
   [[nodiscard]] bool isEmpty(Point p);
 
-  [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
-  [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r, bool moore, bool center);
+  [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r=1, bool moore=true, bool center=false) const;
+  [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r=1, bool moore=true, bool center=false);
   [[nodiscard]] bool outOfBounds(Point p) const;
   [[nodiscard]] Point toToroidal(Point p) const;
   [[nodiscard]] std::vector<Point> getEmpty();
