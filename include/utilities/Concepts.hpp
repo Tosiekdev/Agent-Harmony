@@ -4,7 +4,7 @@
 #include <functional>
 #include <optional>
 
-#include "include/space/Point.hpp"
+#include "../space/Point.hpp"
 
 namespace abmf {
 template<typename T>
