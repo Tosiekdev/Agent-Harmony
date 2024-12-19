@@ -1,6 +1,6 @@
 #pragma once
 
-#include "include/space/Point.hpp"
+#include "../space/Point.hpp"
 
 #include <cmath>
 #include <concepts>
