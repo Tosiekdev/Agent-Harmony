@@ -109,6 +109,17 @@ TEST(NetworkTest, RemoveEdge) {
     EXPECT_EQ(network.getEdges(n2).size(), 0);
 }
 
+TEST(NetworkTest, RemoveEdgeFromTo) {
+    abmf::Network<int, int> network;
+    auto& n1 = network.addNode(5);
+    auto& n2 = network.addNode(6);
+    const abmf::Edge<int, int> edge(n1, n2);
+    network.addEdge(n1, n2);
+    network.removeEdge(n1, n2);
+    EXPECT_EQ(network.getEdges(n1).size(), 0);
+    EXPECT_EQ(network.getEdges(n2).size(), 0);
+}
+
 TEST(NetworkTest, RemoveEdges) {
     abmf::Network<int, int> network;
     auto& n1 = network.addNode(5);

@@ -26,6 +26,7 @@ public:
 
     void updateNode(const N& node);
 
+    void removeEdge(const N& from, const N& to);
     void removeEdge(const EdgeT& edge);
     void removeEdges(const N& node);
 

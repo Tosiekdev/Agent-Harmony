@@ -80,6 +80,13 @@ void Network<N, L>::updateNode(const N& node) {
 }
 
 template<Node N, Label L>
+void Network<N, L>::removeEdge(const N& from, const N& to) {
+    N* fromPtr = lookup[from];
+    N* toPtr = lookup[to];
+    removeEdge(Edge<N, L>(*fromPtr, *toPtr));
+}
+
+template<Node N, Label L>
 void Network<N, L>::removeEdge(const EdgeT& edge) {
     edges[&edge.from].erase(edge);
     if (directed) {
