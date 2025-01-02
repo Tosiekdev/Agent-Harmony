@@ -10,6 +10,11 @@ auto MultiagentField<Agents...>::getAgents(Point pos) -> SquareT& {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
+auto MultiagentField<Agents...>::getAgents(Point pos) const -> const SquareT& {
+    return grid[pos.y][pos.x];
+}
+
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
     agent.pos = pos;
@@ -111,5 +116,21 @@ bool MultiagentField<Agents...>::outOfBounds(const Point p) const {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 Point MultiagentField<Agents...>::toToroidal(const Point p) const {
     return convertToToroidal(p, width, height);
+}
+
+template<Positionable... Agents> requires (sizeof...(Agents) > 0)
+std::vector<Point> MultiagentField<Agents...>::getEmpty() {
+    std::vector<Point> result;
+    result.reserve(width*height / 2);
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < height; ++x) {
+            if (isEmpty({x,y})) {
+                result.push_back({x, y});
+            }
+        }
+    }
+
+    return result;
 }
 }
