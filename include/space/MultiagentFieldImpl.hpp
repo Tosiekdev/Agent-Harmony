@@ -119,7 +119,7 @@ Point MultiagentField<Agents...>::toToroidal(const Point p) const {
 }
 
 template<Positionable... Agents> requires (sizeof...(Agents) > 0)
-std::vector<Point> MultiagentField<Agents...>::getEmpty() {
+std::vector<Point> MultiagentField<Agents...>::getEmpty() const {
     std::vector<Point> result;
     result.reserve(width*height / 2);
 

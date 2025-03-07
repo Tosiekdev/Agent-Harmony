@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Network.hpp"
-
 #include <algorithm>
 #include <queue>
 

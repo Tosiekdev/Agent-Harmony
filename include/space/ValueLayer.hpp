@@ -12,8 +12,8 @@ public:
         : width(pWidth), height(pHeight), read(height * width, initValue), write(height * width, initValue),
           toroidal(torus) {}
 
-    T get(Point pos);
-    T getFromWrite(Point pos);
+    T get(Point pos) const;
+    T getFromWrite(Point pos) const;
     void set(Point pos, T value);
     void setOnRead(Point pos, T value);
 
@@ -27,7 +27,7 @@ public:
     void transform(F&& f);
 
     [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
-    [[nodiscard]] std::vector<T> getNeighbors(Point pos, int r, bool moore, bool center);
+    [[nodiscard]] std::vector<T> getNeighbors(Point pos, int r, bool moore, bool center) const;
     [[nodiscard]] bool outOfBounds(Point p) const;
     [[nodiscard]] Point toToroidal(Point p) const;
     void swap();

@@ -18,7 +18,7 @@ public:
     template<ActiveAgent T, typename... Args>
     T& emplaceAgent(Args&&... args);
 
-    size_t agentCount();
+    [[nodiscard]] size_t agentCount() const;
 
     template<ActiveAgent T>
     size_t agentCount();

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../utilities/Utils.hpp"
-#include "Field.hpp"
 
 namespace abmf {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
@@ -72,7 +71,12 @@ auto Field<Agents...>::getAgent(const Point pos) -> OptAgentT& {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-bool Field<Agents...>::isEmpty(Point p) {
+auto Field<Agents...>::getAgent(const Point pos) const -> const OptAgentT& {
+    return grid[pos.y * width + pos.x];
+}
+
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
+bool Field<Agents...>::isEmpty(const Point p) const {
     return !getAgent(p).has_value();
 }
 
@@ -102,7 +106,7 @@ Point Field<Agents...>::toToroidal(const Point p) const {
 }
 
 template<Positionable... Agents> requires (sizeof...(Agents) > 0)
-std::vector<Point> Field<Agents...>::getEmpty() {
+std::vector<Point> Field<Agents...>::getEmpty() const {
     std::vector<Point> result;
     result.reserve(width*height / 2);
 

@@ -52,7 +52,7 @@ public:
     [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r, bool moore, bool center);
     [[nodiscard]] bool outOfBounds(Point p) const;
     [[nodiscard]] Point toToroidal(Point p) const;
-    [[nodiscard]] std::vector<Point> getEmpty();
+    [[nodiscard]] std::vector<Point> getEmpty() const;
 
     [[nodiscard]] int getWidth() const { return width; }
     [[nodiscard]] int getHeight() const { return height; }

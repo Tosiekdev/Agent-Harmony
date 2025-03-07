@@ -3,18 +3,17 @@
 #include <algorithm>
 
 #include "../utilities/Utils.hpp"
-#include "ValueLayer.hpp"
 
 #include <functional>
 
 namespace abmf {
 template<typename T>
-T ValueLayer<T>::get(const Point pos) {
+T ValueLayer<T>::get(const Point pos) const {
     return read[pos.y * width + pos.x];
 }
 
 template<typename T>
-T ValueLayer<T>::getFromWrite(const Point pos) {
+T ValueLayer<T>::getFromWrite(const Point pos) const {
     return write[pos.y * width + pos.x];
 }
 
@@ -57,7 +56,7 @@ std::vector<Point> ValueLayer<T>::getNeighborhood(
 }
 
 template<typename T>
-std::vector<T> ValueLayer<T>::getNeighbors(const Point pos, const int r, const bool moore, const bool center) {
+std::vector<T> ValueLayer<T>::getNeighbors(const Point pos, const int r, const bool moore, const bool center) const {
     return visitNeighborhood(*this, pos, r, moore, center, [&](const Point p) { return get(p); });
 }
 

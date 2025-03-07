@@ -19,6 +19,7 @@ public:
     : width(pWidth), height(pHeight), grid(height *width), toroidal(torus) {}
 
   OptAgentT& getAgent(Point pos);
+  const OptAgentT& getAgent(Point pos) const;
 
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
   bool addAgent(Agent& agent, Point pos);
@@ -36,13 +37,13 @@ public:
   template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
   void transform(F&& f);
 
-  [[nodiscard]] bool isEmpty(Point p);
+  [[nodiscard]] bool isEmpty(Point p) const;
 
   [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r=1, bool moore=true, bool center=false) const;
   [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r=1, bool moore=true, bool center=false);
   [[nodiscard]] bool outOfBounds(Point p) const;
   [[nodiscard]] Point toToroidal(Point p) const;
-  [[nodiscard]] std::vector<Point> getEmpty();
+  [[nodiscard]] std::vector<Point> getEmpty() const;
 
   [[nodiscard]] int getWidth() const { return width; }
   [[nodiscard]] int getHeight() const { return height; }
