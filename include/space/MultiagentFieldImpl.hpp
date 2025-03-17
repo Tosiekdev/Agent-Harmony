@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../utilities/Utils.hpp"
-#include "MultiagentField.hpp"
 
 namespace abmf {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)

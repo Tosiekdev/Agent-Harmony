@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include "Model.hpp"
-
 namespace abmf {
 template<ActiveAgent... Agents> requires (sizeof...(Agents) > 0)
 template<ActiveAgent T>
