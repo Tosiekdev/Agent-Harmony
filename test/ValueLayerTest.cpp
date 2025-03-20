@@ -47,10 +47,10 @@ TEST(ValueLayerTest, Apply) {
     }
 }
 
-TEST(ValueLayerTest, ForEach) {
+TEST(ValueLayerTest, TransformWithFunctionTakingCopy) {
     abmf::ValueLayer<size_t> layer(2, 2, false, 1.);
     std::vector<size_t> values;
-    layer.forEach([&values](abmf::Point p, size_t value) mutable { values.push_back(value + p.x + p.y); });
+    layer.transform([&values](abmf::Point p, size_t value) mutable { values.push_back(value + p.x + p.y); });
     EXPECT_EQ(values.size(), 2*2);
     for(size_t i = 0; i < 2; ++i) {
         for (size_t j = 0; j < 2; ++j) {

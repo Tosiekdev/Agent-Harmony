@@ -34,16 +34,6 @@ void ValueLayer<T>::apply(F&& f) {
 }
 
 template<typename T>
-template<std::invocable<Point, T> F>
-void ValueLayer<T>::forEach(F&& f) {
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            std::invoke(std::forward<F>(f), Point(x, y), read[y * width + x]);
-        }
-    }
-}
-
-template<typename T>
 template<std::invocable<Point, T&> F>
 void ValueLayer<T>::transform(F&& f) {
     transformAll(write, std::forward<F>(f), width, height);

@@ -20,9 +20,6 @@ public:
     template<std::invocable<T&> F>
     void apply(F&& f);
 
-    template<std::invocable<Point, T> F>
-    void forEach(F&& f);
-
     template<std::invocable<Point, T&> F>
     void transform(F&& f);
 
