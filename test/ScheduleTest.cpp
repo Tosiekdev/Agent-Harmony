@@ -73,7 +73,7 @@ struct SecondModel : abmf::Model<AdvAgent> {
 TEST(ActionTest, CreateAction) {
     MyAgent a{1};
     MyModel m;
-    abmf::Action<MyModel, MyAgent> action(a, 1, 1);
+    abmf::action::Action<MyModel, MyAgent> action(a, 1, 1);
     action.step(m);
     EXPECT_EQ(a.run, 1);
 }

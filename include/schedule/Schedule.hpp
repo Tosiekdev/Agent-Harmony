@@ -6,6 +6,7 @@
 #include "../utilities/Concepts.hpp"
 
 namespace abmf {
+namespace action {
 template<typename M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 struct Action {
     Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0)
@@ -38,6 +39,7 @@ struct Action {
         return order <=> rhs.order;
     }
 };
+}
 
 /**
  * Class template representing schedule for the simulation, where state is represented by object of class M, and
@@ -48,7 +50,7 @@ struct Action {
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 class Schedule {
 public:
-    using ActionItem = Action<M, Agents...>;
+    using ActionItem = action::Action<M, Agents...>;
     /**
      * Constructs Schedule correlated with given model.
      * @param pModel Reference to an object representing simulation state.
@@ -72,7 +74,7 @@ public:
      * @param order Order value. The lower, the better.
      * @param interval Number of iterations after which action should be invoked again. Default value is one.
      */
-    void scheduleRepeating(auto& agent, size_t time, size_t order, size_t interval=1);
+    void scheduleRepeating(auto& agent, size_t time, size_t order, size_t interval = 1);
 
     /**
      * Executes one step of the simulation. It consists of calling beforeStep method of the model, executing step
