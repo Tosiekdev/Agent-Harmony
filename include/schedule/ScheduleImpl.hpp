@@ -6,19 +6,14 @@
 
 namespace abmf {
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
-void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t priority) {
-    actions.emplace(agent, time, priority);
+void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t order) {
+    actions.emplace(agent, time, order);
 }
 
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t order,
                                                const size_t interval) {
     actions.emplace(agent, time, order, interval);
-}
-
-template<SimState M, Schedulable<M> ... Agents> requires (sizeof...(Agents) > 0)
-void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t priority) {
-    scheduleRepeating(agent, time, priority, 1);
 }
 
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
