@@ -18,11 +18,13 @@ template<Node N, Label L>
 class Network {
 public:
     using EdgeT = Edge<N, L>;
+    using OptEdgePtr = std::optional<const EdgeT*>;
     using EdgeSet = std::unordered_set<EdgeT>;
     explicit Network(const bool isDirected = true) : directed(isDirected) {};
 
     /**
-     * Adds given node to the network, without connecting it to any other node.
+     * Adds given node to the network, without connecting it to any other node. If node is already present in the
+     * network, reference to the existing object will be returned.
      * @param node Node to add.
      * @return Reference to the added node.
      */
@@ -57,8 +59,18 @@ public:
     const EdgeSet& getEdges(const N& node) const;
 
     /**
+     *
+     * @param from Source node of the edge.
+     * @param to End node of the edge.
+     * @param label Label of the edge.
+     * @return Optional pointer to the const found edge.
+     */
+    OptEdgePtr getEdge(const N& from, const N& to, L label);
+
+    /**
      * Adds connection between two nodes. Added node won't have any additional attributes. If the network is undirected,
-     * edge from the second node to the first will also be added.
+     * edge from the second node to the first will also be added. If any of the given nodes does not exist in the
+     * network, it will be added.
      * @param from Node where edge starts.
      * @param to Node where edge ends.
      */
@@ -66,7 +78,8 @@ public:
 
     /**
      * Adds connection between two nodes. Added node will have attributes specified in sent EdgeOption object. If the
-     * network is undirected, edge from the second node to first, with specified attributes, will also be added.
+     * network is undirected, edge from the second node to first, with specified attributes, will also be added. If any
+     * of the given nodes does not exist in the network, it will be added.
      * @param from Node where edge starts.
      * @param to Node where edge ends.
      * @param options Properties of the edge: weight or label.
