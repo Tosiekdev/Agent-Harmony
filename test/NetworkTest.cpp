@@ -29,9 +29,9 @@ TEST(NetworkTest, AddingNode) {
 TEST(NetworkTest, GettingEdge) {
     abmf::Network<int, int> network;
     network.addEdge(5, 5, abmf::EdgeOptions<int>{.label=1});
-    const abmf::Network<int, int>::OptEdgePtr edge = network.getEdge(5, 5, 1);
+    abmf::Network<int, int>::CEdgePtr edge = network.getEdge(5, 5, 1);
     ASSERT_TRUE(edge);
-    EXPECT_EQ(edge.value()->label, 1);
+    EXPECT_EQ(edge->label, 1);
 }
 
 TEST(NetworkTest, AddingEdgeUndirected) {

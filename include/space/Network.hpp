@@ -18,7 +18,7 @@ template<Node N, Label L>
 class Network {
 public:
     using EdgeT = Edge<N, L>;
-    using OptEdgePtr = std::optional<const EdgeT*>;
+    using CEdgePtr = const EdgeT*;
     using EdgeSet = std::unordered_set<EdgeT>;
     explicit Network(const bool isDirected = true) : directed(isDirected) {};
 
@@ -65,7 +65,7 @@ public:
      * @param label Label of the edge.
      * @return Optional pointer to the const found edge.
      */
-    OptEdgePtr getEdge(const N& from, const N& to, L label);
+    CEdgePtr getEdge(const N& from, const N& to, L label);
 
     /**
      * Adds connection between two nodes. Added node won't have any additional attributes. If the network is undirected,

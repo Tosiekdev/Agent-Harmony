@@ -47,16 +47,16 @@ const typename Network<N, L>::EdgeSet& Network<N, L>::getEdges(const N& node) co
 }
 
 template<Node N, Label L>
-typename Network<N, L>::OptEdgePtr Network<N,L>::getEdge(const N& from, const N& to, L label) {
+auto Network<N, L>::getEdge(const N& from, const N& to, L label) -> CEdgePtr {
     auto fromIt = lookup.find(from);
     auto toIt = lookup.find(to);
     if (fromIt == lookup.end() || toIt == lookup.end()) {
-        return std::nullopt;
+        return nullptr;
     }
 
     auto edge = edges.at(fromIt->second).find(EdgeT(*fromIt->second, *toIt->second, label));
     if (edge == edges.at(fromIt->second).end()) {
-        return std::nullopt;
+        return nullptr;
     }
 
     return &*edge;
