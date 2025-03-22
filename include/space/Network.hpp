@@ -51,7 +51,7 @@ public:
     const std::list<N>& getNodes() const { return nodes; }
 
     /**
-     * Returns all the edges that have a source in the given node. For undirected netowrks it means that all the edges
+     * Returns all the edges that have a source in the given node. For undirected networks it means that all the edges
      * connected to that node are returned.
      * @param node In this node all the returned nodes have a beginning.
      * @return Reference to a constant set with all the edges starting in the given node.
@@ -123,7 +123,7 @@ public:
     bool hasNode(const N& node);
 
     /**
-     * Gets all of the nodes which can be found in the distance not greater than specified. Optionally it also return
+     * Gets all the nodes which can be found in the distance not greater than specified. Optionally it also return
      * the central node.
      * @param node Node which neighbors we want to obtain.
      * @param radius Distance in which we want to search for the neighbors.
