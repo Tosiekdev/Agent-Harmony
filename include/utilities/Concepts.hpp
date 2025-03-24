@@ -17,6 +17,11 @@ concept Positionable = requires(A a) {
     { a.pos } -> std::convertible_to<std::optional<Point>>;
 };
 
+template<typename A>
+concept RealPostionable = requires(A a) {
+    {a.pos} -> std::convertible_to<std::optional<RealPoint>>;
+};
+
 template<typename L>
 concept Label = requires(L l) {
     std::hash<L>();

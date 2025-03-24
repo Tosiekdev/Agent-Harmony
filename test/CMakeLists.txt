@@ -23,6 +23,7 @@ add_executable(
         FieldTest.cpp
         MultiagentFieldTest.cpp
         NetworkTest.cpp
+        ContinuousSpaceTest.cpp
 )
 target_link_libraries(
         ABMframeworkTest
