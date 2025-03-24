@@ -79,7 +79,7 @@ public:
   void removeAgent(Point pos);
 
   /**
-   * Calls specified function for avery agent on the grid.
+   * Calls specified function for every agent on the grid.
    * @tparam F Type of the invoked function.
    * @param f Function to be invoked. It must be invocable with a reference to an agent.
    */
@@ -116,7 +116,7 @@ public:
    * @param pos Point which neighbors we want to get.
    * @param r Radius of the neighborhood we want to get.
    * @param moore Flag indicating if we want a Moore (true), or von Neumann (false) neighborhood.
-   * @param center If set to true, also the central point will be returned.
+   * @param center If set to true, also agent at the central point will be returned.
    * @return Vector of pointers to agents neighbouring with the specified grid cell.
    */
   [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r=1, bool moore=true, bool center=false);
