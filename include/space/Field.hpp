@@ -10,7 +10,7 @@
 namespace abmf {
 /**
  * Representation of two-dimensional grid. It allows storage of the one agent per cell.
- * @tparam Agents Types of the agents to be stored in the struct. It must meet Positionable requirements.
+ * @tparam Agents Types of the agents to be stored in the struct. They must meet Positionable requirements.
  */
 template<Positionable... Agents> requires (sizeof...(Agents) > 0)
 class Field {
@@ -31,14 +31,14 @@ public:
   /**
    * Gets agent at the given position. Returns std::nullopt when at given position there is no agent.
    * @param pos Position to check agent at.
-   * @return Reference to the specified cell. Its type is optional variant of pointer to an agent.
+   * @return Reference to the specified cell.
    */
   OptAgentT& getAgent(Point pos);
 
   /**
    * Gets agent at the given position. Returns std::nullopt when at given position there is no agent.
    * @param pos Position to check agent at.
-   * @return Reference to the specified constant cell. Its type is const optional variant of pointers to an agent.
+   * @return Reference to the specified constant cell.
    */
   const OptAgentT& getAgent(Point pos) const;
 
@@ -54,7 +54,8 @@ public:
   bool addAgent(Agent& agent, Point pos);
 
   /**
-   * Moves agent to the specified location if it is empty. If agent wasn't present on the field it is added.
+   * Moves agent to the specified location if it is empty. If agent wasn't present on the field it is added. It modifies
+   * value of the pos attribute of the agent.
    * @tparam Agent Type of the agent we want to move.
    * @param agent Agent to be moved.
    * @param pos Position we want to move agent to.
@@ -106,7 +107,7 @@ public:
    * @param r Radius of the neighborhood.
    * @param moore Flag indicating if we want a Moore (true), or von Neumann (false) neighborhood.
    * @param center If set to true, also the central point will be returned.
-   * @return Vector of points neighbouring with the specified one.
+   * @return Vector of points neighbouring the specified one.
    */
   [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r=1, bool moore=true, bool center=false) const;
 
