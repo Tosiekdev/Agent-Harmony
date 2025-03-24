@@ -95,31 +95,11 @@ auto visitNeighbors(const T& layer, const Point pos, const int r, const bool moo
 }
 
 template<typename T, std::invocable<T&> F>
-void applyToAll(std::vector<std::vector<T>>& grid, F&& f) {
-    if (grid.empty()) return;
-    for (size_t i = 0; i < grid.size(); ++i) {
-        for (size_t j = 0; j < grid[0].size(); ++j) {
-            std::invoke(std::forward<F>(f), grid[i][j]);
-        }
-    }
-}
-
-template<typename T, std::invocable<T&> F>
 void applyToAll(std::vector<T>& grid, F&& f, const int width, const int height) {
     if (grid.empty()) return;
     for (size_t y = 0; y < height; ++y) {
         for (size_t x = 0; x < width; ++x) {
             std::invoke(std::forward<F>(f), grid[y * width + x]);
-        }
-    }
-}
-
-template<typename T, std::invocable<Point, T&> F>
-void transformAll(std::vector<std::vector<T>>& grid, F&& f) {
-    if (grid.empty()) return;
-    for (int y = 0; y < grid.size(); ++y) {
-        for (int x = 0; x < grid[0].size(); ++x) {
-            std::invoke(std::forward<F>(f), Point(x, y), grid[y][x]);
         }
     }
 }

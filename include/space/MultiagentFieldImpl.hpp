@@ -4,13 +4,13 @@
 
 namespace abmf {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-auto MultiagentField<Agents...>::getAgents(Point pos) -> SquareT& {
-    return grid[pos.y][pos.x];
+auto MultiagentField<Agents...>::getAgents(const Point pos) -> SquareT& {
+    return grid[pos.y * width + pos.x];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-auto MultiagentField<Agents...>::getAgents(Point pos) const -> const SquareT& {
-    return grid[pos.y][pos.x];
+auto MultiagentField<Agents...>::getAgents(const Point pos) const -> const SquareT& {
+    return grid[pos.y * width + pos.x];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
@@ -62,7 +62,9 @@ void MultiagentField<Agents...>::apply(F&& f) {
                    for (auto agent : square) {
                        std::visit([&](auto a) { std::invoke(std::forward<F>(f), *a); }, agent);
                    }
-               });
+               },
+               width,
+               height);
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
@@ -73,16 +75,18 @@ void MultiagentField<Agents...>::transform(F&& f) {
                      for (auto& agent : agents) {
                          std::visit([&](auto a) { std::invoke(std::forward<F>(f), p, *a); }, agent);
                      }
-                 });
+                 },
+                 width,
+                 height);
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-bool MultiagentField<Agents...>::isEmpty(Point p) const {
+bool MultiagentField<Agents...>::isEmpty(const Point p) const {
     return getAgents(p).empty();
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-size_t MultiagentField<Agents...>::agentCount(Point p) const {
+size_t MultiagentField<Agents...>::agentCount(const Point p) const {
     return getAgents(p).size();
 }
 
@@ -93,7 +97,7 @@ std::vector<Point> MultiagentField<Agents...>::getNeighborhood(Point pos, int r,
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<typename MultiagentField<Agents...>::AgentT> MultiagentField<Agents...>::getNeighbors(
-    const Point pos, int r, const bool moore, const bool center) {
+    const Point pos, const int r, const bool moore, const bool center) {
     auto f = [&](const Point p, std::vector<AgentT>& result) {
         for (auto& agent : getAgents(p)) {
             result.push_back(agent);
@@ -120,11 +124,11 @@ Point MultiagentField<Agents...>::toToroidal(const Point p) const {
 template<Positionable... Agents> requires (sizeof...(Agents) > 0)
 std::vector<Point> MultiagentField<Agents...>::getEmpty() const {
     std::vector<Point> result;
-    result.reserve(width*height / 2);
+    result.reserve(width * height / 2);
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < height; ++x) {
-            if (isEmpty({x,y})) {
+            if (isEmpty({x, y})) {
                 result.push_back({x, y});
             }
         }

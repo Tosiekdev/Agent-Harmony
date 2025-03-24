@@ -12,17 +12,15 @@ class MultiagentField {
 public:
     using AgentT = std::variant<Agents*...>;
     using SquareT = std::vector<AgentT>;
-    using GridT = std::vector<std::vector<SquareT>>;
+    using GridT = std::vector<SquareT>;
 
     explicit MultiagentField(const int pWidth, const int pHeight, const bool torus = false)
-        : width(pWidth), height(pHeight), grid(height, std::vector<SquareT>(width)), toroidal(torus) {}
+        : width(pWidth), height(pHeight), grid(height * width), toroidal(torus) {}
 
     explicit MultiagentField(const int pWidth, const int pHeight, size_t reservation, const bool torus = false)
-        : width(pWidth), height(pHeight), grid(height, std::vector<SquareT>(width)), toroidal(torus) {
-        for (auto& row : grid) {
-            for (auto& square : row) {
-                square.reserve(reservation);
-            }
+        : width(pWidth), height(pHeight), grid(height * width), toroidal(torus) {
+        for (auto& cell : grid) {
+            cell.reserve(reservation);
         }
     }
 
