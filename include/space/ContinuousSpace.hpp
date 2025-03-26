@@ -27,7 +27,9 @@ public:
      */
     explicit ContinuousSpace(const double pWidth, const double pHeight, const double dx, const bool torus = false)
         : width(pWidth), height(pHeight), discretization(dx)
-        , grid(static_cast<int>(std::ceil(pHeight / dx)) * static_cast<int>(std::ceil(pWidth / dx)))
+        , rows(static_cast<int>(std::ceil(pHeight / dx)))
+        , cols(static_cast<int>(std::ceil(pWidth / dx)))
+        , grid(rows * cols)
         , toroidal(torus) {}
 
     /**
@@ -38,7 +40,7 @@ public:
      * @param pos Position at which we want to place an agent.
      */
     template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
-    void addAgent(Agent& agent, Point pos);
+    void addAgent(Agent& agent, RealPoint pos);
 
     /**
      * Moves agent to the specified location. If agent wasn't present on the field it is added. It modifies value of the
@@ -121,7 +123,14 @@ private:
     double width;
     double height;
     double discretization;
+    int rows;
+    int cols;
     GridT grid;
     bool toroidal;
+
+    [[nodiscard]] Point dicretize(RealPoint point) const;
+    [[nodiscard]] SquareT& getCell(RealPoint point);
 };
 }
+
+#include "ContinuousSpaceImpl.hpp"
