@@ -90,7 +90,7 @@ public:
      * @param p Point to be converted.
      * @return Point mapped to the proper coordinates.
      */
-    [[nodiscard]] Point toToroidal(RealPoint p) const;
+    [[nodiscard]] RealPoint toToroidal(RealPoint p) const;
 
     /**
      * Gets with of the grid. Equivalent to the first x coordinate which is out of bounds.

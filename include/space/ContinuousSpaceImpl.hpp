@@ -59,6 +59,11 @@ size_t ContinuousSpace<Agents...>::agentCount(const RealPoint p) const {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
+[[nodiscard]] RealPoint ContinuousSpace<Agents...>::toToroidal(const RealPoint p) const {
+    return {std::fmod(p.x, width), std::fmod(p.y, height)};
+}
+
+template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 Point ContinuousSpace<Agents...>::dicretize(const RealPoint point) const {
     return {
         static_cast<int>(std::ceil(point.x / discretization)),
