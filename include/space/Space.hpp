@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ContinuousSpace.hpp"
 #include "Edge.hpp"
 #include "Field.hpp"
 #include "MultiagentField.hpp"

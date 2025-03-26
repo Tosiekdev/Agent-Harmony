@@ -18,7 +18,7 @@ concept Positionable = requires(A a) {
 };
 
 template<typename A>
-concept RealPostionable = requires(A a) {
+concept RealPositionable = requires(A a) {
     {a.pos} -> std::convertible_to<std::optional<RealPoint>>;
 };
 
