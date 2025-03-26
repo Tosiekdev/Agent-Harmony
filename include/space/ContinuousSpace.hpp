@@ -69,15 +69,6 @@ public:
     void apply(F&& f);
 
     /**
-     * Calls specified function for every pair (coordinates, agent) on the grid.
-     * @tparam F Type of the invoked function.
-     * @param f unction to be invoked. It must be invocable with an object of type RealPoint and a reference to an
-     * agent.
-     */
-    template<typename F> requires (std::invocable<F, RealPoint, Agents&> || ...)
-    void transform(F&& f);
-
-    /**
      * Get agent count at the given position.
      * @param p Point at which we want to count agents.
      * @return Number of agent at the specified cell.
