@@ -15,8 +15,20 @@ namespace abmf {
 template<Positionable... Agents> requires (sizeof...(Agents) > 0)
 class Field {
 public:
+  /**
+   * Type of the agent stored at given cell.
+   */
   using AgentT = std::variant<Agents*...>;
+
+  /**
+   * Type of the cell.
+   */
   using OptAgentT = std::optional<AgentT>;
+
+
+  /**
+   * Type of the grid.
+   */
   using GridT = std::vector<OptAgentT>;
 
   /**

@@ -17,9 +17,25 @@ namespace abmf {
 template<Node N, Label L>
 class Network {
 public:
+    /**
+     * Type of the edge.
+     */
     using EdgeT = Edge<N, L>;
+
+    /**
+     * Pointer type to a constant edge.
+     */
     using CEdgePtr = const EdgeT*;
+
+    /**
+     * Type of the set of edges.
+     */
     using EdgeSet = std::unordered_set<EdgeT>;
+
+    /**
+     * Creates new empty network.
+     * @param isDirected Is represented graph directed.
+     */
     explicit Network(const bool isDirected = true) : directed(isDirected) {};
 
     /**

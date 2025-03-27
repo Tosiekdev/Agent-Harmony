@@ -14,8 +14,19 @@ namespace abmf {
 template<Positionable... Agents> requires (sizeof...(Agents) > 0)
 class MultiagentField {
 public:
+    /**
+     * Type of the stored agent.
+     */
     using AgentT = std::variant<Agents*...>;
+
+    /**
+     * Type of the cell.
+     */
     using SquareT = std::vector<AgentT>;
+
+    /**
+     * Type of the grid.
+     */
     using GridT = std::vector<SquareT>;
 
     /**
