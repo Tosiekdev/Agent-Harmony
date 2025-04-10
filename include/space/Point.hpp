@@ -11,8 +11,8 @@ struct Point {
 };
 
 struct RealPoint {
-    double x{};
-    double y{};
+    float x{};
+    float y{};
 
     bool operator==(const RealPoint& other) const {
         return x == other.x && y == other.y;

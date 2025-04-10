@@ -14,12 +14,12 @@ concept ActiveAgent = requires(T t) {
 
 template<typename A>
 concept Positionable = requires(A a) {
-    { a.pos } -> std::convertible_to<std::optional<Point>>;
+    { a.pos } -> std::same_as<std::optional<Point>&>;
 };
 
 template<typename A>
 concept RealPositionable = requires(A a) {
-    {a.pos} -> std::convertible_to<std::optional<RealPoint>>;
+    {a.pos} -> std::same_as<std::optional<RealPoint>&>;
 };
 
 template<typename L>

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Concepts.hpp"
 #include "../space/Point.hpp"
 
 #include <cmath>
@@ -63,7 +64,7 @@ auto visitNeighborhood(const T& layer, const Point pos, const int r, const bool 
 
 template<Grid T, typename A, std::invocable<Point, std::vector<A>&> F>
 auto visitNeighbors(const T& layer, const Point pos, const int r, const bool moore,
-                       const bool center, F&& f) -> std::vector<A> {
+                    const bool center, F&& f) -> std::vector<A> {
     std::vector<A> result;
     if (moore) {
         result.reserve((2 * r + 1) * (2 * r + 1));
@@ -115,7 +116,11 @@ void transformAll(std::vector<T>& grid, F&& f, const int width, const int height
 }
 
 inline float l2(const RealPoint p1, const RealPoint p2) {
-    return std::hypot(p2.x-p1.x, p2.y-p1.y);
+    return std::hypot(p2.x - p1.x, p2.y - p1.y);
 }
+
+inline auto Pos = [](auto a) {
+    return *a->pos;
+};
 }
 

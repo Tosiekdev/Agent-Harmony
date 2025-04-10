@@ -6,7 +6,6 @@
 #include <variant>
 
 namespace abmf {
-
 /**
  * Representation of two-dimensional continuous field.
  * @tparam Agents Types of the agents to be stored in the struct. They must meet RealPositionable requirements.
@@ -25,12 +24,12 @@ public:
      * @param dx Discretization of the space.
      * @param torus Should space wrap.
      */
-    explicit ContinuousSpace(const double pWidth, const double pHeight, const double dx, const bool torus = false)
+    explicit ContinuousSpace(const float pWidth, const float pHeight, const float dx, const bool torus = false)
         : width(pWidth), height(pHeight), discretization(dx)
-        , rows(static_cast<int>(std::ceil(pHeight / dx)))
-        , cols(static_cast<int>(std::ceil(pWidth / dx)))
-        , grid(rows * cols)
-        , toroidal(torus) {}
+          , rows(static_cast<int>(std::ceil(pHeight / dx)))
+          , cols(static_cast<int>(std::ceil(pWidth / dx)))
+          , grid(rows * cols)
+          , toroidal(torus) {}
 
     /**
      * Adds agent on the field at specified position. It sets pos attribute of the added agent to the specified
@@ -50,7 +49,7 @@ public:
      * @param pos Position we want to move agent to.
      */
     template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
-    void moveAgent(Agent& agent, Point pos);
+    void moveAgent(Agent& agent, RealPoint pos);
 
     /**
      * Removes specified agent from the field. This modifies the value of the pos attribute of the agent.
@@ -83,7 +82,7 @@ public:
      * @param center If set to true, also the central point will be returned.
      * @return Vector of pointers to agents neighbouring with the specified grid cell.
      */
-    [[nodiscard]] std::vector<AgentT> getNeighbors(RealPoint pos, int r, bool euclidean, bool center);
+    [[nodiscard]] std::vector<AgentT> getNeighbors(RealPoint pos, float r, bool euclidean = false, bool center = false);
 
     /**
      * Maps the given point to the coordinates it would have if the grid were toroidal.
@@ -96,13 +95,13 @@ public:
      * Gets with of the grid. Equivalent to the first x coordinate which is out of bounds.
      * @return Width of the grid.
      */
-    [[nodiscard]] double getWidth() const { return width; }
+    [[nodiscard]] float getWidth() const { return width; }
 
     /**
      * Gets height of the grid. Equivalent to the first y coordinate which is out of bound.
      * @return Height of the grid.
      */
-    [[nodiscard]] double getHeight() const { return height; }
+    [[nodiscard]] float getHeight() const { return height; }
 
     /**
      * Checks if grid is wrapped (top edge is connected with bottom edge, and left edge is connected with right edge).
@@ -111,9 +110,9 @@ public:
     [[nodiscard]] bool isToroidal() const { return toroidal; }
 
 private:
-    double width;
-    double height;
-    double discretization;
+    float width;
+    float height;
+    float discretization;
     int rows;
     int cols;
     GridT grid;
@@ -121,6 +120,7 @@ private:
 
     [[nodiscard]] Point dicretize(RealPoint point) const;
     [[nodiscard]] SquareT& getCell(RealPoint point);
+    [[nodiscard]] SquareT& getCell(Point point);
 };
 }
 
