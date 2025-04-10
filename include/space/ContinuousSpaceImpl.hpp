@@ -118,7 +118,7 @@ auto ContinuousSpace<Agents...>::getCell(const Point point) -> SquareT& {
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 bool ContinuousSpace<Agents...>::inRadius(const Point point, const float radius, const RealPoint center) const {
-    Point c = discretize(center);
+    const Point c = discretize(center);
     if (point.y < c.y && point.x < c.x)
         return l2(center,
                   {
@@ -146,6 +146,13 @@ bool ContinuousSpace<Agents...>::inRadius(const Point point, const float radius,
                       static_cast<float>(point.x) * discretization,
                       static_cast<float>(point.y + 1) * discretization
                   }) <= radius;
-    return false;
+
+    if (point.y == c.y)
+        return std::abs(static_cast<float>(point.x + static_cast<int>(point.x < c.x)) * discretization) <= radius;
+
+    if (point.x == c.x)
+        return std::abs(static_cast<float>(point.y + static_cast<int>(point.y > c.y)) * discretization) <= radius;
+
+    assert(false, "UNREACHABLE");
 }
 }
