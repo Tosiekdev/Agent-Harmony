@@ -113,5 +113,9 @@ void transformAll(std::vector<T>& grid, F&& f, const int width, const int height
         }
     }
 }
+
+inline float l2(const RealPoint p1, const RealPoint p2) {
+    return std::hypot(p2.x-p1.x, p2.y-p1.y);
+}
 }
 
