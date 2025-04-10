@@ -118,9 +118,10 @@ private:
     GridT grid;
     bool toroidal;
 
-    [[nodiscard]] Point dicretize(RealPoint point) const;
+    [[nodiscard]] Point discretize(RealPoint point) const;
     [[nodiscard]] SquareT& getCell(RealPoint point);
     [[nodiscard]] SquareT& getCell(Point point);
+    [[nodiscard]] bool inRadius(Point point, float radius, RealPoint center) const;
 };
 }
 

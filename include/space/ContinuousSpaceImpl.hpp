@@ -63,7 +63,7 @@ template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents...>::getNeighbors(const RealPoint pos,
     const float r, const bool euclidean, const bool center) {
     const int radius = static_cast<int>(std::floor(r / discretization));
-    const auto [pX, pY] = dicretize(pos);
+    const auto [pX, pY] = discretize(pos);
 
     std::vector<AgentT> neighbors;
     for (int i = -radius; i <= radius; ++i) {
@@ -71,27 +71,22 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
             const int x = pX + j;
             const int y = pY + i;
 
-            // lewy górny
-
-            // prawy górny
-            {
-                if (l2(pos, {x * discretization, y * discretization}) <= r) {
-                    auto& cell = getCell(Point{x, y});
-                    if (euclidean) {
-                        std::ranges::for_each(cell, [&](AgentT agent) {
-                            if (l2(pos, std::visit(Pos, agent)) <= r) {
-                                neighbors.push_back(agent);
-                            }
-                        });
-                    } else {
-                        neighbors.insert(neighbors.end(), cell.begin(), cell.end());
-                    }
-                }
+            if (!inRadius({x, y}, r, pos)) {
+                continue;
             }
 
-            // lewy dolny
-
-            // prawy dolny
+            auto& cell = getCell(Point{x, y});
+            if (euclidean) {
+                std::ranges::for_each(cell,
+                                      [&](AgentT agent) {
+                                          if (l2(pos, std::visit(Pos, agent)) <= r) {
+                                              neighbors.push_back(agent);
+                                          }
+                                      });
+            }
+            else {
+                neighbors.insert(neighbors.end(), cell.begin(), cell.end());
+            }
         }
     }
 
@@ -104,7 +99,7 @@ template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-Point ContinuousSpace<Agents...>::dicretize(const RealPoint point) const {
+Point ContinuousSpace<Agents...>::discretize(const RealPoint point) const {
     return {
         static_cast<int>(std::ceil(point.x / discretization)),
         static_cast<int>(std::ceil(point.y / discretization))
@@ -113,11 +108,44 @@ Point ContinuousSpace<Agents...>::dicretize(const RealPoint point) const {
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const RealPoint point) -> SquareT& {
-    return getCell(dicretize(point));
+    return getCell(discretize(point));
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const Point point) -> SquareT& {
     return grid[point.y * rows + point.x];
+}
+
+template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
+bool ContinuousSpace<Agents...>::inRadius(const Point point, const float radius, const RealPoint center) const {
+    Point c = discretize(center);
+    if (point.y < c.y && point.x < c.x)
+        return l2(center,
+                  {
+                      static_cast<float>(point.x + 1) * discretization,
+                      static_cast<float>(point.y) * discretization
+                  }) <= radius;
+
+    if (point.y < c.y && point.x > c.x)
+        return l2(center,
+                  {
+                      static_cast<float>(point.x) * discretization,
+                      static_cast<float>(point.y) * discretization
+                  }) <= radius;
+
+    if (point.y > c.y && point.x < c.x)
+        return l2(center,
+                  {
+                      static_cast<float>(point.x + 1) * discretization,
+                      static_cast<float>(point.y + 1) * discretization
+                  }) <= radius;
+
+    if (point.y > c.y && point.x > c.x)
+        return l2(center,
+                  {
+                      static_cast<float>(point.x) * discretization,
+                      static_cast<float>(point.y + 1) * discretization
+                  }) <= radius;
+    return false;
 }
 }
