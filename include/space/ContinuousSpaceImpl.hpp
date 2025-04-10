@@ -55,7 +55,7 @@ template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 size_t ContinuousSpace<Agents...>::agentCount(const RealPoint p) const {
     return std::ranges::count_if(getCell(p),
                                  [&](AgentT agentPtr) {
-                                     std::visit([&](auto agent) { agent.pos == p; }, agentPtr);
+                                     return std::visit([&](auto agent) { return agent->pos == p; }, agentPtr);
                                  });
 }
 
@@ -79,7 +79,9 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
             if (euclidean) {
                 std::ranges::for_each(cell,
                                       [&](AgentT agent) {
+                                          printf("%f\n", l2(pos, std::visit(Pos, agent)));
                                           if (l2(pos, std::visit(Pos, agent)) <= r) {
+                                              if (!center && pos == std::visit(Pos, agent)) return;
                                               neighbors.push_back(agent);
                                           }
                                       });
@@ -112,47 +114,57 @@ auto ContinuousSpace<Agents...>::getCell(const RealPoint point) -> SquareT& {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
+auto ContinuousSpace<Agents...>::getCell(const RealPoint point) const -> const SquareT& {
+    return getCell(discretize(point));
+}
+
+template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const Point point) -> SquareT& {
     return grid[point.y * rows + point.x];
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
+auto ContinuousSpace<Agents...>::getCell(const Point point) const -> const SquareT& {
+    return grid[point.y * rows + point.x];
+}
+
+template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 bool ContinuousSpace<Agents...>::inRadius(const Point point, const float radius, const RealPoint center) const {
-    const Point c = discretize(center);
-    if (point.y < c.y && point.x < c.x)
+    const auto [x, y] = discretize(center);
+    if (point.y < y && point.x < x)
         return l2(center,
                   {
                       static_cast<float>(point.x + 1) * discretization,
                       static_cast<float>(point.y) * discretization
                   }) <= radius;
 
-    if (point.y < c.y && point.x > c.x)
+    if (point.y < y && point.x > x)
         return l2(center,
                   {
                       static_cast<float>(point.x) * discretization,
                       static_cast<float>(point.y) * discretization
                   }) <= radius;
 
-    if (point.y > c.y && point.x < c.x)
+    if (point.y > y && point.x < x)
         return l2(center,
                   {
                       static_cast<float>(point.x + 1) * discretization,
                       static_cast<float>(point.y + 1) * discretization
                   }) <= radius;
 
-    if (point.y > c.y && point.x > c.x)
+    if (point.y > y && point.x > x)
         return l2(center,
                   {
                       static_cast<float>(point.x) * discretization,
                       static_cast<float>(point.y + 1) * discretization
                   }) <= radius;
 
-    if (point.y == c.y)
-        return std::abs(static_cast<float>(point.x + static_cast<int>(point.x < c.x)) * discretization) <= radius;
+    if (point.y == y)
+        return std::abs(static_cast<float>(point.x + static_cast<int>(point.x < x)) * discretization) <= radius;
 
-    if (point.x == c.x)
-        return std::abs(static_cast<float>(point.y + static_cast<int>(point.y > c.y)) * discretization) <= radius;
+    if (point.x == x)
+        return std::abs(static_cast<float>(point.y + static_cast<int>(point.y > y)) * discretization) <= radius;
 
-    assert(false, "UNREACHABLE");
+    assert(false && "UNREACHABLE");
 }
 }

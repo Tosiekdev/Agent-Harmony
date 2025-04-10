@@ -82,7 +82,7 @@ public:
      * @param center If set to true, also the central point will be returned.
      * @return Vector of pointers to agents neighbouring with the specified grid cell.
      */
-    [[nodiscard]] std::vector<AgentT> getNeighbors(RealPoint pos, float r, bool euclidean = false, bool center = false);
+    [[nodiscard]] std::vector<AgentT> getNeighbors(RealPoint pos, float r, bool euclidean = true, bool center = false);
 
     /**
      * Maps the given point to the coordinates it would have if the grid were toroidal.
@@ -120,7 +120,9 @@ private:
 
     [[nodiscard]] Point discretize(RealPoint point) const;
     [[nodiscard]] SquareT& getCell(RealPoint point);
+    [[nodiscard]] const SquareT& getCell(RealPoint point) const;
     [[nodiscard]] SquareT& getCell(Point point);
+    [[nodiscard]] const SquareT& getCell(Point point) const ;
     [[nodiscard]] bool inRadius(Point point, float radius, RealPoint center) const;
 };
 }
