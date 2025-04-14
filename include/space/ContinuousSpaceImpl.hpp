@@ -79,7 +79,6 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
             if (euclidean) {
                 std::ranges::for_each(cell,
                                       [&](AgentT agent) {
-                                          printf("%f\n", l2(pos, std::visit(Pos, agent)));
                                           if (l2(pos, std::visit(Pos, agent)) <= r) {
                                               if (!center && pos == std::visit(Pos, agent)) return;
                                               neighbors.push_back(agent);
@@ -160,10 +159,10 @@ bool ContinuousSpace<Agents...>::inRadius(const Point point, const float radius,
                   }) <= radius;
 
     if (point.y == y)
-        return std::abs(static_cast<float>(point.x + static_cast<int>(point.x < x)) * discretization) <= radius;
+        return std::abs(static_cast<float>(point.x + static_cast<int>(point.x < x)) * discretization - center.x) <= radius;
 
     if (point.x == x)
-        return std::abs(static_cast<float>(point.y + static_cast<int>(point.y > y)) * discretization) <= radius;
+        return std::abs(static_cast<float>(point.y + static_cast<int>(point.y < y)) * discretization - center.y) <= radius;
 
     assert(false && "UNREACHABLE");
 }

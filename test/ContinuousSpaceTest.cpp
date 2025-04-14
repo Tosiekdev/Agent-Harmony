@@ -4,8 +4,18 @@
 
 namespace test::continuous {
 struct Agent {
+    static int idCount;
+    int id;
     std::optional<abmf::RealPoint> pos;
+    Agent() {
+        id = idCount;
+        ++idCount;
+    }
+    bool operator==(const Agent& rhs) const {
+        return id == rhs.id;
+    }
 };
+int Agent::idCount = 0;
 
 TEST(ContinuousSpaceTest, AddAgent) {
     abmf::ContinuousSpace<Agent> space(10.f, 10.f, 1.f);
@@ -28,7 +38,7 @@ TEST(ContinuousSpaceTest, GetNeighbours) {
     space.addAgent(b, {3.f, 3.f});
     space.addAgent(c, {2.f, 2.f});
 
-    auto nghs = space.getNeighbors(*a.pos, 3.f, true, true);
+    auto nghs = space.getNeighbors(*a.pos, 3.f, true, false);
     EXPECT_EQ(nghs.size(), 1);
 
     nghs = space.getNeighbors(*a.pos, 3.f, false, true);
