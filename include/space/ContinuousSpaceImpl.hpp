@@ -3,6 +3,7 @@
 #include "../utilities/Utils.hpp"
 
 #include <algorithm>
+#include <cassert>
 
 namespace agh {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
