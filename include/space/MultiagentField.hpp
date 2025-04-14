@@ -6,7 +6,7 @@
 #include <variant>
 #include <vector>
 
-namespace abmf {
+namespace agh {
 /**
  * Representation of two-dimensional grid. It allows storage of the multiple agents in one cell.
  * @tparam Agents Types of the agents to be stored in the struct. They must meet Positionable requirements.

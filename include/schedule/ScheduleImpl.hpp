@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace abmf {
+namespace agh {
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t order) {
     actions.emplace(agent, time, order);

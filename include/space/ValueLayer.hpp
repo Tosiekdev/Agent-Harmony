@@ -4,7 +4,7 @@
 
 #include "Point.hpp"
 
-namespace abmf {
+namespace agh {
 /**
  * Represents two-dimensional grid for storing space attributes. It poses two arrays: one to modify values, and the
  * second one to read them.

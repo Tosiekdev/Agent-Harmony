@@ -21,9 +21,9 @@ struct NotMyAgent {
     }
 };
 
-struct MyModel : abmf::Model<MyAgent> {};
+struct MyModel : agh::Model<MyAgent> {};
 
-struct MyModel2 : abmf::Model<MyAgent, NotMyAgent> {};
+struct MyModel2 : agh::Model<MyAgent, NotMyAgent> {};
 
 TEST(ModelTest, AddingAgent) {
     MyModel2 m;

@@ -8,7 +8,7 @@
 #include <functional>
 #include <vector>
 
-namespace abmf {
+namespace agh {
 inline Point convertToToroidal(const Point p, const int width, const int height) {
     if (p.x < 0) {
         if (p.y < 0) {

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <queue>
 
-namespace abmf {
+namespace agh {
 template<Node N, Label L>
 N& Network<N, L>::addNode(const N& node) {
     if (auto it = lookup.find(node); it != lookup.end()) {

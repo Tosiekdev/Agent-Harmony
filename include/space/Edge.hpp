@@ -4,7 +4,7 @@
 
 #include <optional>
 
-namespace abmf {
+namespace agh {
 template<Label L>
 struct EdgeOptions {
     std::optional<L> label;
@@ -35,9 +35,9 @@ struct Edge {
 };
 }
 
-template<abmf::Node N, abmf::Label L>
-struct std::hash<abmf::Edge<N, L>> {
-    size_t operator()(const abmf::Edge<N, L>& e) const {
+template<agh::Node N, agh::Label L>
+struct std::hash<agh::Edge<N, L>> {
+    size_t operator()(const agh::Edge<N, L>& e) const {
         return std::hash<N>{}(e.from) ^ (std::hash<N>{}(e.to) << 1);
     }
 };

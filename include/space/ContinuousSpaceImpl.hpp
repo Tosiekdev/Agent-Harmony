@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace abmf {
+namespace agh {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void ContinuousSpace<Agents...>::addAgent(Agent& agent, const RealPoint pos) {

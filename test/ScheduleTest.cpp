@@ -24,7 +24,7 @@ struct MyAgent {
     }
 };
 
-struct MyModel : abmf::Model<MyAgent> {
+struct MyModel : agh::Model<MyAgent> {
     explicit MyModel() = default;
 
     void beforeStep() {
@@ -60,7 +60,7 @@ struct AdvAgent {
     }
 };
 
-struct SecondModel : abmf::Model<AdvAgent> {
+struct SecondModel : agh::Model<AdvAgent> {
     void beforeStep() {}
 
     void afterStep() {}
@@ -73,14 +73,14 @@ struct SecondModel : abmf::Model<AdvAgent> {
 TEST(ActionTest, CreateAction) {
     MyAgent a{1};
     MyModel m;
-    abmf::action::Action<MyModel, MyAgent> action(a, 1, 1);
+    agh::action::Action<MyModel, MyAgent> action(a, 1, 1);
     action.step(m);
     EXPECT_EQ(a.run, 1);
 }
 
 TEST(SchedulerTest, ScheduleEvent) {
     MyModel model;
-    abmf::Schedule<MyModel, MyAgent> schedule(model);
+    agh::Schedule<MyModel, MyAgent> schedule(model);
     schedule.scheduleRepeating(model.emplaceAgent<MyAgent>(0), 1, 1, 1);
     schedule.scheduleRepeating(model.emplaceAgent<MyAgent>(1), 1, 1, 1);
     schedule.execute();
@@ -93,7 +93,7 @@ TEST(SchedulerTest, ScheduleEvent) {
 
 TEST(SchedulerTest, AgentWithAdvance) {
     SecondModel model;
-    abmf::Schedule<SecondModel, AdvAgent> schedule(model);
+    agh::Schedule<SecondModel, AdvAgent> schedule(model);
     auto& agent = model.emplaceAgent<AdvAgent>(1, 2);
     schedule.scheduleRepeating(agent, 1, 1, 1);
     schedule.execute();

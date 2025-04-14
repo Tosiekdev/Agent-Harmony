@@ -2,7 +2,7 @@
 
 #include "../utilities/Utils.hpp"
 
-namespace abmf {
+namespace agh {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto MultiagentField<Agents...>::getAgents(const Point pos) -> SquareT& {
     return grid[pos.y * width + pos.x];

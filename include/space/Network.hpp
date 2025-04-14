@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-namespace abmf {
+namespace agh {
 /**
  * Class template which aims to represent graphs. Both directed and undirected. It imposes only small requirements for
  * the type of nodes and type of edges' labels. If there is more than one connection between two nodes, then they have

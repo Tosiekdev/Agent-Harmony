@@ -6,7 +6,7 @@ namespace test::continuous {
 struct Agent {
     static int idCount;
     int id;
-    std::optional<abmf::RealPoint> pos;
+    std::optional<agh::RealPoint> pos;
     Agent() {
         id = idCount;
         ++idCount;
@@ -18,7 +18,7 @@ struct Agent {
 int Agent::idCount = 0;
 
 TEST(ContinuousSpaceTest, AddAgent) {
-    abmf::ContinuousSpace<Agent> space(10.f, 10.f, 1.f);
+    agh::ContinuousSpace<Agent> space(10.f, 10.f, 1.f);
     Agent a, b, c;
 
     space.addAgent(a, {5.f, 5.f});
@@ -31,7 +31,7 @@ TEST(ContinuousSpaceTest, AddAgent) {
 }
 
 TEST(ContinuousSpaceTest, GetNeighbours) {
-    abmf::ContinuousSpace<Agent> space(10.f, 10.f, 1.f);
+    agh::ContinuousSpace<Agent> space(10.f, 10.f, 1.f);
     Agent a, b, c;
 
     space.addAgent(a, {5.f, 5.f});

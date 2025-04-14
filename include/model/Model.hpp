@@ -5,7 +5,7 @@
 
 #include "../utilities/Concepts.hpp"
 
-namespace abmf {
+namespace agh {
 /**
  * Class template capable of storing agents present in the simulation. It assures that the address of the agent is
  * invariant.

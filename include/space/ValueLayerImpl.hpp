@@ -6,7 +6,7 @@
 
 #include <functional>
 
-namespace abmf {
+namespace agh {
 template<typename T>
 T ValueLayer<T>::get(const Point pos) const {
     return read[pos.y * width + pos.x];

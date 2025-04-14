@@ -4,22 +4,22 @@
 
 namespace test::field {
 struct MyAgent {
-    std::optional<abmf::Point> pos;
+    std::optional<agh::Point> pos;
     int value{};
 };
 
 TEST(FieldTest, MoveAgent) {
-    using FieldT = abmf::Field<MyAgent>;
+    using FieldT = agh::Field<MyAgent>;
     MyAgent agent;
     FieldT field(2, 2);
     field.addAgent(agent, {1, 1});
     field.moveAgent(agent, {1, 0});
-    EXPECT_EQ(*agent.pos, abmf::Point(1,0));
-    EXPECT_TRUE(field.isEmpty(abmf::Point(1, 1)));
+    EXPECT_EQ(*agent.pos, agh::Point(1,0));
+    EXPECT_TRUE(field.isEmpty(agh::Point(1, 1)));
 }
 
 TEST(FieldTest, Apply) {
-    using FieldT = abmf::Field<MyAgent>;
+    using FieldT = agh::Field<MyAgent>;
     MyAgent agent;
     FieldT field(2, 2);
     field.addAgent(agent, {1, 1});
@@ -28,16 +28,16 @@ TEST(FieldTest, Apply) {
 }
 
 TEST(FieldTest, Transform) {
-    using FieldT = abmf::Field<MyAgent>;
+    using FieldT = agh::Field<MyAgent>;
     MyAgent agent;
     FieldT field(2, 2);
     field.addAgent(agent, {1, 1});
-    field.transform([](abmf::Point p, auto& a) { a.value += p.x + p.y; });
+    field.transform([](agh::Point p, auto& a) { a.value += p.x + p.y; });
     EXPECT_EQ(agent.value, 2);
 }
 
 TEST(FieldTest, RemoveAgent) {
-    using FieldT = abmf::Field<MyAgent>;
+    using FieldT = agh::Field<MyAgent>;
     MyAgent agent;
     FieldT field(2, 2);
     field.addAgent(agent, {1, 1});
@@ -51,7 +51,7 @@ TEST(FieldTest, RemoveAgent) {
 }
 
 TEST(FieldTest, GetEmpty) {
-    using FieldT = abmf::Field<MyAgent>;
+    using FieldT = agh::Field<MyAgent>;
     MyAgent agent;
     FieldT field(2, 2);
     EXPECT_EQ(field.getEmpty().size(), 4);

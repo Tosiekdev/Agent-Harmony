@@ -6,7 +6,7 @@
 
 #include "../space/Point.hpp"
 
-namespace abmf {
+namespace agh {
 template<typename T>
 concept ActiveAgent = requires(T t) {
     { t.isActive() } -> std::convertible_to<bool>;

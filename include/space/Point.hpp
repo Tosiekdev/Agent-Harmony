@@ -1,6 +1,6 @@
 #pragma once
 
-namespace abmf {
+namespace agh {
 struct Point {
     int x{};
     int y{};

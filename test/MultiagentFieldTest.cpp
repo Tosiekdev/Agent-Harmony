@@ -7,7 +7,7 @@
 namespace test::multiagent_field {
 struct MyAgent {
     int id{};
-    std::optional<abmf::Point> pos;
+    std::optional<agh::Point> pos;
     int value{};
 
     bool operator==(const MyAgent& rhs) const {
@@ -16,7 +16,7 @@ struct MyAgent {
 };
 
 TEST(MultiagentFieldTest, AddAgent) {
-    using Field = abmf::MultiagentField<MyAgent>;
+    using Field = agh::MultiagentField<MyAgent>;
     MyAgent agent{1};
     MyAgent agent2{2};
     Field field(2, 2);
@@ -26,7 +26,7 @@ TEST(MultiagentFieldTest, AddAgent) {
 }
 
 TEST(MultiagentFieldTest, Apply) {
-    using Field = abmf::MultiagentField<MyAgent>;
+    using Field = agh::MultiagentField<MyAgent>;
     MyAgent agent{1};
     MyAgent agent2{2};
     Field field(2, 2);
@@ -38,7 +38,7 @@ TEST(MultiagentFieldTest, Apply) {
 }
 
 TEST(MultiagentFieldTest, Transform) {
-    using Field = abmf::MultiagentField<MyAgent>;
+    using Field = agh::MultiagentField<MyAgent>;
     MyAgent agent{1};
     MyAgent agent2{2};
     MyAgent agent3{3};
@@ -46,7 +46,7 @@ TEST(MultiagentFieldTest, Transform) {
     field.addAgent(agent, {0, 1});
     field.addAgent(agent2, {1, 1});
     field.addAgent(agent3, {1, 1});
-    field.transform([](abmf::Point p, auto& a) {
+    field.transform([](agh::Point p, auto& a) {
         a.value += p.x + p.y;
     });
     EXPECT_EQ(agent.value, 1);
@@ -55,7 +55,7 @@ TEST(MultiagentFieldTest, Transform) {
 }
 
 TEST(MultiagentFieldTest, RemoveAgent) {
-    using Field = abmf::MultiagentField<MyAgent>;
+    using Field = agh::MultiagentField<MyAgent>;
     MyAgent agent{1};
     MyAgent agent2{2};
     Field field(2, 2);
@@ -67,7 +67,7 @@ TEST(MultiagentFieldTest, RemoveAgent) {
 }
 
 TEST(MultiagentFieldTest, RemoveAgents) {
-    using Field = abmf::MultiagentField<MyAgent>;
+    using Field = agh::MultiagentField<MyAgent>;
     MyAgent agent{1};
     MyAgent agent2{2};
     Field field(2, 2);
@@ -80,7 +80,7 @@ TEST(MultiagentFieldTest, RemoveAgents) {
 }
 
 TEST(MultiagentFieldTest, GetNeighborhood) {
-    using Field = abmf::MultiagentField<MyAgent>;
+    using Field = agh::MultiagentField<MyAgent>;
     Field field(3, 3);
     auto moore = field.getNeighborhood({1, 1}, 1, true, false);
     auto mooreCenter = field.getNeighborhood({1, 1}, 1, true, true);
@@ -95,7 +95,7 @@ TEST(MultiagentFieldTest, GetNeighborhood) {
 }
 
 namespace ngh {
-using Field = abmf::MultiagentField<MyAgent>;
+using Field = agh::MultiagentField<MyAgent>;
 Field field(3, 3);
 std::array<MyAgent, 9> agents;
 
@@ -179,7 +179,7 @@ TEST(MultiagentFieldTest, GetVonNeumannNeighborsNoCenter) {
 }
 
 TEST(FieldTest, GetEmpty) {
-    using FieldT = abmf::MultiagentField<MyAgent>;
+    using FieldT = agh::MultiagentField<MyAgent>;
     MyAgent agent;
     FieldT field(2, 2);
     EXPECT_EQ(field.getEmpty().size(), 4);

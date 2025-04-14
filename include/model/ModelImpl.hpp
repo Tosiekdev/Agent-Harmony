@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace abmf {
+namespace agh {
 template<ActiveAgent... Agents> requires (sizeof...(Agents) > 0)
 template<ActiveAgent T>
 std::deque<T>& Model<Agents...>::getAgents() {

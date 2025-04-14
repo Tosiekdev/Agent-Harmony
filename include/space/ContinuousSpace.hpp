@@ -5,7 +5,7 @@
 #include <cmath>
 #include <variant>
 
-namespace abmf {
+namespace agh {
 /**
  * Representation of two-dimensional continuous field.
  * @tparam Agents Types of the agents to be stored in the struct. They must meet RealPositionable requirements.

@@ -2,7 +2,7 @@
 
 #include "../utilities/Utils.hpp"
 
-namespace abmf {
+namespace agh {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {

@@ -5,7 +5,7 @@
 
 #include "../utilities/Concepts.hpp"
 
-namespace abmf {
+namespace agh {
 namespace action {
 template<typename M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 struct Action {

@@ -4,19 +4,19 @@
 
 namespace test::value_layer {
 TEST(ValueLayerTest, GetSetRead) {
-    abmf::IntValueLayer layer(2, 2);
+    agh::IntValueLayer layer(2, 2);
     layer.setOnRead({0, 0}, 2);
     EXPECT_EQ(layer.get({0, 0}), 2);
 }
 
 TEST(ValueLayerTest, GetSetWrite) {
-    abmf::IntValueLayer layer(2, 2);
+    agh::IntValueLayer layer(2, 2);
     layer.set({0, 0}, 2);
     EXPECT_EQ(layer.getFromWrite({0, 0}), 2);
 }
 
 TEST(ValueLayerTest, ApplyUnary) {
-    abmf::IntValueLayer layer(2, 2, false);
+    agh::IntValueLayer layer(2, 2, false);
     layer.apply([](int& value) { value += 2; });
     layer.swap();
     for (int i = 0; i < 2; ++i) {
@@ -27,8 +27,8 @@ TEST(ValueLayerTest, ApplyUnary) {
 }
 
 TEST(ValueLayerTest, Transform) {
-    abmf::RealValueLayer layer(2, 2, false, 1.);
-    layer.transform([](abmf::Point p, double& value) { value += p.x + p.y; });
+    agh::RealValueLayer layer(2, 2, false, 1.);
+    layer.transform([](agh::Point p, double& value) { value += p.x + p.y; });
     layer.swap();
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 2; ++j) {
@@ -38,7 +38,7 @@ TEST(ValueLayerTest, Transform) {
 }
 
 TEST(ValueLayerTest, Apply) {
-    abmf::RealValueLayer layer(2, 2, false, 1.);
+    agh::RealValueLayer layer(2, 2, false, 1.);
     std::vector<double> values;
     layer.apply([&values](double value) mutable { values.push_back(value); });
     EXPECT_EQ(values.size(), 2*2);
@@ -48,9 +48,9 @@ TEST(ValueLayerTest, Apply) {
 }
 
 TEST(ValueLayerTest, TransformWithFunctionTakingCopy) {
-    abmf::ValueLayer<size_t> layer(2, 2, false, 1.);
+    agh::ValueLayer<size_t> layer(2, 2, false, 1.);
     std::vector<size_t> values;
-    layer.transform([&values](abmf::Point p, size_t value) mutable { values.push_back(value + p.x + p.y); });
+    layer.transform([&values](agh::Point p, size_t value) mutable { values.push_back(value + p.x + p.y); });
     EXPECT_EQ(values.size(), 2*2);
     for(size_t i = 0; i < 2; ++i) {
         for (size_t j = 0; j < 2; ++j) {
@@ -60,7 +60,7 @@ TEST(ValueLayerTest, TransformWithFunctionTakingCopy) {
 }
 
 TEST(ValueLayerTest, GetNeighborhood) {
-    abmf::RealValueLayer layer(3, 3, false, 1.);
+    agh::RealValueLayer layer(3, 3, false, 1.);
     auto moore = layer.getNeighborhood({1, 1}, 1, true, false);
     auto mooreCenter = layer.getNeighborhood({1, 1}, 1, true, true);
 

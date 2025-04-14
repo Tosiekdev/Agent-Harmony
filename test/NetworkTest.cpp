@@ -20,25 +20,25 @@ struct std::hash<X> {
 
 namespace test::network {
 TEST(NetworkTest, AddingNode) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     network.addNode(5);
     network.addNode(6);
     EXPECT_EQ(network.getNodes().size(), 2);
 }
 
 TEST(NetworkTest, GettingEdge) {
-    abmf::Network<int, int> network;
-    network.addEdge(5, 5, abmf::EdgeOptions<int>{.label=1});
-    abmf::Network<int, int>::CEdgePtr edge = network.getEdge(5, 5, 1);
+    agh::Network<int, int> network;
+    network.addEdge(5, 5, agh::EdgeOptions<int>{.label=1});
+    agh::Network<int, int>::CEdgePtr edge = network.getEdge(5, 5, 1);
     ASSERT_TRUE(edge);
     EXPECT_EQ(edge->label, 1);
 }
 
 TEST(NetworkTest, AddingEdgeUndirected) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     auto& n1 = network.addNode(5);
     auto& n2 = network.addNode(6);
-    network.addEdge(n1, n2, abmf::EdgeOptions<int>{1, 2});
+    network.addEdge(n1, n2, agh::EdgeOptions<int>{1, 2});
     for (const auto& edge : network.getEdges(n1)) {
         EXPECT_EQ(edge.from, n1);
         EXPECT_EQ(edge.to, n2);
@@ -54,11 +54,11 @@ TEST(NetworkTest, AddingEdgeUndirected) {
 }
 
 TEST(NetworkTest, AddingEdgeUndirectedSecondTime) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     auto& n1 = network.addNode(5);
     auto& n2 = network.addNode(6);
     auto& n3 = network.addNode(5);
-    network.addEdge(n1, n2, abmf::EdgeOptions<int>{1, 2});
+    network.addEdge(n1, n2, agh::EdgeOptions<int>{1, 2});
     for (const auto& edge : network.getEdges(n1)) {
         EXPECT_EQ(edge.from, n1);
         EXPECT_EQ(edge.to, n2);
@@ -81,10 +81,10 @@ TEST(NetworkTest, AddingEdgeUndirectedSecondTime) {
 }
 
 TEST(NetworkTest, AddingEdgeDirected) {
-    abmf::Network<int, int> network(false);
+    agh::Network<int, int> network(false);
     auto& n1 = network.addNode(5);
     auto& n2 = network.addNode(6);
-    network.addEdge(n1, n2, abmf::EdgeOptions<int>{1, 2});
+    network.addEdge(n1, n2, agh::EdgeOptions<int>{1, 2});
     for (const auto& edge : network.getEdges(n1)) {
         EXPECT_EQ(edge.from, n1);
         EXPECT_EQ(edge.to, n2);
@@ -95,7 +95,7 @@ TEST(NetworkTest, AddingEdgeDirected) {
 }
 
 TEST(NetworkTest, DeleteNode) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     auto& n1 = network.addNode(5);
     auto& n2 = network.addNode(6);
     network.addEdge(n1, n2);
@@ -107,10 +107,10 @@ TEST(NetworkTest, DeleteNode) {
 }
 
 TEST(NetworkTest, RemoveEdge) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     auto& n1 = network.addNode(5);
     auto& n2 = network.addNode(6);
-    const abmf::Edge<int, int> edge(n1, n2);
+    const agh::Edge<int, int> edge(n1, n2);
     network.addEdge(n1, n2);
     network.removeEdge(edge);
     EXPECT_EQ(network.getEdges(n1).size(), 0);
@@ -118,10 +118,10 @@ TEST(NetworkTest, RemoveEdge) {
 }
 
 TEST(NetworkTest, RemoveEdgeFromTo) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     auto& n1 = network.addNode(5);
     auto& n2 = network.addNode(6);
-    const abmf::Edge<int, int> edge(n1, n2);
+    const agh::Edge<int, int> edge(n1, n2);
     network.addEdge(n1, n2);
     network.removeEdge(n1, n2);
     EXPECT_EQ(network.getEdges(n1).size(), 0);
@@ -129,7 +129,7 @@ TEST(NetworkTest, RemoveEdgeFromTo) {
 }
 
 TEST(NetworkTest, RemoveEdges) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     auto& n1 = network.addNode(5);
     auto& n2 = network.addNode(6);
     auto& n3 = network.addNode(7);
@@ -143,7 +143,7 @@ TEST(NetworkTest, RemoveEdges) {
 }
 
 TEST(NetworkTest, UpdateNode) {
-    abmf::Network<X, int> network;
+    agh::Network<X, int> network;
     auto& node = network.addNode(X(5));
     EXPECT_EQ(network.getNodes().size(), 1);
     EXPECT_EQ(node.value, 0);
@@ -155,7 +155,7 @@ TEST(NetworkTest, UpdateNode) {
 }
 
 TEST(NetworkTest, GetNeighbourhood) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     network.addEdge(5, 6);
     network.addEdge(5, 7);
     network.addEdge(5, 8);
@@ -168,7 +168,7 @@ TEST(NetworkTest, GetNeighbourhood) {
 }
 
 TEST(NetworkTest, GetNeighbourhoodRadiusGreaterThanOne) {
-    abmf::Network<int, int> network;
+    agh::Network<int, int> network;
     network.addEdge(1, 2);
     network.addEdge(1, 3);
     network.addEdge(2, 4);
