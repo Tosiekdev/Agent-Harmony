@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Edge.hpp"
+#include "../utilities/Hash.hpp"
 
 #include <list>
 #include <unordered_map>
@@ -33,6 +34,11 @@ public:
     using EdgeSet = std::unordered_set<EdgeT>;
 
     /**
+     * Type of the node iterator.
+     */
+    using NodeIter = typename std::list<N>::iterator;
+
+    /**
      * Creates new empty network.
      * @param isDirected Is represented graph directed.
      */
@@ -44,7 +50,7 @@ public:
      * @param node Node to add.
      * @return Reference to the added node.
      */
-    N& addNode(const N& node);
+    NodeIter addNode(const N& node);
 
     /**
      * Removes given node from the network. Added node won't have any attributes.
@@ -146,12 +152,12 @@ public:
      * @param center Boolean value indicating if function should also return the central node.
      * @return Vector containing pointers to the nodes which are neighbors of the central node.
      */
-    std::vector<N*> getNeighborhood(const N& node, size_t radius = 1, bool center = false);
+    std::vector<NodeIter> getNeighborhood(const N& node, size_t radius = 1, bool center = false);
 
 private:
     std::list<N> nodes;
-    std::unordered_map<N, N*> lookup;
-    std::unordered_map<const N*, EdgeSet> edges;
+    std::unordered_map<N, NodeIter> lookup;
+    std::unordered_map<NodeIter, EdgeSet, Hash<N>> edges;
     bool directed;
 };
 }

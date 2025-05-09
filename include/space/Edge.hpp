@@ -13,20 +13,22 @@ struct EdgeOptions {
 
 template<Node N, Label L> requires std::equality_comparable<N> && std::equality_comparable<L>
 struct Edge {
-    explicit Edge(N& fromNode, N& toNode) : from(fromNode), to(toNode) {}
+    using NodeIter = typename std::list<N>::iterator;
 
-    explicit Edge(N& fromNode, N& toNode, EdgeOptions<L> options)
+    explicit Edge(NodeIter fromNode, NodeIter toNode) : from(fromNode), to(toNode) {}
+
+    explicit Edge(NodeIter fromNode, NodeIter toNode, EdgeOptions<L> options)
         : from(fromNode), to(toNode), label(std::move(options.label)), weight(std::move(options.weight)) {}
 
-    explicit Edge(N& fromNode, N& toNode, const L& l) : from(fromNode), to(toNode), label(l) {}
+    explicit Edge(NodeIter fromNode, NodeIter toNode, const L& l) : from(fromNode), to(toNode), label(l) {}
 
-    explicit Edge(N& fromNode, N& toNode, const double w) : from(fromNode), to(toNode), weight(w) {}
+    explicit Edge(NodeIter fromNode, NodeIter toNode, const double w) : from(fromNode), to(toNode), weight(w) {}
 
-    explicit Edge(N& fromNode, N& toNode, const L& l, const double w)
+    explicit Edge(NodeIter fromNode, NodeIter toNode, const L& l, const double w)
         : from(fromNode), to(toNode), label(l), weight(w) {}
 
-    N& from;
-    N& to;
+    NodeIter from;
+    NodeIter to;
     std::optional<L> label;
     std::optional<double> weight;
     bool operator==(const Edge& rhs) const {
@@ -38,6 +40,6 @@ struct Edge {
 template<agh::Node N, agh::Label L>
 struct std::hash<agh::Edge<N, L>> {
     size_t operator()(const agh::Edge<N, L>& e) const {
-        return std::hash<N>{}(e.from) ^ (std::hash<N>{}(e.to) << 1);
+        return std::hash<N>{}(*e.from) ^ (std::hash<N>{}(*e.to) << 1);
     }
 };

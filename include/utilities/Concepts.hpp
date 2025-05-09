@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <functional>
+#include <list>
 #include <optional>
 
 #include "../space/Point.hpp"
@@ -30,7 +31,7 @@ concept Label = requires(L l) {
 
 template<typename N>
 concept Node = requires(N n) {
-    std::hash<N*>();
+    std::hash<N>();
     requires std::equality_comparable<N>;
 };
 
