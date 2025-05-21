@@ -10,16 +10,10 @@
 
 namespace agh {
 inline Point convertToToroidal(const Point p, const int width, const int height) {
-    if (p.x < 0) {
-        if (p.y < 0) {
-            return {width + p.x % width, height + p.y % height};
-        }
-        return {width + p.x % width, p.y % height};
-    }
-    if (p.y < 0) {
-        return {p.x, height + p.y % height};
-    }
-    return {p.x % width, p.y % height};
+    const int x = p.x < 0 ? (width + (width + p.x) % width) % width : p.x % width;
+    const int y = p.y < 0 ? (height + (height + p.y) % height) % height : p.y % height;
+
+    return {x, y};
 }
 
 template<typename T>

@@ -64,4 +64,25 @@ TEST(FieldTest, GetEmpty) {
     field.addAgent(agent, {0, 0});
     EXPECT_EQ(field.getEmpty().size(), 0);
 }
+
+TEST(FieldTest, ToToroidal) {
+    using FieldT = agh::Field<MyAgent>;
+    const FieldT field(2,2);
+
+    agh::Point p = field.toToroidal({-2, -2});
+    EXPECT_EQ(p.x, 0);
+    EXPECT_EQ(p.y, 0);
+
+    p = field.toToroidal({-3, -3});
+    EXPECT_EQ(p.x, 1);
+    EXPECT_EQ(p.y, 1);
+
+    p = field.toToroidal({-4, -4});
+    EXPECT_EQ(p.x, 0);
+    EXPECT_EQ(p.y, 0);
+
+    p = field.toToroidal({-5, -4});
+    EXPECT_EQ(p.x, 1);
+    EXPECT_EQ(p.y, 0);
+}
 }
