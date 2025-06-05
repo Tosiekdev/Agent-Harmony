@@ -71,9 +71,14 @@ size_t Schedule<M, Agents...>::getEpochs() const {
     return epochs;
 }
 
+template<SimState M, Schedulable<M> ... Agents> requires (sizeof...(Agents) > 0)
+bool Schedule<M, Agents...>::isActive() const {
+    return !model.shouldEnd(epochs);
+}
+
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::execute() {
-    while (!model.shouldEnd(epochs)) {
+    while (isActive()) {
         step();
     }
 }

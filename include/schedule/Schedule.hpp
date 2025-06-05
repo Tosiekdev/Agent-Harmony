@@ -95,6 +95,12 @@ public:
      */
     [[nodiscard]] size_t getEpochs() const;
 
+    /**
+     *
+     * @return Logical value indicating if simulation should continue.
+     */
+    [[nodiscard]] bool isActive() const;
+
 private:
     M& model;
     size_t epochs;
