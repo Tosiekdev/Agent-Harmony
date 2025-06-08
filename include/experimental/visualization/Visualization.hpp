@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../../src/experimental/visualization/utils/Control.hpp"
 #include "Portrayal.hpp"
 #include "../../schedule/Schedule.hpp"
 
@@ -9,7 +10,7 @@
 namespace agh {
 class Visualization {
 public:
-    Visualization();
+    Visualization(unsigned spaceWidth, unsigned spaceHeight, const std::string& title);
 
     template<SimState M, Schedulable<M>... Agents>
     void run(Schedule<M, Agents...> schedule) {
@@ -29,6 +30,8 @@ public:
                 portrayal->draw(window);
             }
 
+            control.draw(window);
+
             window.display();
         }
     }
@@ -42,5 +45,7 @@ private:
     unsigned height;
     sf::RenderWindow window;
     std::vector<Portrayal*> portrayals;
+
+    utils::Control control;
 };
 }
