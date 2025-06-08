@@ -14,6 +14,7 @@ public:
     };
     explicit Control(float size, const sf::Vector2f& pos);
     void draw(sf::RenderWindow& window) const;
+    bool clicked(const sf::Vector2i& pos) const;
 
     State state = Paused;
 

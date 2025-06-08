@@ -20,7 +20,7 @@ Control::Control(const float size, const sf::Vector2f& pos)
     pause.first.setPosition(center);
     pause.first.setFillColor(sf::Color::White);
     const float spacing = (0.8f - 2 * 0.33f) * size;
-    pause.second.setPosition(center + sf::Vector2f(spacing, 0));
+    pause.second.setPosition(center + sf::Vector2f(spacing + 0.33f * size, 0));
     pause.second.setFillColor(sf::Color::White);
 
     stop.setPosition(center);
@@ -41,5 +41,9 @@ void Control::draw(sf::RenderWindow& window) const {
         window.draw(stop);
         break;
     }
+}
+
+bool Control::clicked(const sf::Vector2i& pos) const {
+    return back.getGlobalBounds().contains(static_cast<sf::Vector2f>(pos));
 }
 }
