@@ -19,6 +19,11 @@ public:
     State state = Paused;
 
 private:
+    void setBack(float size, const sf::Vector2f& pos);
+    void setPlay(float size, const sf::Vector2f& pos);
+    void setPause(float size, const sf::Vector2f& pos);
+    void setStop(const sf::Vector2f& pos);
+
     sf::RectangleShape back;
     sf::VertexArray play;
     std::pair<sf::RectangleShape, sf::RectangleShape> pause;
