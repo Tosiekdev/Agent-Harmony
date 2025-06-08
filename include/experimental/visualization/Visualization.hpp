@@ -25,7 +25,7 @@ public:
                 control.state = utils::Control::State::Stopped;
             }
 
-            window.clear();
+            window.clear(sf::Color(50, 50, 50));
 
             for (const auto portrayal : portrayals) {
                 portrayal->draw(window);
