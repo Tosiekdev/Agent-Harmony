@@ -103,8 +103,8 @@ template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 Point ContinuousSpace<Agents...>::discretize(const RealPoint point) const {
     return {
-        static_cast<int>(std::ceil(point.x / discretization)),
-        static_cast<int>(std::ceil(point.y / discretization))
+        static_cast<int>(std::floor(point.x / discretization)),
+        static_cast<int>(std::floor(point.y / discretization))
     };
 }
 
@@ -131,6 +131,11 @@ auto ContinuousSpace<Agents...>::getCell(const Point point) const -> const Squar
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 bool ContinuousSpace<Agents...>::inRadius(const Point point, const float radius, const RealPoint center) const {
     const auto [x, y] = discretize(center);
+
+    if (point.x < 0 || point.y < 0 || point.x >= cols || point.y >= rows) {
+        return false;
+    }
+
     if (point.y < y && point.x < x)
         return l2(center,
                   {
