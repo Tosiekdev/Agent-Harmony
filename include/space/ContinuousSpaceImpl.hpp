@@ -24,7 +24,7 @@ template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void ContinuousSpace<Agents...>::removeAgent(Agent& agent) {
     if (agent.pos) {
-        std::erase_if(getAgents(*agent.pos),
+        std::erase_if(getCell(*agent.pos),
                       [&](AgentT agentVariant) {
                           return std::visit([&](auto a) {
                                                 if constexpr (std::is_same_v<
