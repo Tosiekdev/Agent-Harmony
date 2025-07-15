@@ -42,7 +42,7 @@ public:
      * Creates new empty network.
      * @param isDirected Is represented graph directed.
      */
-    explicit Network(const bool isDirected = true) : directed(isDirected) {};
+    explicit Network(const bool isDirected = false) : directed(isDirected) {};
 
     /**
      * Adds given node to the network, without connecting it to any other node. If node is already present in the

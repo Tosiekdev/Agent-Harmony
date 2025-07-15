@@ -85,7 +85,7 @@ TEST(NetworkTest, AddingEdgeUndirectedSecondTime) {
 }
 
 TEST(NetworkTest, AddingEdgeDirected) {
-    agh::Network<int, int> network(false);
+    agh::Network<int, int> network(true);
     auto& n1 = *network.addNode(5);
     auto& n2 = *network.addNode(6);
     network.addEdge(n1, n2, agh::EdgeOptions<int>{1, 2});
