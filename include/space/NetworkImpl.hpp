@@ -67,7 +67,7 @@ void Network<N, L>::addEdge(const N& from, const N& to) {
     NodeIter t = addNode(to);
 
     edges[f].insert(Edge<N, L>(f, t));
-    if (directed) {
+    if (!directed) {
         edges[t].insert(Edge<N, L>(t, f));
     }
 }
@@ -78,7 +78,7 @@ void Network<N, L>::addEdge(const N& from, const N& to, EdgeOptions<L> options) 
     NodeIter t = addNode(to);
 
     edges[f].insert(Edge<N, L>(f, t, options));
-    if (directed) {
+    if (!directed) {
         edges[t].insert(Edge<N, L>(t, f, options));
     }
 }
@@ -102,7 +102,7 @@ void Network<N, L>::removeEdge(const N& from, const N& to) {
 template<Node N, Label L>
 void Network<N, L>::removeEdge(const EdgeT& edge) {
     edges[edge.from].erase(edge);
-    if (directed) {
+    if (!directed) {
         edges[edge.to].erase(Edge<N, L>(edge.to, edge.from, EdgeOptions<L>{edge.label, edge.weight}));
     }
 }
