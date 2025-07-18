@@ -16,7 +16,7 @@ auto Network<N, L>::addNode(const N& node) -> NodeIter {
 }
 
 template<Node N, Label L>
-void Network<N, L>::deleteNode(N& node) {
+void Network<N, L>::deleteNode(const N& node) {
     auto it = lookup.find(node);
     if (it == lookup.end()) {
         return;

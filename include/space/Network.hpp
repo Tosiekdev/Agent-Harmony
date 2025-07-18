@@ -56,7 +56,7 @@ public:
      * Removes given node from the network. Added node won't have any attributes.
      * @param node Node to remove.
      */
-    void deleteNode(N& node);
+    void deleteNode(const N& node);
 
     /**
      * Returns reference to the std::list containing all the network nodes. Real nodes, not pointer to them, or
