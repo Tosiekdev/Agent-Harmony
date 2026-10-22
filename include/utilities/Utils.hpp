@@ -18,9 +18,11 @@ inline Point convertToToroidal(const Point p, const int width, const int height)
 
 }
 
-/** @brief Discrete layer providing bounds and toroidal coordinate conversion. */
+/** @brief Discrete layer providing const bounds, dimensions, and toroidal coordinate conversion. */
 template<typename T>
-concept Grid = requires(T t) {
+concept Grid = requires(const T& t) {
+    { t.getWidth() } -> std::same_as<int>;
+    { t.getHeight() } -> std::same_as<int>;
     { t.outOfBounds(Point{}) } -> std::same_as<bool>;
     { t.isToroidal() } -> std::same_as<bool>;
     { t.toToroidal(Point{}) } -> std::same_as<Point>;
@@ -61,7 +63,7 @@ auto visitNeighborhood(const T& layer, Point pos, int r, bool moore,
                        bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
     std::vector<std::invoke_result_t<F, Point>> result;
     detail::forEachNeighborhoodPoint(layer, pos, r, moore, center,
-        [&](Point point) { result.push_back(std::invoke(f, point)); });
+        [&](Point point) { result.push_back(std::invoke(std::forward<F>(f), point)); });
     return result;
 }
 
@@ -75,7 +77,7 @@ auto visitNeighbors(const T& layer, Point pos, int r, bool moore,
                     bool center, F&& f) -> std::vector<A> {
     std::vector<A> result;
     detail::forEachNeighborhoodPoint(layer, pos, r, moore, center,
-        [&](Point point) { std::invoke(f, point, result); });
+        [&](Point point) { std::invoke(std::forward<F>(f), point, result); });
     return result;
 }
 

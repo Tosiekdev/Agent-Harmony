@@ -69,3 +69,38 @@ TEST(ApiContractTest, ModelRangesRetainMutableDataAndConstIteration) {
     for (auto& agent : model.getAgents<A>()) agent.value = 7;
     EXPECT_EQ(a.value, 7);
 }
+
+namespace {
+struct PointOnlyGrid {
+    bool outOfBounds(agh::Point) const;
+    bool isToroidal() const;
+    agh::Point toToroidal(agh::Point) const;
+};
+struct MutableOnlyGrid {
+    bool outOfBounds(agh::Point);
+    bool isToroidal();
+    agh::Point toToroidal(agh::Point);
+    int getWidth();
+    int getHeight();
+};
+struct RvaluePointCallback {
+    agh::Point operator()(agh::Point point) && { return point; }
+};
+struct RvalueAppendCallback {
+    void operator()(agh::Point, std::vector<int>& values) && { values.push_back(1); }
+};
+}
+
+TEST(ApiContractTest, GridConceptRequiresConstDimensionsAndAccess) {
+    EXPECT_FALSE(agh::Grid<PointOnlyGrid>);
+    EXPECT_FALSE(agh::Grid<MutableOnlyGrid>);
+    EXPECT_TRUE((agh::Grid<agh::Field<A>>));
+}
+
+TEST(ApiContractTest, NeighborhoodUtilitiesPreserveRvalueQualifiedCallbacks) {
+    agh::Field<A> field(3, 3);
+    auto points = agh::visitNeighborhood(field, {1, 1}, 1, true, true, RvaluePointCallback{});
+    auto values = agh::visitNeighbors<agh::Field<A>, int>(field, {1, 1}, 1, true, true, RvalueAppendCallback{});
+    EXPECT_EQ(points.size(), 9);
+    EXPECT_EQ(values.size(), 9);
+}
