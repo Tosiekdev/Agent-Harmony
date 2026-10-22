@@ -30,3 +30,14 @@ endif()
 include(GoogleTest)
 gtest_discover_tests(ABMframeworkTest)
 add_test(NAME AllTestsInOneProcess COMMAND ABMframeworkTest)
+
+include(HeaderChecks.cmake)
+if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    add_test(NAME InstalledConsumer COMMAND ${CMAKE_COMMAND}
+        -DROOT_BINARY=${CMAKE_BINARY_DIR}
+        -DCONSUMER_SOURCE=${CMAKE_CURRENT_SOURCE_DIR}/consumer
+        -DCONFIG=$<CONFIG>
+        -DVISUALIZATION=${AGENT_HARMONY_BUILD_VISUALIZATION}
+        "-DDEPENDENCY_PREFIX=${CMAKE_PREFIX_PATH}"
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/InstalledConsumer.cmake)
+endif()
