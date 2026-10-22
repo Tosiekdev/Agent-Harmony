@@ -1,0 +1,24 @@
+source-root: .
+input:
+  - include
+recursive: true
+exclude:
+  - include/experimental
+exclude-symbols:
+  - agh::detail
+  - agh::detail::*
+  - agh::action
+  - agh::action::*
+  - std
+  - std::*
+generator: html
+multipage: true
+extract-private: false
+warnings: true
+warn-if-undocumented: true
+warn-if-doc-error: true
+warn-no-paramdoc: true
+warn-if-undoc-enum-val: true
+warn-broken-ref: true
+warn-as-error: true
+error-on-empty-corpus: true

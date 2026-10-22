@@ -56,13 +56,13 @@ void Field<Agents...>::removeAgent(const Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename Visitor> requires (std::invocable<Visitor, Agents&> && ...)
-void Field<Agents...>::apply(Visitor&& f) {
+template<typename F> requires (std::invocable<F, Agents&> && ...)
+void Field<Agents...>::apply(F&& f) {
     detail::TraversalGuard guard(traversing);
     applyToAll(grid,
                [&](OptAgentT& agent) {
                    if (!agent.has_value()) return;
-                   std::visit([&](auto a) { std::invoke(std::forward<Visitor>(f), *a); }, *agent);
+                   std::visit([&](auto a) { std::invoke(std::forward<F>(f), *a); }, *agent);
                },
                width,
                height);

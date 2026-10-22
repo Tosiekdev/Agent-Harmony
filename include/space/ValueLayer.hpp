@@ -21,6 +21,8 @@ public:
      * @param pHeight Height of the layer.
      * @param torus Should layer wrap.
      * @param initValue Initial value of the read and write layers.
+     * @throws std::invalid_argument If dimensions are not positive.
+     * @throws std::length_error If storage size is not representable.
      */
     explicit ValueLayer(const int pWidth, const int pHeight, const bool torus = false, const T initValue = T())
         : width(pWidth), height(pHeight), read(detail::checkedCellCount<T>(width, height), initValue), write(read.size(), initValue),
@@ -138,7 +140,9 @@ private:
     bool toroidal;
 };
 
+/** @brief Integer-valued spatial layer. */
 using IntValueLayer = ValueLayer<int>;
+/** @brief Double-valued spatial layer. */
 using RealValueLayer = ValueLayer<double>;
 }
 

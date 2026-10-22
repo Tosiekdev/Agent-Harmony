@@ -4,3 +4,5 @@
 /site/
 /docs/api/
 /compile_commands.json
+__pycache__/
+*.pyc

@@ -38,6 +38,8 @@ public:
    * @param pWidth Width of the grid.
    * @param pHeight Height of the grid.
    * @param torus Should space wrap.
+   * @throws std::invalid_argument If dimensions are not positive.
+   * @throws std::length_error If storage size is not representable.
    */
   explicit Field(const int pWidth, const int pHeight, const bool torus = false)
     : width(pWidth), height(pHeight), grid(detail::checkedCellCount<OptAgentT>(width, height)), toroidal(torus) {}
@@ -63,6 +65,8 @@ public:
    * @param agent Agent to be added to the field.
    * @param pos Position at which we want to place an agent.
    * @return Boolean value indicating if an agent was successfully added.
+   * @throws std::out_of_range If a bounded destination is outside the domain.
+   * @throws std::logic_error If called during traversal.
    */
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
   bool addAgent(Agent& agent, Point pos);
@@ -74,6 +78,8 @@ public:
    * @param agent Agent to be moved.
    * @param pos Position we want to move agent to.
    * @return Boolean value indicating if an agent was successfully moved.
+   * @throws std::out_of_range If a bounded destination is outside the domain.
+   * @throws std::logic_error If the positioned agent is not a member or traversal is active.
    */
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
   bool moveAgent(Agent& agent, Point pos);
@@ -122,6 +128,8 @@ public:
    * @param moore Flag indicating if we want a Moore (true), or von Neumann (false) neighborhood.
    * @param center If set to true, also the central point will be returned.
    * @return Vector of points neighbouring the specified one.
+   * @throws std::invalid_argument If the radius is negative.
+   * @throws std::out_of_range If a bounded query center is outside the domain.
    */
   [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r=1, bool moore=true, bool center=false) const;
 

@@ -59,6 +59,7 @@ struct Action {
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 class Schedule {
 public:
+    /** @brief Event representation used by this scheduler. */
     using ActionItem = action::Action<M, Agents...>;
     /**
      * Constructs Schedule correlated with given model.
@@ -71,6 +72,8 @@ public:
      * same step, one with the lower order will be executed first.
      * @param agent Agent whose action will be executed.
      * @param time Time step in which action will be executed.
+     * @throws std::invalid_argument If time is in the past (or a repeating interval is zero).
+     * @throws std::overflow_error If insertion sequence is exhausted.
      * @param order Order value. The lower, the better.
      */
     void scheduleOnce(auto& agent, size_t time, size_t order);
@@ -80,6 +83,8 @@ public:
      * time. If two agents are scheduled for the same step, one with the lower order will be executed first.
      * @param agent Agent to schedule.
      * @param time Time step at which agent's action should be invoked.
+     * @throws std::invalid_argument If time is in the past (or a repeating interval is zero).
+     * @throws std::overflow_error If insertion sequence is exhausted.
      * @param order Order value. The lower, the better.
      * @param interval Number of iterations after which action should be invoked again. Default value is one.
      */
@@ -88,7 +93,8 @@ public:
     /**
      * Executes one step of the simulation. It consists of calling beforeStep method of the model, executing step
      * method for every agent scheduled for that time step, potentially calling advance method for mentioned agents and
-     * finally, calling afterStep on the model.
+     * finally, calling afterStep on the model. Hooks observe the selected new epoch.
+     * @throws std::overflow_error If time or the repeating successor is not representable.
      */
     void step();
 
@@ -105,7 +111,7 @@ public:
     [[nodiscard]] size_t getEpochs() const;
 
     /**
-     *
+     * Check whether the model termination predicate permits another step.
      * @return Logical value indicating if simulation should continue.
      */
     [[nodiscard]] bool isActive() const;

@@ -23,6 +23,7 @@ public:
     template<ActiveAgent T>
     std::ranges::subrange<typename std::deque<T>::iterator> getAgents();
 
+    /** @brief Iterate agents of a const model. @tparam T Stored agent type. @return Range of const references. */
     template<ActiveAgent T>
     std::ranges::subrange<typename std::deque<T>::const_iterator> getAgents() const;
 
@@ -62,6 +63,7 @@ public:
     size_t agentCount() const;
 
 protected:
+    /** @brief Owned agent storage; derived classes must preserve registered addresses and memberships. */
     std::tuple<std::deque<Agents>...> agents{};
 };
 }

@@ -10,11 +10,15 @@
 #include <vector>
 
 namespace agh {
+/** @brief Normalize integer coordinates into a positive half-open toroidal domain.
+ * @param p Input coordinates. @param width Domain width. @param height Domain height.
+ * @return Normalized coordinates. @throws std::invalid_argument If dimensions are not positive. */
 inline Point convertToToroidal(const Point p, const int width, const int height) {
     return detail::checkedPosition(p, width, height, true);
 
 }
 
+/** @brief Discrete layer providing bounds and toroidal coordinate conversion. */
 template<typename T>
 concept Grid = requires(T t) {
     { t.outOfBounds(Point{}) } -> std::same_as<bool>;
@@ -47,6 +51,11 @@ void forEachNeighborhoodPoint(const T& layer, Point pos, int radius, bool moore,
 }
 }
 
+/** @brief Map a callback over unique neighboring cells in row-major order.
+ * @tparam T Discrete grid type. @tparam F Callback type.
+ * @param layer Grid being queried. @param pos Center coordinates. @param r Nonnegative radius.
+ * @param moore Select Moore rather than von Neumann distance. @param center Include normalized center.
+ * @param f Callback mapping each position to a result. @return Collected callback results. */
 template<Grid T, std::invocable<Point> F>
 auto visitNeighborhood(const T& layer, Point pos, int r, bool moore,
                        bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
@@ -56,6 +65,11 @@ auto visitNeighborhood(const T& layer, Point pos, int r, bool moore,
     return result;
 }
 
+/** @brief Accumulate agent results from unique neighboring cells.
+ * @tparam T Discrete grid type. @tparam A Result element type. @tparam F Callback type.
+ * @param layer Grid being queried. @param pos Center coordinates. @param r Nonnegative radius.
+ * @param moore Select Moore rather than von Neumann distance. @param center Include normalized center.
+ * @param f Callback appending each cell's agents. @return Collected agents. */
 template<Grid T, typename A, std::invocable<Point, std::vector<A>&> F>
 auto visitNeighbors(const T& layer, Point pos, int r, bool moore,
                     bool center, F&& f) -> std::vector<A> {
@@ -65,6 +79,10 @@ auto visitNeighbors(const T& layer, Point pos, int r, bool moore,
     return result;
 }
 
+/** @brief Apply a callback to every cell of row-major storage.
+ * @tparam T Cell type. @tparam F Callback type.
+ * @param grid Storage matching width and height. @param f Cell callback.
+ * @param width Positive column count. @param height Positive row count. */
 template<typename T, std::invocable<T&> F>
 void applyToAll(std::vector<T>& grid, F&& f, const int width, const int height) {
     if (grid.empty()) return;
@@ -75,6 +93,10 @@ void applyToAll(std::vector<T>& grid, F&& f, const int width, const int height) 
     }
 }
 
+/** @brief Apply a position-aware callback to every cell of row-major storage.
+ * @tparam T Cell type. @tparam F Callback type.
+ * @param grid Storage matching width and height. @param f Position/cell callback.
+ * @param width Positive column count. @param height Positive row count. */
 template<typename T, std::invocable<Point, T&> F>
 void transformAll(std::vector<T>& grid, F&& f, const int width, const int height) {
     if (grid.empty()) return;
@@ -85,10 +107,13 @@ void transformAll(std::vector<T>& grid, F&& f, const int width, const int height
     }
 }
 
+/** @brief Compute ordinary Euclidean distance between real coordinates.
+ * @param p1 First point. @param p2 Second point. @return Euclidean distance. */
 inline float l2(const RealPoint p1, const RealPoint p2) {
     return std::hypot(p2.x - p1.x, p2.y - p1.y);
 }
 
+/** @brief Extract the registered position through a non-owning agent pointer. */
 inline auto Pos = [](auto a) {
     return *a->pos;
 };

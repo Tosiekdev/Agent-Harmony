@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.29)
 project(AgentHarmony VERSION 0.1.0 LANGUAGES CXX)
 
+option(AGENT_HARMONY_BUILD_DOCS "Create a core translation unit for MrDocs" OFF)
+if(MY_PROJECT_MRDOCS_BUILD OR AGENT_HARMONY_BUILD_DOCS)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
 add_library(agent_harmony_core INTERFACE)
 add_library(AgentHarmony::core ALIAS agent_harmony_core)
 set_target_properties(agent_harmony_core PROPERTIES EXPORT_NAME core)
@@ -51,10 +56,13 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AgentHarmonyConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/AgentHarmonyConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AgentHarmony)
 
-option(AGENT_HARMONY_BUILD_DOCS "Create a core translation unit for MrDocs" OFF)
 if(MY_PROJECT_MRDOCS_BUILD OR AGENT_HARMONY_BUILD_DOCS)
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/all_headers.cpp "#include <AgentHarmony.hpp>\n")
     add_library(agent_harmony_documentation OBJECT ${CMAKE_CURRENT_BINARY_DIR}/all_headers.cpp)
     target_link_libraries(agent_harmony_documentation PRIVATE AgentHarmony::core)
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
+option(AGENT_HARMONY_BUILD_EXAMPLES "Build the executable documentation examples" OFF)
+if(AGENT_HARMONY_BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()

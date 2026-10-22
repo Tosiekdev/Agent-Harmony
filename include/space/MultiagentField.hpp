@@ -36,6 +36,8 @@ public:
      * @param pWidth Width of the grid.
      * @param pHeight Height of the grid.
      * @param torus Should space wrap.
+     * @throws std::invalid_argument If dimensions are not positive.
+     * @throws std::length_error If storage size is not representable.
      */
     explicit MultiagentField(const int pWidth, const int pHeight, const bool torus = false)
         : width(pWidth), height(pHeight), grid(detail::checkedCellCount<SquareT>(width, height)), toroidal(torus) {}
@@ -46,6 +48,8 @@ public:
      * @param pHeight Height of the grid.
      * @param reservation Number of agents per grid to reserve.
      * @param torus Should space wrap.
+     * @throws std::invalid_argument If dimensions are not positive.
+     * @throws std::length_error If storage size is not representable.
      */
     explicit MultiagentField(const int pWidth, const int pHeight, size_t reservation, const bool torus = false)
         : width(pWidth), height(pHeight), grid(detail::checkedCellCount<SquareT>(width, height)), toroidal(torus) {
@@ -73,6 +77,8 @@ public:
      * @tparam Agent Type of the agent we want to add.
      * @param agent Agent to be added to the field.
      * @param pos Position at which we want to place an agent.
+     * @throws std::logic_error If the agent is positioned or traversal is active.
+     * @throws std::out_of_range If a bounded destination is outside the domain.
      */
     template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
     void addAgent(Agent& agent, Point pos);
@@ -83,6 +89,8 @@ public:
      * @tparam Agent Type of the agent we want to move.
      * @param agent Agent to be moved.
      * @param pos Position we want to move agent to.
+     * @throws std::logic_error If the positioned agent is not a member or traversal is active.
+     * @throws std::out_of_range If a bounded destination is outside the domain.
      */
     template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
     void moveAgent(Agent& agent, Point pos);
@@ -132,7 +140,7 @@ public:
     [[nodiscard]] size_t agentCount(Point p) const;
 
     /**
-     *
+     * Return unique neighboring cells, optionally including the normalized center.
      * @param pos Point which neighborhood we want to get.
      * @param r Radius of the neighborhood.
      * @param moore Flag indicating if we want a Moore (true), or von Neumann (false) neighborhood.
