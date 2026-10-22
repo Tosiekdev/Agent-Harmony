@@ -44,6 +44,11 @@ public:
      */
     explicit Network(const bool isDirected = false) : directed(isDirected) {};
 
+    Network(const Network&) = delete;
+    Network& operator=(const Network&) = delete;
+    Network(Network&&) = default;
+    Network& operator=(Network&&) = default;
+
     /**
      * Adds given node to the network, without connecting it to any other node. If node is already present in the
      * network, reference to the existing object will be returned.

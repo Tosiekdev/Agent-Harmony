@@ -62,3 +62,34 @@ TEST(NetworkSafetyTest, RemoveGraphOwnedEdgeAndSelfLoop) {
         EXPECT_EQ(graph.getEdge(1, 1, 9), nullptr);
     }
 }
+
+static_assert(!std::is_copy_constructible_v<agh::Network<int, int>>);
+static_assert(!std::is_copy_assignable_v<agh::Network<int, int>>);
+
+TEST(NetworkSafetyTest, CopyingIsDisabled) {
+    EXPECT_FALSE((std::is_copy_constructible_v<agh::Network<int, int>>));
+    EXPECT_FALSE((std::is_copy_assignable_v<agh::Network<int, int>>));
+}
+
+TEST(NetworkSafetyTest, MovesKeepAllRelationshipsInDestination) {
+    agh::Network<int, int> destination;
+    destination.addEdge(8, 9);
+    {
+        agh::Network<int, int> source(true);
+        source.addEdge(1, 2, agh::EdgeOptions<int>{7, 2.0});
+        source.addEdge(2, 2);
+        const int* address = &*source.addNode(1);
+        agh::Network<int, int> moved(std::move(source));
+        EXPECT_EQ(&*moved.addNode(1), address);
+        destination = std::move(moved);
+        EXPECT_EQ(&*destination.addNode(1), address);
+    }
+    EXPECT_FALSE(destination.hasNode(8));
+    EXPECT_NE(destination.getEdge(1, 2, 7), nullptr);
+    destination.removeEdges(2);
+    EXPECT_EQ(destination.getEdges(1).size(), 1);
+    destination.deleteNode(2);
+    EXPECT_TRUE(destination.getEdges(1).empty());
+    destination.addNode(2);
+    EXPECT_TRUE(destination.getEdges(2).empty());
+}
