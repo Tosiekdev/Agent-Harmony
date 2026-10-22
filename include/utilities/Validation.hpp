@@ -9,6 +9,20 @@
 #include <vector>
 
 namespace agh::detail {
+class TraversalGuard {
+    bool& traversing;
+    bool previous;
+public:
+    explicit TraversalGuard(bool& flag) : traversing(flag), previous(flag) { flag = true; }
+    ~TraversalGuard() { traversing = previous; }
+    TraversalGuard(const TraversalGuard&) = delete;
+    TraversalGuard& operator=(const TraversalGuard&) = delete;
+};
+
+inline void requireStructuralMutation(bool traversing) {
+    if (traversing) throw std::logic_error("Defer membership changes until traversal finishes");
+}
+
 inline void validateDimensions(int width, int height) {
     if (width <= 0 || height <= 0)
         throw std::invalid_argument("Spatial dimensions must be positive");

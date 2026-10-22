@@ -13,7 +13,7 @@ struct EdgeOptions {
 
 template<Node N, Label L> requires std::equality_comparable<N> && std::equality_comparable<L>
 struct Edge {
-    using NodeIter = typename std::list<N>::iterator;
+    using NodeIter = typename std::list<N>::const_iterator;
 
     explicit Edge(NodeIter fromNode, NodeIter toNode) : from(fromNode), to(toNode) {}
 

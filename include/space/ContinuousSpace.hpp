@@ -65,7 +65,7 @@ public:
      * @tparam F Type of the invoked function.
      * @param f Function to be invoked. It must be invocable with a reference to an agent.
      */
-    template<typename F> requires (std::invocable<F, Agents&> || ...)
+    template<typename F> requires (std::invocable<F, Agents&> && ...)
     void apply(F&& f);
 
     /**
@@ -111,6 +111,7 @@ public:
     [[nodiscard]] bool isToroidal() const { return toroidal; }
 
 private:
+    bool traversing = false;
     float width;
     float height;
     float discretization;

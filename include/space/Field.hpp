@@ -47,7 +47,7 @@ public:
    * @param pos Position to check agent at.
    * @return Reference to the specified cell.
    */
-  OptAgentT& getAgent(Point pos);
+  const OptAgentT& getAgent(Point pos);
 
   /**
    * Gets agent at the given position. Returns std::nullopt when at given position there is no agent.
@@ -97,7 +97,7 @@ public:
    * @tparam F Type of the invoked function.
    * @param f Function to be invoked. It must be invocable with a reference to an agent.
    */
-  template<typename F> requires (std::invocable<F, Agents&> || ...)
+  template<typename F> requires (std::invocable<F, Agents&> && ...)
   void apply(F&& f);
 
   /**
@@ -105,7 +105,7 @@ public:
    * @tparam F Type of the invoked function.
    * @param f Function to be invoked. It must be invocable with an object of type Point and a reference to an agent.
    */
-  template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
+  template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
   void transform(F&& f);
 
   /**
@@ -174,6 +174,8 @@ public:
   [[nodiscard]] bool isToroidal() const { return toroidal; }
 
 private:
+    bool traversing = false;
+    OptAgentT& cell(Point pos);
   int width;
   int height;
   GridT grid;

@@ -4,11 +4,17 @@
 
 namespace agh {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
+auto Field<Agents...>::cell(Point pos) -> OptAgentT& {
+    return grid[detail::checkedIndex(pos, width, height, toroidal)];
+}
+
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
+    detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
-    if (agent.pos || getAgent(pos)) return false;
-    getAgent(pos) = &agent;
+    if (agent.pos || cell(pos)) return false;
+    cell(pos) = &agent;
     agent.pos = pos;
     return true;
 }
@@ -16,15 +22,16 @@ bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
+    detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
     if (!agent.pos) return addAgent(agent, pos);
-    if (outOfBounds(*agent.pos) || !getAgent(*agent.pos) ||
-        *getAgent(*agent.pos) != AgentT{&agent})
+    if (outOfBounds(*agent.pos) || !cell(*agent.pos) ||
+        *cell(*agent.pos) != AgentT{&agent})
         throw std::logic_error("Agent does not belong to this field");
     if (*agent.pos == pos) return true;
-    if (getAgent(pos)) return false;
-    getAgent(pos) = &agent;
-    getAgent(*agent.pos).reset();
+    if (cell(pos)) return false;
+    cell(pos) = &agent;
+    cell(*agent.pos).reset();
     agent.pos = pos;
     return true;
 }
@@ -32,23 +39,26 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void Field<Agents...>::removeAgent(Agent& agent) {
+    detail::requireStructuralMutation(traversing);
     if (!agent.pos || outOfBounds(*agent.pos)) return;
-    auto& cell = getAgent(*agent.pos);
-    if (!cell || *cell != AgentT{&agent}) return;
-    cell.reset();
+    auto& occupied = cell(*agent.pos);
+    if (!occupied || *occupied != AgentT{&agent}) return;
+    occupied.reset();
     agent.pos.reset();
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 void Field<Agents...>::removeAgent(const Point pos) {
-    if (OptAgentT& square = getAgent(pos)) {
+    detail::requireStructuralMutation(traversing);
+    if (OptAgentT& square = cell(pos)) {
         std::visit([&](auto agent) { removeAgent(*agent); }, *square);
     }
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename Visitor> requires (std::invocable<Visitor, Agents&> || ...)
+template<typename Visitor> requires (std::invocable<Visitor, Agents&> && ...)
 void Field<Agents...>::apply(Visitor&& f) {
+    detail::TraversalGuard guard(traversing);
     applyToAll(grid,
                [&](OptAgentT& agent) {
                    if (!agent.has_value()) return;
@@ -59,8 +69,9 @@ void Field<Agents...>::apply(Visitor&& f) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
+template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
 void Field<Agents...>::transform(F&& f) {
+    detail::TraversalGuard guard(traversing);
     transformAll(grid,
                  [&](Point p, OptAgentT& agent) {
                      if (!agent.has_value()) return;
@@ -71,7 +82,7 @@ void Field<Agents...>::transform(F&& f) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-auto Field<Agents...>::getAgent(const Point pos) -> OptAgentT& {
+auto Field<Agents...>::getAgent(const Point pos) -> const OptAgentT& {
     return grid[detail::checkedIndex(pos, width, height, toroidal)];
 }
 

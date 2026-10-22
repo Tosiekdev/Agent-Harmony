@@ -9,6 +9,7 @@ namespace agh {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void ContinuousSpace<Agents...>::addAgent(Agent& agent, RealPoint pos) {
+    detail::requireStructuralMutation(traversing);
     if (agent.pos) throw std::logic_error("Agent is already positioned; remove it before adding");
     pos = detail::checkedPosition(pos, width, height, toroidal);
     getCell(pos).push_back(&agent);
@@ -18,6 +19,7 @@ void ContinuousSpace<Agents...>::addAgent(Agent& agent, RealPoint pos) {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void ContinuousSpace<Agents...>::moveAgent(Agent& agent, RealPoint pos) {
+    detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
     if (!agent.pos) { addAgent(agent, pos); return; }
     if (agent.pos->x < 0 || agent.pos->y < 0 || agent.pos->x >= width || agent.pos->y >= height)
@@ -36,6 +38,7 @@ void ContinuousSpace<Agents...>::moveAgent(Agent& agent, RealPoint pos) {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void ContinuousSpace<Agents...>::removeAgent(Agent& agent) {
+    detail::requireStructuralMutation(traversing);
     if (!agent.pos) return;
     if (agent.pos->x < 0 || agent.pos->y < 0 || agent.pos->x >= width || agent.pos->y >= height) return;
     auto& source = getCell(*agent.pos);
@@ -46,8 +49,9 @@ void ContinuousSpace<Agents...>::removeAgent(Agent& agent) {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Agents&> || ...)
+template<typename F> requires (std::invocable<F, Agents&> && ...)
 void ContinuousSpace<Agents...>::apply(F&& f) {
+    detail::TraversalGuard guard(traversing);
     applyToAll(grid,
                [&](SquareT& square) {
                    for (auto agent : square) {

@@ -82,7 +82,8 @@ void Network<N, L>::updateNode(const N& node) {
     if (it == lookup.end()) {
         return;
     }
-    *it->second = node;
+    auto writable = std::find(nodes.begin(), nodes.end(), node);
+    *writable = node;
 }
 
 template<Node N, Label L>

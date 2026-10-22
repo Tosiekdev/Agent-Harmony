@@ -36,7 +36,7 @@ public:
     /**
      * Type of the node iterator.
      */
-    using NodeIter = typename std::list<N>::iterator;
+    using NodeIter = typename std::list<N>::const_iterator;
 
     /**
      * Creates new empty network.
@@ -68,7 +68,7 @@ public:
      * something like that. However, user should not modify contents of this list.
      * @return Reference to the list with all nodes.
      */
-    std::list<N>& getNodes() { return nodes; }
+
 
     /**
      * Returns reference to the const std::list containing all the network nodes. Real nodes, not pointer to them, or

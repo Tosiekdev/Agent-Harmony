@@ -59,7 +59,7 @@ public:
      * @param pos Position to get agents from.
      * @return Reference to the specified cell.
      */
-    SquareT& getAgents(Point pos);
+    const SquareT& getAgents(Point pos);
 
     /**
      * Gets all agents present at the given position. Returns empty vector if there is no agent at given position.
@@ -106,7 +106,7 @@ public:
      * @tparam F Type of the invoked function.
      * @param f Function to be invoked. It must be invocable with a reference to an agent.
      */
-    template<typename F> requires (std::invocable<F, Agents&> || ...)
+    template<typename F> requires (std::invocable<F, Agents&> && ...)
     void apply(F&& f);
 
     /**
@@ -114,7 +114,7 @@ public:
      * @tparam F Type of the invoked function.
      * @param f Function to be invoked. It must be invocable with an object of type Point and a reference to an agent.
      */
-    template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
+    template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
     void transform(F&& f);
 
     /**
@@ -190,6 +190,8 @@ public:
     [[nodiscard]] bool isToroidal() const { return toroidal; }
 
 private:
+    bool traversing = false;
+    SquareT& cell(Point pos);
     int width;
     int height;
     GridT grid;

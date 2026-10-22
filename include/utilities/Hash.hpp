@@ -7,7 +7,7 @@
 namespace agh {
     template<Node N>
     struct Hash {
-        size_t operator()(const typename std::list<N>::iterator& n) const noexcept {
+        size_t operator()(const typename std::list<N>::const_iterator& n) const noexcept {
             return std::hash<N>{}(*n);
         }
     };
