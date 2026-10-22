@@ -2,6 +2,10 @@
 
 #include <variant>
 #include <queue>
+#include <compare>
+#include <cstddef>
+#include <functional>
+#include <vector>
 
 #include "../utilities/Concepts.hpp"
 
@@ -9,18 +13,20 @@ namespace agh {
 namespace action {
 template<typename M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 struct Action {
-    Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0)
-        : time(pTime), order(pPriority), interval(pInterval), agent(&pAgent) {}
+    Action(auto& pAgent, const size_t pTime, const size_t pPriority, const size_t pInterval = 0, const size_t pSequence = 0)
+        : time(pTime), order(pPriority), interval(pInterval), agent(&pAgent), sequence(pSequence) {}
 
     Action(const std::variant<Agents*...> pAgent, const size_t pTime, const size_t pPriority,
-           const size_t pInterval = 0) : time(pTime), order(pPriority), interval(pInterval), agent(pAgent) {}
+           const size_t pInterval = 0, const size_t pSequence = 0) : time(pTime), order(pPriority), interval(pInterval), agent(pAgent), sequence(pSequence) {}
 
     void step(M& model) {
         std::visit([&](auto agent) { agent->step(model); }, agent);
     }
 
-    void advance(M& model) requires (Advanceable<Agents, M> && ...) {
-        std::visit([&](auto agent) { agent->advance(model); }, agent);
+    void advance(M& model) {
+        std::visit([&](auto pointer) {
+            if constexpr (Advanceable<std::remove_pointer_t<decltype(pointer)>, M>) pointer->advance(model);
+        }, agent);
     }
 
     [[nodiscard]] bool isActive() const {
@@ -32,11 +38,14 @@ struct Action {
     size_t interval;
     std::variant<Agents*...> agent;
 
+    size_t sequence = 0;
+
     auto operator<=>(const Action& rhs) const {
         if (auto relation = time <=> rhs.time; relation != 0) {
             return relation;
         }
-        return order <=> rhs.order;
+        if (auto relation = order <=> rhs.order; relation != 0) return relation;
+        return sequence <=> rhs.sequence;
     }
 };
 }
@@ -104,6 +113,7 @@ public:
 private:
     M& model;
     size_t epochs;
+    size_t nextSequence = 0;
     std::priority_queue<ActionItem, std::vector<ActionItem>, std::greater<ActionItem>> actions;
 };
 }
