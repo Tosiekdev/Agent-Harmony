@@ -4,9 +4,11 @@
 #include "Validation.hpp"
 #include "../space/Point.hpp"
 
+#include <array>
 #include <cmath>
 #include <concepts>
 #include <functional>
+#include <utility>
 #include <vector>
 
 namespace agh {
@@ -29,31 +31,60 @@ concept Grid = requires(const T& t) {
 };
 
 namespace detail {
+template<typename A, Grid T>
+void reserveNeighborhood(std::vector<A>& result, const T& layer, int radius) {
+    if (radius < 0) return; // The traversal reports invalid query parameters.
+    const long long diameter = 2LL * radius + 1;
+    const auto width = std::min<long long>(layer.getWidth(), diameter);
+    const auto height = std::min<long long>(layer.getHeight(), diameter);
+    // Preallocate small neighborhoods without requesting huge speculative buffers.
+    if (width > 0 && height > 0)
+        result.reserve(std::min(result.max_size(), static_cast<std::size_t>(std::min(64LL, width * height))));
+}
+
+using NeighborhoodRanges = std::array<std::pair<int, int>, 2>;
+
+// Sorted, disjoint half-open intervals preserve row-major order across a seam.
+inline NeighborhoodRanges neighborhoodRanges(int coordinate, long long radius, int extent, bool toroidal) {
+    const long long low = coordinate - radius, high = coordinate + radius + 1;
+    if (!toroidal)
+        return {{{static_cast<int>(std::max(0LL, low)),
+                  static_cast<int>(std::min<long long>(extent, high))}, {0, 0}}};
+    if (radius >= extent / 2) return {{{0, extent}, {0, 0}}};
+    if (low < 0)
+        return {{{0, static_cast<int>(high)}, {static_cast<int>(extent + low), extent}}};
+    if (high > extent)
+        return {{{0, static_cast<int>(high - extent)}, {static_cast<int>(low), extent}}};
+    return {{{static_cast<int>(low), static_cast<int>(high)}, {0, 0}}};
+}
+
 template<Grid T, std::invocable<Point> F>
 void forEachNeighborhoodPoint(const T& layer, Point pos, int radius, bool moore, bool center, F&& f) {
     if (radius < 0) throw std::invalid_argument("Radius must be nonnegative");
-    pos = checkedPosition(pos, layer.getWidth(), layer.getHeight(), layer.isToroidal());
-    const long long r = radius;
-    const long long minX = layer.isToroidal() ? 0 : std::max(0LL, pos.x - r);
-    const long long minY = layer.isToroidal() ? 0 : std::max(0LL, pos.y - r);
-    const long long maxX = layer.isToroidal() ? layer.getWidth() - 1 : std::min<long long>(layer.getWidth() - 1, pos.x + r);
-    const long long maxY = layer.isToroidal() ? layer.getHeight() - 1 : std::min<long long>(layer.getHeight() - 1, pos.y + r);
-    for (long long y = minY; y <= maxY; ++y) {
-        for (long long x = minX; x <= maxX; ++x) {
-            Point point{static_cast<int>(x), static_cast<int>(y)};
-            if (!center && point == pos) continue;
-            long long dx = std::abs(x - pos.x), dy = std::abs(y - pos.y);
-            if (layer.isToroidal()) {
-                dx = std::min(dx, layer.getWidth() - dx);
-                dy = std::min(dy, layer.getHeight() - dy);
+    const int width = layer.getWidth(), height = layer.getHeight();
+    const bool toroidal = layer.isToroidal();
+    pos = checkedPosition(pos, width, height, toroidal);
+    const auto ys = neighborhoodRanges(pos.y, radius, height, toroidal);
+    const auto xs = neighborhoodRanges(pos.x, radius, width, toroidal);
+    for (const auto& [yBegin, yEnd] : ys) {
+        for (int y = yBegin; y < yEnd; ++y) {
+            int dy = std::abs(y - pos.y);
+            if (toroidal) dy = std::min(dy, height - dy);
+            const auto row = moore ? xs : neighborhoodRanges(pos.x, static_cast<long long>(radius) - dy, width, toroidal);
+            for (const auto& [xBegin, xEnd] : row) {
+                for (int x = xBegin; x < xEnd; ++x) {
+                    const Point point{x, y};
+                    if (!center && point == pos) continue;
+                    std::invoke(f, point);
+                }
             }
-            if ((moore ? std::max(dx, dy) : dx + dy) <= r) std::invoke(f, point);
         }
     }
 }
 }
 
 /** @brief Map a callback over unique neighboring cells in row-major order.
+ * Traverses only the Moore square or von Neumann diamond, clipped or wrapped to the domain.
  * @tparam T Discrete grid type. @tparam F Callback type.
  * @param layer Grid being queried. @param pos Center coordinates. @param r Nonnegative radius.
  * @param moore Select Moore rather than von Neumann distance. @param center Include normalized center.
@@ -62,6 +93,7 @@ template<Grid T, std::invocable<Point> F>
 auto visitNeighborhood(const T& layer, Point pos, int r, bool moore,
                        bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
     std::vector<std::invoke_result_t<F, Point>> result;
+    detail::reserveNeighborhood(result, layer, r);
     detail::forEachNeighborhoodPoint(layer, pos, r, moore, center,
         [&](Point point) { result.push_back(std::invoke(std::forward<F>(f), point)); });
     return result;
@@ -76,6 +108,7 @@ template<Grid T, typename A, std::invocable<Point, std::vector<A>&> F>
 auto visitNeighbors(const T& layer, Point pos, int r, bool moore,
                     bool center, F&& f) -> std::vector<A> {
     std::vector<A> result;
+    detail::reserveNeighborhood(result, layer, r);
     detail::forEachNeighborhoodPoint(layer, pos, r, moore, center,
         [&](Point point) { std::invoke(std::forward<F>(f), point, result); });
     return result;

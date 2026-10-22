@@ -147,3 +147,73 @@ TEST(SpaceSafetyTest, HugeDiscreteRadiusIsBoundedByDomain) {
     EXPECT_EQ(bounded.getNeighborhood({0, 0}, INT_MAX, false, true).size(), 8);
     EXPECT_EQ(torus.getNeighborhood({0, 0}, INT_MAX, true, false).size(), 7);
 }
+
+TEST(SpaceSafetyTest, SmallNeighborhoodInLargeVirtualGrid) {
+    // A grid need not allocate its full domain to support local queries.
+    struct VirtualGrid {
+        int getWidth() const { return INT_MAX; }
+        int getHeight() const { return INT_MAX - 2; }
+        bool isToroidal() const { return true; }
+        bool outOfBounds(agh::Point p) const {
+            return p.x < 0 || p.x >= getWidth() || p.y < 0 || p.y >= getHeight();
+        }
+        agh::Point toToroidal(agh::Point p) const {
+            return agh::convertToToroidal(p, getWidth(), getHeight());
+        }
+    } grid;
+    const std::vector<agh::Point> moore{
+        {1, 0}, {INT_MAX - 1, 0},
+        {0, 1}, {1, 1}, {INT_MAX - 1, 1},
+        {0, INT_MAX - 3}, {1, INT_MAX - 3}, {INT_MAX - 1, INT_MAX - 3}};
+    const std::vector<agh::Point> vonNeumann{
+        {1, 0}, {INT_MAX - 1, 0}, {0, 1}, {0, INT_MAX - 3}};
+    for (bool useMoore : {false, true}) {
+        const auto& expected = useMoore ? moore : vonNeumann;
+        EXPECT_EQ(agh::visitNeighborhood(grid, {0, 0}, 1, useMoore, false,
+            [](agh::Point p) { return p; }), expected);
+        EXPECT_EQ((agh::visitNeighbors<VirtualGrid, agh::Point>(grid, {0, 0}, 1, useMoore, false,
+            [](agh::Point p, std::vector<agh::Point>& result) { result.push_back(p); })), expected);
+    }
+}
+
+TEST(SpaceSafetyTest, DiscreteNeighborhoodsMatchFullScanReference) {
+    for (int width = 1; width <= 7; ++width) for (int height = 1; height <= 6; ++height)
+    for (bool toroidal : {false, true}) {
+        agh::ValueLayer<int> layer(width, height, toroidal);
+        agh::Field<GridAgent> field(width, height, toroidal);
+        agh::MultiagentField<GridAgent> multi(width, height, toroidal);
+        std::vector<GridAgent> singles(width * height), multiples(width * height);
+        for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x) {
+            layer.setOnRead({x, y}, y * width + x);
+            field.addAgent(singles[y * width + x], {x, y});
+            multi.addAgent(multiples[y * width + x], {x, y});
+        }
+        for (int py = 0; py < height; ++py) for (int px = 0; px < width; ++px)
+        for (int radius : {0, 1, 2, 3, 6, INT_MAX})
+        for (bool moore : {false, true}) for (bool center : {false, true}) {
+            std::vector<agh::Point> expected;
+            std::vector<int> expectedValues;
+            std::vector<std::variant<GridAgent*>> expectedSingles, expectedMultiples;
+            for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x) {
+                int dx = std::abs(x - px), dy = std::abs(y - py);
+                if (toroidal) {
+                    dx = std::min(dx, width - dx);
+                    dy = std::min(dy, height - dy);
+                }
+                if (!center && x == px && y == py) continue;
+                if ((moore ? std::max(dx, dy) : dx + dy) > radius) continue;
+                expected.push_back({x, y});
+                expectedValues.push_back(y * width + x);
+                expectedSingles.push_back(&singles[y * width + x]);
+                expectedMultiples.push_back(&multiples[y * width + x]);
+            }
+            const agh::Point query = toroidal ? agh::Point{px - width, py + height} : agh::Point{px, py};
+            ASSERT_EQ(layer.getNeighborhood(query, radius, moore, center), expected)
+                << width << 'x' << height << " center=" << px << ',' << py << " radius=" << radius
+                << " toroidal=" << toroidal << " moore=" << moore << " includeCenter=" << center;
+            ASSERT_EQ(layer.getNeighbors(query, radius, moore, center), expectedValues);
+            ASSERT_EQ(field.getNeighbors(query, radius, moore, center), expectedSingles);
+            ASSERT_EQ(multi.getNeighbors(query, radius, moore, center), expectedMultiples);
+        }
+    }
+}

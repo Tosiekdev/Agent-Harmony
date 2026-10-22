@@ -46,6 +46,9 @@ Bounded spaces reject coordinates outside `[0,width)` × `[0,height)` with
 `std::out_of_range`. Toroidal access, insertion, movement and queries normalize
 coordinates into that domain. Discrete neighborhoods contain unique cells in
 row-major order and exclude the normalized center when `center=false`.
+Queries traverse only the local Moore square or von Neumann diamond, wrapping
+at toroidal boundaries and limiting each axis to the finite domain. A small
+radius does not cause a full-grid scan; large radii still return each cell once.
 
 Continuous queries use Euclidean or Chebyshev distance, with minimum periodic
 axis differences on a torus. They return each registered instance once and make

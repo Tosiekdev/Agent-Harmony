@@ -105,8 +105,9 @@ template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<typename Field<Agents...>::AgentT> Field<Agents...>::getNeighbors(
     const Point pos, int r, const bool moore, const bool center) {
     auto f = [&](const Point p, std::vector<AgentT>& result) {
-        if (!isEmpty(p))
-            result.push_back(*getAgent(p));
+        // The shared traversal supplies validated, normalized in-domain cells.
+        const auto& agent = grid[static_cast<std::size_t>(p.y) * width + p.x];
+        if (agent) result.push_back(*agent);
     };
     return visitNeighbors<Field, AgentT, decltype(f)>(*this, pos, r, moore, center, std::forward<decltype(f)>(f));
 }
