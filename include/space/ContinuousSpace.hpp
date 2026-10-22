@@ -49,7 +49,7 @@ public:
      * @param agent Agent to be moved.
      * @param pos Position we want to move agent to.
      */
-    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
     void moveAgent(Agent& agent, RealPoint pos);
 
     /**
@@ -57,7 +57,7 @@ public:
      * @tparam Agent Type of the agent we want to remove.
      * @param agent Agent to be removed.
      */
-    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
     void removeAgent(Agent& agent);
 
     /**

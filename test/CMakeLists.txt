@@ -17,7 +17,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(ABMframeworkTest
     ModelTest.cpp ScheduleTest.cpp ValueLayerTest.cpp FieldTest.cpp
-    MultiagentFieldTest.cpp NetworkTest.cpp NetworkSafetyTest.cpp ContinuousSpaceTest.cpp SpaceSafetyTest.cpp)
+    MultiagentFieldTest.cpp NetworkTest.cpp NetworkSafetyTest.cpp ContinuousSpaceTest.cpp SpaceSafetyTest.cpp MembershipTest.cpp)
 target_link_libraries(ABMframeworkTest PRIVATE AgentHarmony::core GTest::gtest_main)
 option(AGENT_HARMONY_SANITIZERS "Enable address and undefined-behavior sanitizers in tests" OFF)
 if(AGENT_HARMONY_SANITIZERS)

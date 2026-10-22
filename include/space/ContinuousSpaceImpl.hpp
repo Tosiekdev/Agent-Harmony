@@ -9,36 +9,40 @@ namespace agh {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void ContinuousSpace<Agents...>::addAgent(Agent& agent, RealPoint pos) {
+    if (agent.pos) throw std::logic_error("Agent is already positioned; remove it before adding");
     pos = detail::checkedPosition(pos, width, height, toroidal);
     getCell(pos).push_back(&agent);
     agent.pos = pos;
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void ContinuousSpace<Agents...>::moveAgent(Agent& agent, RealPoint pos) {
     pos = detail::checkedPosition(pos, width, height, toroidal);
-    removeAgent(agent);
-    addAgent(agent, pos);
+    if (!agent.pos) { addAgent(agent, pos); return; }
+    if (agent.pos->x < 0 || agent.pos->y < 0 || agent.pos->x >= width || agent.pos->y >= height)
+        throw std::logic_error("Agent does not belong to this space");
+    auto& source = getCell(*agent.pos);
+    auto found = std::find(source.begin(), source.end(), AgentT{&agent});
+    if (found == source.end()) throw std::logic_error("Agent does not belong to this space");
+    auto& destination = getCell(pos);
+    if (&source != &destination) {
+        destination.push_back(&agent);
+        source.erase(found);
+    }
+    agent.pos = pos;
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void ContinuousSpace<Agents...>::removeAgent(Agent& agent) {
-    if (agent.pos) {
-        std::erase_if(getCell(*agent.pos),
-                      [&](AgentT agentVariant) {
-                          return std::visit([&](auto a) {
-                                                if constexpr (std::is_same_v<
-                                                    std::remove_reference_t<decltype(*a)>, Agent>) {
-                                                    return *a == agent;
-                                                }
-                                                return false;
-                                            },
-                                            agentVariant);
-                      });
-        agent.pos = std::nullopt;
-    }
+    if (!agent.pos) return;
+    if (agent.pos->x < 0 || agent.pos->y < 0 || agent.pos->x >= width || agent.pos->y >= height) return;
+    auto& source = getCell(*agent.pos);
+    auto found = std::find(source.begin(), source.end(), AgentT{&agent});
+    if (found == source.end()) return;
+    source.erase(found);
+    agent.pos.reset();
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)

@@ -16,36 +16,40 @@ auto MultiagentField<Agents...>::getAgents(const Point pos) const -> const Squar
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
+    if (agent.pos) throw std::logic_error("Agent is already positioned; remove it before adding");
     pos = detail::checkedPosition(pos, width, height, toroidal);
     getAgents(pos).push_back(&agent);
     agent.pos = pos;
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
     pos = detail::checkedPosition(pos, width, height, toroidal);
-    removeAgent(agent);
-    addAgent(agent, pos);
+    if (!agent.pos) { addAgent(agent, pos); return; }
+    if (outOfBounds(*agent.pos))
+        throw std::logic_error("Agent does not belong to this space");
+    auto& source = getAgents(*agent.pos);
+    auto found = std::find(source.begin(), source.end(), AgentT{&agent});
+    if (found == source.end()) throw std::logic_error("Agent does not belong to this space");
+    auto& destination = getAgents(pos);
+    if (&source != &destination) {
+        destination.push_back(&agent);
+        source.erase(found);
+    }
+    agent.pos = pos;
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::removeAgent(Agent& agent) {
-    if (agent.pos) {
-        std::erase_if(getAgents(*agent.pos),
-                      [&](AgentT agentVariant) {
-                          return std::visit([&](auto a) {
-                                                if constexpr (std::is_same_v<
-                                                    std::remove_reference_t<decltype(*a)>, Agent>) {
-                                                    return *a == agent;
-                                                }
-                                                return false;
-                                            },
-                                            agentVariant);
-                      });
-        agent.pos = std::nullopt;
-    }
+    if (!agent.pos) return;
+    if (outOfBounds(*agent.pos)) return;
+    auto& source = getAgents(*agent.pos);
+    auto found = std::find(source.begin(), source.end(), AgentT{&agent});
+    if (found == source.end()) return;
+    source.erase(found);
+    agent.pos.reset();
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)

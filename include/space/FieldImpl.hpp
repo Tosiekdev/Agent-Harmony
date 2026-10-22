@@ -7,7 +7,7 @@ template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
     pos = detail::checkedPosition(pos, width, height, toroidal);
-    if (getAgent(pos)) return false;
+    if (agent.pos || getAgent(pos)) return false;
     getAgent(pos) = &agent;
     agent.pos = pos;
     return true;
@@ -17,12 +17,14 @@ template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
     pos = detail::checkedPosition(pos, width, height, toroidal);
+    if (!agent.pos) return addAgent(agent, pos);
+    if (outOfBounds(*agent.pos) || !getAgent(*agent.pos) ||
+        *getAgent(*agent.pos) != AgentT{&agent})
+        throw std::logic_error("Agent does not belong to this field");
+    if (*agent.pos == pos) return true;
     if (getAgent(pos)) return false;
-    if (!agent.pos) {
-        return addAgent(agent, pos);
-    }
-    getAgent(*agent.pos) = std::nullopt;
     getAgent(pos) = &agent;
+    getAgent(*agent.pos).reset();
     agent.pos = pos;
     return true;
 }
@@ -30,10 +32,11 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void Field<Agents...>::removeAgent(Agent& agent) {
-    if (agent.pos) {
-        getAgent(*agent.pos) = std::nullopt;
-    }
-    agent.pos = std::nullopt;
+    if (!agent.pos || outOfBounds(*agent.pos)) return;
+    auto& cell = getAgent(*agent.pos);
+    if (!cell || *cell != AgentT{&agent}) return;
+    cell.reset();
+    agent.pos.reset();
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
