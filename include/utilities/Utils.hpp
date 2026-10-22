@@ -22,97 +22,46 @@ concept Grid = requires(T t) {
     { t.toToroidal(Point{}) } -> std::same_as<Point>;
 };
 
+namespace detail {
 template<Grid T, std::invocable<Point> F>
-auto visitNeighborhood(const T& layer, Point pos, const int r, const bool moore,
-                       const bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
-    if (r < 0) throw std::invalid_argument("Radius must be nonnegative");
-    if (r > (std::numeric_limits<int>::max() - 1) / 2)
-        throw std::length_error("Neighborhood offset is not representable");
-    if (layer.isToroidal()) pos = layer.toToroidal(pos);
-    else if (layer.outOfBounds(pos)) throw std::out_of_range("Neighborhood center lies outside the domain");
-    std::vector<std::invoke_result_t<F, Point>> result;
-    if (moore) {
-        result.reserve((std::size_t(2) * r + 1) * (std::size_t(2) * r + 1));
-    }
-    else {
-        result.reserve(std::size_t(r) * r + (std::size_t(r) + 1) * (std::size_t(r) + 1));
-    }
-    for (int dy = -r; dy <= r; ++dy) {
-        for (int dx = -r; dx <= r; ++dx) {
-            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
-
-            const auto px = static_cast<long long>(pos.x) + dx;
-            const auto py = static_cast<long long>(pos.y) + dy;
-            Point p;
+void forEachNeighborhoodPoint(const T& layer, Point pos, int radius, bool moore, bool center, F&& f) {
+    if (radius < 0) throw std::invalid_argument("Radius must be nonnegative");
+    pos = checkedPosition(pos, layer.getWidth(), layer.getHeight(), layer.isToroidal());
+    const long long r = radius;
+    const long long minX = layer.isToroidal() ? 0 : std::max(0LL, pos.x - r);
+    const long long minY = layer.isToroidal() ? 0 : std::max(0LL, pos.y - r);
+    const long long maxX = layer.isToroidal() ? layer.getWidth() - 1 : std::min<long long>(layer.getWidth() - 1, pos.x + r);
+    const long long maxY = layer.isToroidal() ? layer.getHeight() - 1 : std::min<long long>(layer.getHeight() - 1, pos.y + r);
+    for (long long y = minY; y <= maxY; ++y) {
+        for (long long x = minX; x <= maxX; ++x) {
+            Point point{static_cast<int>(x), static_cast<int>(y)};
+            if (!center && point == pos) continue;
+            long long dx = std::abs(x - pos.x), dy = std::abs(y - pos.y);
             if (layer.isToroidal()) {
-                p = {static_cast<int>(px % layer.getWidth()), static_cast<int>(py % layer.getHeight())};
-                p = layer.toToroidal(p);
-            } else {
-                if (px < 0 || py < 0 || px >= layer.getWidth() || py >= layer.getHeight()) continue;
-                p = {static_cast<int>(px), static_cast<int>(py)};
+                dx = std::min(dx, layer.getWidth() - dx);
+                dy = std::min(dy, layer.getHeight() - dy);
             }
-
-            if (dx == 0 && dy == 0 && !center) continue;
-
-            if (layer.outOfBounds(p)) {
-                if (layer.isToroidal()) {
-                    p = layer.toToroidal(p);
-                    result.push_back(std::invoke(std::forward<F>(f), p));
-                }
-            }
-            else {
-                result.push_back(std::invoke(std::forward<F>(f), p));
-            }
+            if ((moore ? std::max(dx, dy) : dx + dy) <= r) std::invoke(f, point);
         }
     }
+}
+}
 
+template<Grid T, std::invocable<Point> F>
+auto visitNeighborhood(const T& layer, Point pos, int r, bool moore,
+                       bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
+    std::vector<std::invoke_result_t<F, Point>> result;
+    detail::forEachNeighborhoodPoint(layer, pos, r, moore, center,
+        [&](Point point) { result.push_back(std::invoke(f, point)); });
     return result;
 }
 
 template<Grid T, typename A, std::invocable<Point, std::vector<A>&> F>
-auto visitNeighbors(const T& layer, Point pos, const int r, const bool moore,
-                    const bool center, F&& f) -> std::vector<A> {
-    if (r < 0) throw std::invalid_argument("Radius must be nonnegative");
-    if (r > (std::numeric_limits<int>::max() - 1) / 2)
-        throw std::length_error("Neighborhood offset is not representable");
-    if (layer.isToroidal()) pos = layer.toToroidal(pos);
-    else if (layer.outOfBounds(pos)) throw std::out_of_range("Neighborhood center lies outside the domain");
+auto visitNeighbors(const T& layer, Point pos, int r, bool moore,
+                    bool center, F&& f) -> std::vector<A> {
     std::vector<A> result;
-    if (moore) {
-        result.reserve((std::size_t(2) * r + 1) * (std::size_t(2) * r + 1));
-    }
-    else {
-        result.reserve(std::size_t(r) * r + (std::size_t(r) + 1) * (std::size_t(r) + 1));
-    }
-    for (int dy = -r; dy <= r; ++dy) {
-        for (int dx = -r; dx <= r; ++dx) {
-            if (!moore && std::abs(dx) + std::abs(dy) > r) continue;
-
-            const auto px = static_cast<long long>(pos.x) + dx;
-            const auto py = static_cast<long long>(pos.y) + dy;
-            Point p;
-            if (layer.isToroidal()) {
-                p = {static_cast<int>(px % layer.getWidth()), static_cast<int>(py % layer.getHeight())};
-                p = layer.toToroidal(p);
-            } else {
-                if (px < 0 || py < 0 || px >= layer.getWidth() || py >= layer.getHeight()) continue;
-                p = {static_cast<int>(px), static_cast<int>(py)};
-            }
-
-            if (dx == 0 && dy == 0 && !center) continue;
-
-            if (layer.outOfBounds(p)) {
-                if (layer.isToroidal()) {
-                    p = layer.toToroidal(p);
-                    std::invoke(std::forward<F>(f), p, result);
-                }
-            }
-            else {
-                std::invoke(std::forward<F>(f), p, result);
-            }
-        }
-    }
-
+    detail::forEachNeighborhoodPoint(layer, pos, r, moore, center,
+        [&](Point point) { std::invoke(f, point, result); });
     return result;
 }
 

@@ -109,3 +109,41 @@ TEST(SpaceSafetyTest, NormalizeDiscreteToroidalAccess) {
     EXPECT_EQ(values.get({3, 1}), 7);
     EXPECT_EQ(field.toToroidal({INT_MIN, INT_MAX}), (agh::Point{0, 1}));
 }
+
+TEST(SpaceSafetyTest, ToroidalNeighborhoodsContainUniqueCellsAcrossConsumers) {
+    for (auto size : {agh::Point{1, 1}, agh::Point{4, 2}, agh::Point{2, 4}}) {
+        agh::Field<GridAgent> field(size.x, size.y, true);
+        agh::MultiagentField<GridAgent> multi(size.x, size.y, true);
+        agh::ValueLayer<int> values(size.x, size.y, true);
+        std::array<GridAgent, 8> singles{}, multiples{};
+        for (int y = 0; y < size.y; ++y) for (int x = 0; x < size.x; ++x) {
+            const int i = y * size.x + x;
+            field.addAgent(singles[i], {x, y});
+            multi.addAgent(multiples[i], {x, y});
+            values.setOnRead({x, y}, i);
+        }
+        for (int radius : {0, 1, 7}) for (bool moore : {false, true}) for (bool center : {false, true}) {
+            std::vector<agh::Point> expected;
+            std::vector<int> expectedValues;
+            for (int y = 0; y < size.y; ++y) for (int x = 0; x < size.x; ++x) {
+                const int dx = std::min(x, size.x - x), dy = std::min(y, size.y - y);
+                if (!center && x == 0 && y == 0) continue;
+                if ((moore ? std::max(dx, dy) : dx + dy) > radius) continue;
+                expected.push_back({x, y});
+                expectedValues.push_back(y * size.x + x);
+            }
+            EXPECT_EQ(field.getNeighborhood({size.x, -size.y}, radius, moore, center), expected);
+            EXPECT_EQ(multi.getNeighborhood({0, 0}, radius, moore, center), expected);
+            EXPECT_EQ(values.getNeighborhood({0, 0}, radius, moore, center), expected);
+            EXPECT_EQ(field.getNeighbors({0, 0}, radius, moore, center).size(), expected.size());
+            EXPECT_EQ(multi.getNeighbors({0, 0}, radius, moore, center).size(), expected.size());
+            EXPECT_EQ(values.getNeighbors({0, 0}, radius, moore, center), expectedValues);
+        }
+    }
+}
+
+TEST(SpaceSafetyTest, HugeDiscreteRadiusIsBoundedByDomain) {
+    agh::ValueLayer<int> bounded(4, 2), torus(4, 2, true);
+    EXPECT_EQ(bounded.getNeighborhood({0, 0}, INT_MAX, false, true).size(), 8);
+    EXPECT_EQ(torus.getNeighborhood({0, 0}, INT_MAX, true, false).size(), 7);
+}
