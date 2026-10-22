@@ -96,10 +96,12 @@ TEST(MultiagentFieldTest, GetNeighborhood) {
 
 namespace ngh {
 using Field = agh::MultiagentField<MyAgent>;
-Field field(3, 3);
-std::array<MyAgent, 9> agents;
+class NeighborhoodTest : public ::testing::Test {
+protected:
+std::array<MyAgent, 9> agents{};
+Field field{3, 3};
 
-void assignAgents() {
+void SetUp() override {
     for (int y = 0; y < 3; ++y) {
         for (int x = 0; x < 3; ++x) {
             field.addAgent(agents[y * 3 + x], {x, y});
@@ -108,8 +110,9 @@ void assignAgents() {
     }
 }
 
-TEST(MultiagentFieldTest, GetMooreNeighbors) {
-    assignAgents();
+};
+
+TEST_F(NeighborhoodTest, GetMooreNeighbors) {
     auto moore = field.getNeighbors({1, 1}, 1, true, false);
 
     auto equalityCheck = [](Field::AgentT agent, MyAgent& expect) {
@@ -130,8 +133,7 @@ TEST(MultiagentFieldTest, GetMooreNeighbors) {
     }
 }
 
-TEST(MultiagentFieldTest, GetMooreNeighborsNoCenter) {
-    assignAgents();
+TEST_F(NeighborhoodTest, GetMooreNeighborsNoCenter) {
     auto mooreCenter = field.getNeighbors({1, 1}, 1, true, true);
 
     auto equalityCheck = [](Field::AgentT agent, MyAgent& expect) {
@@ -147,8 +149,7 @@ TEST(MultiagentFieldTest, GetMooreNeighborsNoCenter) {
     }
 }
 
-TEST(MultiagentFieldTest, GetVonNeumannNeighbors) {
-    assignAgents();
+TEST_F(NeighborhoodTest, GetVonNeumannNeighbors) {
     auto vonNeumann = field.getNeighbors({1, 1}, 1, false, false);
 
     auto equalityCheck = [](Field::AgentT agent, MyAgent& expect) {
@@ -161,8 +162,7 @@ TEST(MultiagentFieldTest, GetVonNeumannNeighbors) {
     }
 }
 
-TEST(MultiagentFieldTest, GetVonNeumannNeighborsNoCenter) {
-    assignAgents();
+TEST_F(NeighborhoodTest, GetVonNeumannNeighborsNoCenter) {
     auto vonNeumannCenter = field.getNeighbors({1, 1}, 1, false, true);
 
     auto equalityCheck = [](Field::AgentT agent, MyAgent& expect) {
@@ -178,18 +178,18 @@ TEST(MultiagentFieldTest, GetVonNeumannNeighborsNoCenter) {
 }
 }
 
-TEST(FieldTest, GetEmpty) {
+TEST(MultiagentFieldTest, GetEmpty) {
     using FieldT = agh::MultiagentField<MyAgent>;
-    MyAgent agent;
+    std::array<MyAgent, 4> agents{};
     FieldT field(2, 2);
     EXPECT_EQ(field.getEmpty().size(), 4);
-    field.addAgent(agent, {1, 1});
+    field.addAgent(agents[0], {1, 1});
     EXPECT_EQ(field.getEmpty().size(), 3);
-    field.addAgent(agent, {1, 0});
+    field.addAgent(agents[1], {1, 0});
     EXPECT_EQ(field.getEmpty().size(), 2);
-    field.addAgent(agent, {0, 1});
+    field.addAgent(agents[2], {0, 1});
     EXPECT_EQ(field.getEmpty().size(), 1);
-    field.addAgent(agent, {0, 0});
+    field.addAgent(agents[3], {0, 0});
     EXPECT_EQ(field.getEmpty().size(), 0);
 }
 }

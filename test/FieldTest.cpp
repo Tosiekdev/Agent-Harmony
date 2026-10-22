@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <array>
 
 #include "../include/space/Field.hpp"
 
@@ -52,16 +53,16 @@ TEST(FieldTest, RemoveAgent) {
 
 TEST(FieldTest, GetEmpty) {
     using FieldT = agh::Field<MyAgent>;
-    MyAgent agent;
+    std::array<MyAgent, 4> agents{};
     FieldT field(2, 2);
     EXPECT_EQ(field.getEmpty().size(), 4);
-    field.addAgent(agent, {1, 1});
+    field.addAgent(agents[0], {1, 1});
     EXPECT_EQ(field.getEmpty().size(), 3);
-    field.addAgent(agent, {1, 0});
+    field.addAgent(agents[1], {1, 0});
     EXPECT_EQ(field.getEmpty().size(), 2);
-    field.addAgent(agent, {0, 1});
+    field.addAgent(agents[2], {0, 1});
     EXPECT_EQ(field.getEmpty().size(), 1);
-    field.addAgent(agent, {0, 0});
+    field.addAgent(agents[3], {0, 0});
     EXPECT_EQ(field.getEmpty().size(), 0);
 }
 
