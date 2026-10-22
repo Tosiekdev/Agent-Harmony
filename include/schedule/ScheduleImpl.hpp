@@ -35,7 +35,7 @@ void Schedule<M, Agents...>::step() {
     std::vector<ActionItem> events;
     events.reserve(actions.size());
     while (!actions.empty() && actions.top().time == batchTime) {
-        if (actions.top().isActive() && actions.top().interval > std::numeric_limits<size_t>::max() - batchTime) {
+        if (actions.top().interval > std::numeric_limits<size_t>::max() - batchTime) {
             for (const auto& event : events) actions.push(event);
             throw std::overflow_error("Repeating event time exhausted");
         }

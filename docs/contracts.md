@@ -67,6 +67,8 @@ fresh insertion order when rescheduled. Empty steps increment time and run both
 hooks; `execute` stops according to `shouldEnd`, not queue emptiness.
 
 Past events and zero repeating intervals throw `std::invalid_argument`. Time and
-sequence overflow throw `std::overflow_error`. User callbacks must not recursively
+sequence overflow throw `std::overflow_error`. Repeat successors in the selected
+batch are checked before hooks run, including currently inactive agents, because
+hooks and earlier events can change activity. User callbacks must not recursively
 call `step`/`execute` on the same scheduler. Exceptions from user callbacks
 propagate; completed user side effects are not rolled back.

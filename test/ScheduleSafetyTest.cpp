@@ -134,3 +134,21 @@ TEST(ScheduleSafetyTest, EmptyStepsStillRunHooksAndExecuteUsesShouldEnd) {
     EXPECT_EQ(before, 10);
     EXPECT_EQ(after, 10);
 }
+
+TEST(ScheduleSafetyTest, ActivityChangesCannotBypassRepeatOverflowValidation) {
+    State model;
+    Agent dormant, other;
+    dormant.active = false;
+    int hooks = 0;
+    model.before = [&] { ++hooks; dormant.active = true; };
+    agh::Schedule<State, Agent> schedule(model);
+    const auto maximum = std::numeric_limits<std::size_t>::max();
+    schedule.scheduleOnce(other, maximum, 0);
+    schedule.scheduleRepeating(dormant, maximum, 1, 1);
+    EXPECT_THROW(schedule.step(), std::overflow_error);
+    EXPECT_EQ(schedule.getEpochs(), 0);
+    EXPECT_EQ(hooks, 0);
+    EXPECT_EQ(other.steps, 0);
+    EXPECT_EQ(dormant.steps, 0);
+    EXPECT_THROW(schedule.step(), std::overflow_error);
+}
