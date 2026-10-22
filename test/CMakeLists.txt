@@ -41,3 +41,4 @@ if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
         "-DDEPENDENCY_PREFIX=${CMAKE_PREFIX_PATH}"
         -P ${CMAKE_CURRENT_SOURCE_DIR}/InstalledConsumer.cmake)
 endif()
+add_test(NAME ShuffledTests COMMAND ABMframeworkTest --gtest_shuffle --gtest_repeat=20)
