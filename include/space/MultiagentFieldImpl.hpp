@@ -127,7 +127,7 @@ std::vector<Point> MultiagentField<Agents...>::getEmpty() const {
     result.reserve(width * height / 2);
 
     for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < height; ++x) {
+        for (int x = 0; x < width; ++x) {
             if (isEmpty({x, y})) {
                 result.push_back({x, y});
             }

@@ -120,12 +120,12 @@ auto ContinuousSpace<Agents...>::getCell(const RealPoint point) const -> const S
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const Point point) -> SquareT& {
-    return grid[point.y * rows + point.x];
+    return grid[point.y * cols + point.x];
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const Point point) const -> const SquareT& {
-    return grid[point.y * rows + point.x];
+    return grid[point.y * cols + point.x];
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
