@@ -25,7 +25,7 @@ T& Model<Agents...>::emplaceAgent(Args&&... args) {
 
 template<ActiveAgent ... Agents> requires (sizeof...(Agents) > 0)
 size_t Model<Agents...>::agentCount() const {
-    return std::apply([](auto... v) {
+    return std::apply([](const auto&... v) {
                           return (v.size() + ...);
                       },
                       agents);
