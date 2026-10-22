@@ -3,7 +3,8 @@ site_description: C++20 agent-based simulation library
 site_url: https://tosiekdev.github.io/Agent-Harmony/
 repo_url: https://github.com/Tosiekdev/Agent-Harmony
 repo_name: Tosiekdev/Agent-Harmony
-docs_dir: docs
+docs_dir: .
+site_dir: ../build/docs/site
 theme:
   name: mkdocs
   color_mode: auto

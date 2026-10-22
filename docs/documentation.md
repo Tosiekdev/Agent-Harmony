@@ -2,7 +2,10 @@
 
 The site combines authored Markdown guides with a generated MrDocs HTML reference.
 The same command builds it locally and in GitHub Actions. Generated HTML is a build
-artifact and is not committed.
+artifact and is not committed. Source configuration lives in `docs/mkdocs.yml`
+for the guide site and `docs/mrdocs.yml` for the API reference. Paths in these
+files are relative to the `docs/` directory; the build script can be run from
+any working directory.
 
 ## Local build
 

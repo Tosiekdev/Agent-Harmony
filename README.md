@@ -7,6 +7,7 @@ Header-only C++20 tools for agent-based simulations, with optional SFML 3 visual
 - [API and behavior contracts](docs/contracts.md)
 - [Migration guide](docs/migration.md)
 - [Build the documentation site](docs/documentation.md)
+- [Developer tools](tools/README.md)
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DAGENT_HARMONY_BUILD_EXAMPLES=ON

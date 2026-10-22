@@ -1,9 +1,9 @@
-source-root: .
+source-root: ..
 input:
-  - include
+  - ../include
 recursive: true
 exclude:
-  - include/experimental
+  - ../include/experimental
 exclude-symbols:
   - agh::detail
   - agh::detail::*

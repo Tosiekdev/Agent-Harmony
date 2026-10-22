@@ -43,16 +43,16 @@ def main():
         run(core / "examples" / f"example_{example}")
     with tempfile.TemporaryDirectory(prefix="source-", dir=build) as temporary:
         source = Path(temporary)
-        shutil.copytree(ROOT / "docs", source, dirs_exist_ok=True, ignore=shutil.ignore_patterns("api", "requirements.txt"))
+        shutil.copytree(ROOT / "docs", source, dirs_exist_ok=True, ignore=shutil.ignore_patterns("api", "requirements.txt", "mkdocs.yml", "mrdocs.yml"))
         for page in source.rglob("*.md"):
             def example(match):
                 code = (ROOT / "examples" / match[1]).read_text()
                 return "```cpp\n" + code.rstrip() + "\n```"
             page.write_text(re.sub(r"<!-- example: ([\w]+\.cpp) -->", example, page.read_text()))
-        run(args.mrdocs, "--config=" + str(ROOT / "mrdocs.yml"),
+        run(args.mrdocs, "--config=" + str(ROOT / "docs" / "mrdocs.yml"),
             "--compilation-database=" + str(core / "compile_commands.json"), "--output=" + str(source / "api"))
         metadata = build / "api.xml"
-        run(args.mrdocs, "--config=" + str(ROOT / "mrdocs.yml"), "--generator=xml",
+        run(args.mrdocs, "--config=" + str(ROOT / "docs" / "mrdocs.yml"), "--generator=xml",
             "--compilation-database=" + str(core / "compile_commands.json"), "--output=" + str(metadata))
         normalized = normalize(source / "api", metadata)
         navigation = '<nav aria-label="Documentation"><a href="/Agent-Harmony/">Agent Harmony guides</a> &middot; <a href="/Agent-Harmony/api/">API index</a></nav>'
@@ -64,7 +64,7 @@ def main():
             if len(pages) != 1 or "template" not in pages[0].read_text() or "Member Functions" not in pages[0].read_text():
                 raise RuntimeError(f"Incomplete or duplicate template reference: {name}")
         print(f"Unified {normalized} constrained-template signatures with their member pages")
-        config = yaml.safe_load((ROOT / "mkdocs.yml").read_text())
+        config = yaml.safe_load((ROOT / "docs" / "mkdocs.yml").read_text())
         config.update(docs_dir=str(source), site_dir=str(build / "site"))
         configured = build / "mkdocs.yml"
         configured.write_text(yaml.safe_dump(config, sort_keys=False))
