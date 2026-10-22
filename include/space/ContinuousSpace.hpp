@@ -124,7 +124,6 @@ private:
     [[nodiscard]] const SquareT& getCell(RealPoint point) const;
     [[nodiscard]] SquareT& getCell(Point point);
     [[nodiscard]] const SquareT& getCell(Point point) const ;
-    [[nodiscard]] bool inRadius(Point point, float radius, RealPoint center) const;
 };
 }
 

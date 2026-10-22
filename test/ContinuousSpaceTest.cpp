@@ -42,6 +42,6 @@ TEST(ContinuousSpaceTest, GetNeighbours) {
     EXPECT_EQ(nghs.size(), 1);
 
     nghs = space.getNeighbors(*a.pos, 3.f, false, true);
-    EXPECT_EQ(nghs.size(), 2);
+    EXPECT_EQ(nghs.size(), 3);
 }
 }

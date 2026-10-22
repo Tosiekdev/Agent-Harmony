@@ -72,37 +72,40 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
     const float r, const bool euclidean, const bool center) {
     detail::validateRadius(r);
     pos = detail::checkedPosition(pos, width, height, toroidal);
-    if (static_cast<double>(r) / discretization > std::numeric_limits<int>::max() / 2 - std::max(cols, rows))
-        throw std::length_error("Neighborhood offset is not representable");
-    const int radius = static_cast<int>(std::floor(r / discretization));
-    const auto [pX, pY] = discretize(pos);
-
+    auto candidates = [&](double coordinate, double extent, int count) {
+        std::vector<int> buckets;
+        auto append = [&](double low, double high) {
+            const int first = std::min(count - 1, static_cast<int>(std::floor(low / discretization)));
+            const int last = std::min(count - 1, static_cast<int>(std::floor(high / discretization)));
+            for (int i = first; i <= last; ++i) buckets.push_back(i);
+        };
+        const double low = coordinate - r, high = coordinate + r;
+        if (!toroidal) append(std::max(0.0, low), std::min(extent, high));
+        else if (static_cast<double>(r) >= extent / 2) append(0, extent);
+        else if (low < 0) { append(0, high); append(extent + low, extent); }
+        else if (high >= extent) { append(low, extent); append(0, high - extent); }
+        else append(low, high);
+        std::sort(buckets.begin(), buckets.end());
+        buckets.erase(std::unique(buckets.begin(), buckets.end()), buckets.end());
+        return buckets;
+    };
+    const auto xs = candidates(pos.x, width, cols);
+    const auto ys = candidates(pos.y, height, rows);
     std::vector<AgentT> neighbors;
-    for (int i = -radius; i <= radius; ++i) {
-        for (int j = -radius; j <= radius; ++j) {
-            const int x = pX + j;
-            const int y = pY + i;
-
-            if (!inRadius({x, y}, r, pos)) {
-                continue;
+    for (int y : ys) for (int x : xs) {
+        for (auto agent : getCell(Point{x, y})) {
+            const RealPoint location = std::visit(Pos, agent);
+            if (!center && location == pos) continue;
+            double dx = std::abs(static_cast<double>(location.x) - pos.x);
+            double dy = std::abs(static_cast<double>(location.y) - pos.y);
+            if (toroidal) {
+                dx = std::min(dx, static_cast<double>(width) - dx);
+                dy = std::min(dy, static_cast<double>(height) - dy);
             }
-
-            auto& cell = getCell(Point{x, y});
-            if (euclidean) {
-                std::ranges::for_each(cell,
-                                      [&](AgentT agent) {
-                                          if (l2(pos, std::visit(Pos, agent)) <= r) {
-                                              if (!center && pos == std::visit(Pos, agent)) return;
-                                              neighbors.push_back(agent);
-                                          }
-                                      });
-            }
-            else {
-                neighbors.insert(neighbors.end(), cell.begin(), cell.end());
-            }
+            const double distance = euclidean ? std::hypot(dx, dy) : std::max(dx, dy);
+            if (distance <= r) neighbors.push_back(agent);
         }
     }
-
     return neighbors;
 }
 
@@ -139,48 +142,4 @@ auto ContinuousSpace<Agents...>::getCell(const Point point) const -> const Squar
     return grid[detail::checkedIndex(point, cols, rows)];
 }
 
-template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-bool ContinuousSpace<Agents...>::inRadius(const Point point, const float radius, const RealPoint center) const {
-    const auto [x, y] = discretize(center);
-
-    if (point.x < 0 || point.y < 0 || point.x >= cols || point.y >= rows) {
-        return false;
-    }
-
-    if (point.y < y && point.x < x)
-        return l2(center,
-                  {
-                      static_cast<float>(point.x + 1) * discretization,
-                      static_cast<float>(point.y) * discretization
-                  }) <= radius;
-
-    if (point.y < y && point.x > x)
-        return l2(center,
-                  {
-                      static_cast<float>(point.x) * discretization,
-                      static_cast<float>(point.y) * discretization
-                  }) <= radius;
-
-    if (point.y > y && point.x < x)
-        return l2(center,
-                  {
-                      static_cast<float>(point.x + 1) * discretization,
-                      static_cast<float>(point.y + 1) * discretization
-                  }) <= radius;
-
-    if (point.y > y && point.x > x)
-        return l2(center,
-                  {
-                      static_cast<float>(point.x) * discretization,
-                      static_cast<float>(point.y + 1) * discretization
-                  }) <= radius;
-
-    if (point.y == y)
-        return std::abs(static_cast<float>(point.x + static_cast<int>(point.x < x)) * discretization - center.x) <= radius;
-
-    if (point.x == x)
-        return std::abs(static_cast<float>(point.y + static_cast<int>(point.y < y)) * discretization - center.y) <= radius;
-
-    assert(false && "UNREACHABLE");
-}
 }
