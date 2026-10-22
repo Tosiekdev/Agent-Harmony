@@ -6,6 +6,7 @@ namespace agh {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
+    pos = detail::checkedPosition(pos, width, height, toroidal);
     if (getAgent(pos)) return false;
     getAgent(pos) = &agent;
     agent.pos = pos;
@@ -15,6 +16,7 @@ bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
+    pos = detail::checkedPosition(pos, width, height, toroidal);
     if (getAgent(pos)) return false;
     if (!agent.pos) {
         return addAgent(agent, pos);
@@ -67,12 +69,12 @@ void Field<Agents...>::transform(F&& f) {
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto Field<Agents...>::getAgent(const Point pos) -> OptAgentT& {
-    return grid[pos.y * width + pos.x];
+    return grid[detail::checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto Field<Agents...>::getAgent(const Point pos) const -> const OptAgentT& {
-    return grid[pos.y * width + pos.x];
+    return grid[detail::checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
@@ -108,7 +110,7 @@ Point Field<Agents...>::toToroidal(const Point p) const {
 template<Positionable... Agents> requires (sizeof...(Agents) > 0)
 std::vector<Point> Field<Agents...>::getEmpty() const {
     std::vector<Point> result;
-    result.reserve(width*height / 2);
+    result.reserve(grid.size() / 2);
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {

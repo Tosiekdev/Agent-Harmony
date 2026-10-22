@@ -8,7 +8,8 @@
 namespace agh {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
-void ContinuousSpace<Agents...>::addAgent(Agent& agent, const RealPoint pos) {
+void ContinuousSpace<Agents...>::addAgent(Agent& agent, RealPoint pos) {
+    pos = detail::checkedPosition(pos, width, height, toroidal);
     getCell(pos).push_back(&agent);
     agent.pos = pos;
 }
@@ -16,6 +17,7 @@ void ContinuousSpace<Agents...>::addAgent(Agent& agent, const RealPoint pos) {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void ContinuousSpace<Agents...>::moveAgent(Agent& agent, RealPoint pos) {
+    pos = detail::checkedPosition(pos, width, height, toroidal);
     removeAgent(agent);
     addAgent(agent, pos);
 }
@@ -53,7 +55,8 @@ void ContinuousSpace<Agents...>::apply(F&& f) {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-size_t ContinuousSpace<Agents...>::agentCount(const RealPoint p) const {
+size_t ContinuousSpace<Agents...>::agentCount(RealPoint p) const {
+    p = detail::checkedPosition(p, width, height, toroidal);
     return std::ranges::count_if(getCell(p),
                                  [&](AgentT agentPtr) {
                                      return std::visit([&](auto agent) { return agent->pos == p; }, agentPtr);
@@ -61,8 +64,12 @@ size_t ContinuousSpace<Agents...>::agentCount(const RealPoint p) const {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents...>::getNeighbors(const RealPoint pos,
+std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents...>::getNeighbors(RealPoint pos,
     const float r, const bool euclidean, const bool center) {
+    detail::validateRadius(r);
+    pos = detail::checkedPosition(pos, width, height, toroidal);
+    if (static_cast<double>(r) / discretization > std::numeric_limits<int>::max() / 2 - std::max(cols, rows))
+        throw std::length_error("Neighborhood offset is not representable");
     const int radius = static_cast<int>(std::floor(r / discretization));
     const auto [pX, pY] = discretize(pos);
 
@@ -97,35 +104,35 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 [[nodiscard]] RealPoint ContinuousSpace<Agents...>::toToroidal(const RealPoint p) const {
-    return {std::fmod(p.x, width), std::fmod(p.y, height)};
+    return detail::checkedPosition(p, width, height, true);
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 Point ContinuousSpace<Agents...>::discretize(const RealPoint point) const {
     return {
-        static_cast<int>(std::floor(point.x / discretization)),
-        static_cast<int>(std::floor(point.y / discretization))
+        std::min(cols - 1, static_cast<int>(std::floor(static_cast<double>(point.x) / discretization))),
+        std::min(rows - 1, static_cast<int>(std::floor(static_cast<double>(point.y) / discretization)))
     };
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const RealPoint point) -> SquareT& {
-    return getCell(discretize(point));
+    return getCell(discretize(detail::checkedPosition(point, width, height, toroidal)));
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const RealPoint point) const -> const SquareT& {
-    return getCell(discretize(point));
+    return getCell(discretize(detail::checkedPosition(point, width, height, toroidal)));
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const Point point) -> SquareT& {
-    return grid[point.y * cols + point.x];
+    return grid[detail::checkedIndex(point, cols, rows)];
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
 auto ContinuousSpace<Agents...>::getCell(const Point point) const -> const SquareT& {
-    return grid[point.y * cols + point.x];
+    return grid[detail::checkedIndex(point, cols, rows)];
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)

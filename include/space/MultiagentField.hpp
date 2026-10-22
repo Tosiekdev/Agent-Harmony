@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utilities/Validation.hpp"
+
 #include "../utilities/Concepts.hpp"
 #include "Point.hpp"
 
@@ -36,7 +38,7 @@ public:
      * @param torus Should space wrap.
      */
     explicit MultiagentField(const int pWidth, const int pHeight, const bool torus = false)
-        : width(pWidth), height(pHeight), grid(height * width), toroidal(torus) {}
+        : width(pWidth), height(pHeight), grid(detail::checkedCellCount<SquareT>(width, height)), toroidal(torus) {}
 
     /**
      * Crates empty grid that has specified attributes. Additionally, it reserves requested space for agents per grid.
@@ -46,7 +48,7 @@ public:
      * @param torus Should space wrap.
      */
     explicit MultiagentField(const int pWidth, const int pHeight, size_t reservation, const bool torus = false)
-        : width(pWidth), height(pHeight), grid(height * width), toroidal(torus) {
+        : width(pWidth), height(pHeight), grid(detail::checkedCellCount<SquareT>(width, height)), toroidal(torus) {
         for (auto& cell : grid) {
             cell.reserve(reservation);
         }

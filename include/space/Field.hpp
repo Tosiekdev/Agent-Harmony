@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utilities/Validation.hpp"
+
 #include "../utilities/Concepts.hpp"
 #include "Point.hpp"
 
@@ -38,7 +40,7 @@ public:
    * @param torus Should space wrap.
    */
   explicit Field(const int pWidth, const int pHeight, const bool torus = false)
-    : width(pWidth), height(pHeight), grid(height * width), toroidal(torus) {}
+    : width(pWidth), height(pHeight), grid(detail::checkedCellCount<OptAgentT>(width, height)), toroidal(torus) {}
 
   /**
    * Gets agent at the given position. Returns std::nullopt when at given position there is no agent.

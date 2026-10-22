@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utilities/Validation.hpp"
+
 #include <vector>
 
 #include "Point.hpp"
@@ -21,7 +23,7 @@ public:
      * @param initValue Initial value of the read and write layers.
      */
     explicit ValueLayer(const int pWidth, const int pHeight, const bool torus = false, const T initValue = T())
-        : width(pWidth), height(pHeight), read(height * width, initValue), write(height * width, initValue),
+        : width(pWidth), height(pHeight), read(detail::checkedCellCount<T>(width, height), initValue), write(read.size(), initValue),
           toroidal(torus) {}
 
     /**

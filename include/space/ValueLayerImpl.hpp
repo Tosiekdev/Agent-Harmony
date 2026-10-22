@@ -9,22 +9,22 @@
 namespace agh {
 template<typename T>
 T ValueLayer<T>::get(const Point pos) const {
-    return read[pos.y * width + pos.x];
+    return read[detail::checkedIndex(pos, width, height, toroidal)];
 }
 
 template<typename T>
 T ValueLayer<T>::getFromWrite(const Point pos) const {
-    return write[pos.y * width + pos.x];
+    return write[detail::checkedIndex(pos, width, height, toroidal)];
 }
 
 template<typename T>
 void ValueLayer<T>::set(const Point pos, T value) {
-    write[pos.y * width + pos.x] = value;
+    write[detail::checkedIndex(pos, width, height, toroidal)] = value;
 }
 
 template<typename T>
 void ValueLayer<T>::setOnRead(const Point pos, T value) {
-    read[pos.y * width + pos.x] = value;
+    read[detail::checkedIndex(pos, width, height, toroidal)] = value;
 }
 
 template<typename T>

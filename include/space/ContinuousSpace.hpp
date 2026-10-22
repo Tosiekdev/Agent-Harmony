@@ -3,6 +3,7 @@
 #include "../utilities/Concepts.hpp"
 
 #include <cmath>
+#include "../utilities/Validation.hpp"
 #include <variant>
 
 namespace agh {
@@ -26,9 +27,9 @@ public:
      */
     explicit ContinuousSpace(const float pWidth, const float pHeight, const float dx, const bool torus = false)
         : width(pWidth), height(pHeight), discretization(dx)
-          , rows(static_cast<int>(std::ceil(pHeight / dx)))
-          , cols(static_cast<int>(std::ceil(pWidth / dx)))
-          , grid(rows * cols)
+          , rows(detail::checkedBucketCount(pHeight, dx))
+          , cols(detail::checkedBucketCount(pWidth, dx))
+          , grid(detail::checkedCellCount<SquareT>(cols, rows))
           , toroidal(torus) {}
 
     /**
