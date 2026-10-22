@@ -21,22 +21,13 @@ void Network<N, L>::deleteNode(const N& node) {
     if (it == lookup.end()) {
         return;
     }
-    if (!directed) {
-        std::unordered_set<NodeIter, Hash<N>> nghs;
-        for (const auto& e : edges[it->second]) {
-            nghs.insert(e.to);
-        }
-        for (auto n : nghs) {
-            std::erase_if(edges[n], [&node](const auto& e) { return *e.to == node; });
-        }
+    const NodeIter victim = it->second;
+    for (auto& [source, outgoing] : edges) {
+        std::erase_if(outgoing, [&](const auto& edge) { return edge.to == victim; });
     }
-    else {
-        for (auto& [n, e] : edges) {
-            std::erase_if(e, [&node](const auto& edge) { return *edge.to == node; });
-        }
-    }
-    edges.erase(it->second);
-    nodes.erase(it->second);
+    edges.erase(victim);
+    lookup.erase(it);
+    nodes.erase(victim);
 }
 
 template<Node N, Label L>
