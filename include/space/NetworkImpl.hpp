@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <queue>
+#include <stdexcept>
 
 namespace agh {
 template<Node N, Label L>
@@ -33,6 +34,7 @@ void Network<N, L>::deleteNode(const N& node) {
 template<Node N, Label L>
 const typename Network<N, L>::EdgeSet& Network<N, L>::getEdges(const N& node) const {
     auto it = lookup.find(node);
+    if (it == lookup.end()) throw std::out_of_range("Network node does not exist");
     return edges.at(it->second);
 }
 
@@ -85,16 +87,18 @@ void Network<N, L>::updateNode(const N& node) {
 
 template<Node N, Label L>
 void Network<N, L>::removeEdge(const N& from, const N& to) {
-    NodeIter fromIt = lookup[from];
-    NodeIter toIt = lookup[to];
-    removeEdge(Edge<N, L>(fromIt, toIt));
+    auto fromIt = lookup.find(from);
+    auto toIt = lookup.find(to);
+    if (fromIt == lookup.end() || toIt == lookup.end()) return;
+    removeEdge(EdgeT(fromIt->second, toIt->second));
 }
 
 template<Node N, Label L>
 void Network<N, L>::removeEdge(const EdgeT& edge) {
-    edges[edge.from].erase(edge);
+    const EdgeT value = edge;
+    edges.at(value.from).erase(value);
     if (!directed) {
-        edges[edge.to].erase(Edge<N, L>(edge.to, edge.from, EdgeOptions<L>{edge.label, edge.weight}));
+        edges.at(value.to).erase(EdgeT(value.to, value.from, EdgeOptions<L>{value.label, value.weight}));
     }
 }
 
@@ -111,11 +115,6 @@ void Network<N, L>::removeEdges(const N& node) {
         }
         for (auto n : nghs) {
             std::erase_if(edges[n], [&node](const auto& e) { return *e.to == node; });
-        }
-    }
-    else {
-        for (auto& [n, e] : edges) {
-            std::erase_if(e, [&node](const auto& edge) { return *edge.to == node; });
         }
     }
     edges[it->second].clear();

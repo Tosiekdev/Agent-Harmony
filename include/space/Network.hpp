@@ -126,6 +126,7 @@ public:
     /**
      * Removes specified edge from the network. If the network is undirected it also removes symmetrical edge from the
      * second node to the first.
+     * @pre Endpoints must be live iterators from this network. The edge may be graph-owned.
      * @param edge Edge to remove.
      */
     void removeEdge(const EdgeT& edge);
