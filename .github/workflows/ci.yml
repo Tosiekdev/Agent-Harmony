@@ -32,11 +32,17 @@ jobs:
         with:
           persist-credentials: false
       - name: Configure core without SFML
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-      - name: Build tests and isolated headers
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DAGENT_HARMONY_BUILD_EXAMPLES=${{ runner.os == 'Linux' && 'ON' || 'OFF' }}
+      - name: Build main unit suite
+        run: cmake --build build --config Release --target ABMframeworkTest --parallel 4
+      - name: Run main unit suite
+        run: ctest --test-dir build -C Release --output-on-failure --no-tests=error -R "^AllTestsInOneProcess$"
+      - name: Build Linux integration checks and guide examples
+        if: runner.os == 'Linux'
         run: cmake --build build --config Release --parallel 4
-      - name: Test including installed consumer and shuffled execution
-        run: ctest --test-dir build -C Release --output-on-failure
+      - name: Run Linux header, consumer, shuffled, and example checks
+        if: runner.os == 'Linux'
+        run: ctest --test-dir build -C Release --output-on-failure --no-tests=error -E "^AllTestsInOneProcess$"
 
   sanitizers:
     runs-on: ubuntu-latest

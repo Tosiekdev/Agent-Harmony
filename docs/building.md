@@ -4,6 +4,11 @@ Requirements: CMake 3.29 or later and a C++20 compiler. CI covers GCC and Clang 
 Linux, Apple Clang on macOS, and MSVC on Windows. Core requires neither SFML nor
 Python/documentation tools.
 
+The main unit suite runs on every platform. Linux additionally checks isolated
+headers, installed consumers, shuffled execution, guide examples, sanitizers,
+optional visualization, and the generated documentation. macOS and Windows CI
+build and run only the main unit-suite target.
+
 ## Configure, test, and install
 
 ```sh
