@@ -16,4 +16,4 @@ ctest --test-dir build -C Release --output-on-failure
 ```
 
 Link `AgentHarmony::core` from CMake. Core consumers do not need graphics or
-documentation dependencies. See `examples/quickstart.cpp` for a complete program.
+documentation dependencies. See the [complete quickstart program](examples/quickstart.cpp).
