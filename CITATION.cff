@@ -1,6 +1,13 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
+title: "Agent Harmony"
+type: software
+repository-code: "https://github.com/Tosiekdev/Agent-Harmony"
+license: MIT
 authors:
   - family-names: Zięciak
     given-names: Antoni
     orcid: https://orcid.org/0009-0005-8951-4431
+  - family-names: Szczygieł
+    given-names: Michał
+    website: "https://github.com/michalszc"
