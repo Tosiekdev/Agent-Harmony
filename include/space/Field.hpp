@@ -6,6 +6,7 @@
 #include "Point.hpp"
 
 #include <optional>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -68,7 +69,7 @@ public:
    * @throws std::out_of_range If a bounded destination is outside the domain.
    * @throws std::logic_error If called during traversal.
    */
-  template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+  template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
   bool addAgent(Agent& agent, Point pos);
 
   /**
@@ -81,7 +82,7 @@ public:
    * @throws std::out_of_range If a bounded destination is outside the domain.
    * @throws std::logic_error If the positioned agent is not a member or traversal is active.
    */
-  template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+  template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
   bool moveAgent(Agent& agent, Point pos);
 
   /**
@@ -89,7 +90,7 @@ public:
    * @tparam Agent Type of the agent we want to remove.
    * @param agent Agent to be removed.
    */
-  template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+  template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
   void removeAgent(Agent& agent);
 
   /**
@@ -103,7 +104,7 @@ public:
    * @tparam F Type of the invoked function.
    * @param f Function to be invoked. It must be invocable with a reference to an agent.
    */
-  template<typename F> requires (std::invocable<F, Agents&> && ...)
+  template<typename F> requires std::conjunction_v<std::is_invocable<F, Agents&>...>
   void apply(F&& f);
 
   /**
@@ -111,7 +112,7 @@ public:
    * @tparam F Type of the invoked function.
    * @param f Function to be invoked. It must be invocable with an object of type Point and a reference to an agent.
    */
-  template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
+  template<typename F> requires std::conjunction_v<std::is_invocable<F, Point, Agents&>...>
   void transform(F&& f);
 
   /**

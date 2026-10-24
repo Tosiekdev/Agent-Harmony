@@ -8,7 +8,7 @@
 
 namespace agh {
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<RealPositionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 void ContinuousSpace<Agents...>::addAgent(Agent& agent, RealPoint pos) {
     detail::requireStructuralMutation(traversing);
     if (agent.pos) throw std::logic_error("Agent is already positioned; remove it before adding");
@@ -18,7 +18,7 @@ void ContinuousSpace<Agents...>::addAgent(Agent& agent, RealPoint pos) {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<RealPositionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 void ContinuousSpace<Agents...>::moveAgent(Agent& agent, RealPoint pos) {
     detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
@@ -37,7 +37,7 @@ void ContinuousSpace<Agents...>::moveAgent(Agent& agent, RealPoint pos) {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<RealPositionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 void ContinuousSpace<Agents...>::removeAgent(Agent& agent) {
     detail::requireStructuralMutation(traversing);
     if (!agent.pos) return;
@@ -50,7 +50,7 @@ void ContinuousSpace<Agents...>::removeAgent(Agent& agent) {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Agents&> && ...)
+template<typename F> requires std::conjunction_v<std::is_invocable<F, Agents&>...>
 void ContinuousSpace<Agents...>::apply(F&& f) {
     detail::TraversalGuard guard(traversing);
     applyToAll(grid,

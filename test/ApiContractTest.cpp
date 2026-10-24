@@ -7,13 +7,40 @@ namespace {
 struct A { std::optional<agh::Point> pos; int value{}; bool isActive() const { return true; } };
 struct B { std::optional<agh::Point> pos; int value{}; };
 struct R { std::optional<agh::RealPoint> pos; int value{}; };
+struct S { std::optional<agh::RealPoint> pos; int value{}; };
 struct OnlyA { void operator()(A&) const {} };
+struct OnlyR { void operator()(R&) const {} };
+struct EveryAgent { void operator()(auto&) const {} };
+struct OnlyPointA { void operator()(agh::Point, A&) const {} };
+struct EveryPointAgent { void operator()(agh::Point, auto&) const {} };
 template<typename Space> constexpr bool acceptsPartial = requires(Space& space) { space.apply(OnlyA{}); };
+template<typename Space, typename Visitor> constexpr bool acceptsVisitor =
+    requires(Space& space, Visitor visitor) { space.apply(visitor); };
+template<typename Space, typename Visitor> constexpr bool acceptsTransform =
+    requires(Space& space, Visitor visitor) { space.transform(visitor); };
+template<typename Space, typename Agent> constexpr bool acceptsAnyMembership =
+    requires(Space& space, Agent& agent) { space.addAgent(agent, {}); } ||
+    requires(Space& space, Agent& agent) { space.moveAgent(agent, {}); } ||
+    requires(Space& space, Agent& agent) { space.removeAgent(agent); };
 }
 
 template<typename T> constexpr bool exposesClear = requires(T value) { value.clear(); };
 static_assert(!acceptsPartial<agh::Field<A, B>>);
 static_assert(!acceptsPartial<agh::MultiagentField<A, B>>);
+static_assert(acceptsVisitor<agh::Field<A, B>, EveryAgent>);
+static_assert(acceptsVisitor<agh::MultiagentField<A, B>, EveryAgent>);
+static_assert(acceptsVisitor<agh::ContinuousSpace<R, S>, EveryAgent>);
+static_assert(!acceptsVisitor<agh::ContinuousSpace<R, S>, OnlyR>);
+static_assert(acceptsTransform<agh::Field<A, B>, EveryPointAgent>);
+static_assert(acceptsTransform<agh::MultiagentField<A, B>, EveryPointAgent>);
+static_assert(!acceptsTransform<agh::Field<A, B>, OnlyPointA>);
+static_assert(!acceptsTransform<agh::MultiagentField<A, B>, OnlyPointA>);
+static_assert(acceptsAnyMembership<agh::Field<A>, A>);
+static_assert(acceptsAnyMembership<agh::MultiagentField<A>, A>);
+static_assert(acceptsAnyMembership<agh::ContinuousSpace<R>, R>);
+static_assert(!acceptsAnyMembership<agh::Field<A>, B>);
+static_assert(!acceptsAnyMembership<agh::MultiagentField<A>, B>);
+static_assert(!acceptsAnyMembership<agh::ContinuousSpace<R>, S>);
 static_assert(!exposesClear<decltype(std::declval<agh::Model<A>&>().getAgents<A>())>);
 static_assert(std::is_const_v<std::remove_reference_t<decltype(*std::declval<agh::Network<int, int>::NodeIter>())>>);
 static_assert(std::is_const_v<std::remove_reference_t<std::ranges::range_reference_t<decltype(std::declval<const agh::Model<A>&>().getAgents<A>())>>>);

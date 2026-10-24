@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include "../utilities/Validation.hpp"
+#include <type_traits>
 #include <variant>
 
 namespace agh {
@@ -47,7 +48,7 @@ public:
      * @throws std::invalid_argument If coordinates are not finite.
      * @throws std::out_of_range If a bounded destination is outside the domain.
      */
-    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+    template<RealPositionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
     void addAgent(Agent& agent, RealPoint pos);
 
     /**
@@ -57,7 +58,7 @@ public:
      * @param agent Agent to be moved.
      * @param pos Position we want to move agent to.
      */
-    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+    template<RealPositionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
     void moveAgent(Agent& agent, RealPoint pos);
 
     /**
@@ -65,7 +66,7 @@ public:
      * @tparam Agent Type of the agent we want to remove.
      * @param agent Agent to be removed.
      */
-    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+    template<RealPositionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
     void removeAgent(Agent& agent);
 
     /**
@@ -73,7 +74,7 @@ public:
      * @tparam F Type of the invoked function.
      * @param f Function to be invoked. It must be invocable with a reference to an agent.
      */
-    template<typename F> requires (std::invocable<F, Agents&> && ...)
+    template<typename F> requires std::conjunction_v<std::is_invocable<F, Agents&>...>
     void apply(F&& f);
 
     /**

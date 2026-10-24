@@ -9,7 +9,7 @@ auto Field<Agents...>::cell(Point pos) -> OptAgentT& {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
     detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
@@ -20,7 +20,7 @@ bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
     detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
@@ -37,7 +37,7 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 void Field<Agents...>::removeAgent(Agent& agent) {
     detail::requireStructuralMutation(traversing);
     if (!agent.pos || outOfBounds(*agent.pos)) return;
@@ -56,7 +56,7 @@ void Field<Agents...>::removeAgent(const Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Agents&> && ...)
+template<typename F> requires std::conjunction_v<std::is_invocable<F, Agents&>...>
 void Field<Agents...>::apply(F&& f) {
     detail::TraversalGuard guard(traversing);
     applyToAll(grid,
@@ -69,7 +69,7 @@ void Field<Agents...>::apply(F&& f) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
+template<typename F> requires std::conjunction_v<std::is_invocable<F, Point, Agents&>...>
 void Field<Agents...>::transform(F&& f) {
     detail::TraversalGuard guard(traversing);
     transformAll(grid,

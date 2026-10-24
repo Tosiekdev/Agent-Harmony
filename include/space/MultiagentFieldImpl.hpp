@@ -19,7 +19,7 @@ auto MultiagentField<Agents...>::getAgents(const Point pos) const -> const Squar
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
     detail::requireStructuralMutation(traversing);
     if (agent.pos) throw std::logic_error("Agent is already positioned; remove it before adding");
@@ -29,7 +29,7 @@ void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
     detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
@@ -48,7 +48,7 @@ void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<Positionable Agent> requires std::disjunction_v<std::is_same<Agent, Agents>...>
 void MultiagentField<Agents...>::removeAgent(Agent& agent) {
     detail::requireStructuralMutation(traversing);
     if (!agent.pos) return;
@@ -70,7 +70,7 @@ void MultiagentField<Agents...>::removeAgents(const Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Agents&> && ...)
+template<typename F> requires std::conjunction_v<std::is_invocable<F, Agents&>...>
 void MultiagentField<Agents...>::apply(F&& f) {
     detail::TraversalGuard guard(traversing);
     applyToAll(grid,
@@ -84,7 +84,7 @@ void MultiagentField<Agents...>::apply(F&& f) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
+template<typename F> requires std::conjunction_v<std::is_invocable<F, Point, Agents&>...>
 void MultiagentField<Agents...>::transform(F&& f) {
     detail::TraversalGuard guard(traversing);
     transformAll(grid,
