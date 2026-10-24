@@ -10,6 +10,8 @@ cmake --build build-visual --config Release
 
 SFML 3 builds static libraries by default, while `find_package(SFML)` selects
 shared libraries by default. CI builds SFML with `-DBUILD_SHARED_LIBS=ON`.
+On Linux, CI also sets `-DCMAKE_INSTALL_RPATH='$ORIGIN'` so SFML's shared libraries
+can load their SFML dependencies from the same temporary installation directory.
 For an existing static SFML installation, pass `-DSFML_STATIC_LIBRARIES=ON`
 when configuring this library and any installed visualization consumers.
 

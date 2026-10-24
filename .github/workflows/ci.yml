@@ -73,7 +73,7 @@ jobs:
           curl -fL https://codeload.github.com/SFML/SFML/tar.gz/016bea9491ccafc3529019fe1d403885a8b3a6ae -o "$RUNNER_TEMP/sfml.tar.gz"
           mkdir -p "$RUNNER_TEMP/sfml"
           tar -xzf "$RUNNER_TEMP/sfml.tar.gz" -C "$RUNNER_TEMP/sfml" --strip-components=1
-          cmake -S "$RUNNER_TEMP/sfml" -B "$RUNNER_TEMP/sfml-build" -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/sfml-install" -DBUILD_SHARED_LIBS=ON -DSFML_BUILD_AUDIO=OFF -DSFML_BUILD_NETWORK=OFF -DSFML_BUILD_EXAMPLES=OFF -DSFML_BUILD_TEST_SUITE=OFF
+          cmake -S "$RUNNER_TEMP/sfml" -B "$RUNNER_TEMP/sfml-build" -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/sfml-install" -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_RPATH='$ORIGIN' -DSFML_BUILD_AUDIO=OFF -DSFML_BUILD_NETWORK=OFF -DSFML_BUILD_EXAMPLES=OFF -DSFML_BUILD_TEST_SUITE=OFF
           cmake --build "$RUNNER_TEMP/sfml-build" --parallel 4
           cmake --install "$RUNNER_TEMP/sfml-build"
       - name: Build and test optional visualization and installed consumer
