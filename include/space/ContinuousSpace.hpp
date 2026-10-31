@@ -4,7 +4,6 @@
 
 #include <cmath>
 #include "../utilities/Validation.hpp"
-#include <type_traits>
 #include <variant>
 
 namespace agh {
@@ -48,8 +47,8 @@ public:
      * @throws std::invalid_argument If coordinates are not finite.
      * @throws std::out_of_range If a bounded destination is outside the domain.
      */
-    template<RealPositionable Agent>
-    void addAgent(Agent& agent, RealPoint pos) requires (std::is_same_v<Agent, Agents> || ...);
+    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+    void addAgent(Agent& agent, RealPoint pos);
 
     /**
      * Moves agent to the specified location. If agent wasn't present on the field it is added. It modifies value of the
@@ -58,24 +57,24 @@ public:
      * @param agent Agent to be moved.
      * @param pos Position we want to move agent to.
      */
-    template<RealPositionable Agent>
-    void moveAgent(Agent& agent, RealPoint pos) requires (std::is_same_v<Agent, Agents> || ...);
+    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+    void moveAgent(Agent& agent, RealPoint pos);
 
     /**
      * Removes specified agent from the field. This modifies the value of the pos attribute of the agent.
      * @tparam Agent Type of the agent we want to remove.
      * @param agent Agent to be removed.
      */
-    template<RealPositionable Agent>
-    void removeAgent(Agent& agent) requires (std::is_same_v<Agent, Agents> || ...);
+    template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+    void removeAgent(Agent& agent);
 
     /**
      * Calls specified function for every agent on the field.
      * @tparam F Type of the invoked function.
      * @param f Function to be invoked. It must be invocable with a reference to an agent.
      */
-    template<typename F>
-    void apply(F&& f) requires (std::invocable<F, Agents&> && ...);
+    template<typename F> requires (std::invocable<F, Agents&> && ...)
+    void apply(F&& f);
 
     /**
      * Get agent count at the given position.

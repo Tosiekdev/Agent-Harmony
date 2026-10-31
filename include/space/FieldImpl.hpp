@@ -9,8 +9,8 @@ auto Field<Agents...>::cell(Point pos) -> OptAgentT& {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent>
-bool Field<Agents...>::addAgent(Agent& agent, Point pos) requires (std::is_same_v<Agent, Agents> || ...) {
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
     detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
     if (agent.pos || cell(pos)) return false;
@@ -20,8 +20,8 @@ bool Field<Agents...>::addAgent(Agent& agent, Point pos) requires (std::is_same_
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent>
-bool Field<Agents...>::moveAgent(Agent& agent, Point pos) requires (std::is_same_v<Agent, Agents> || ...) {
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
     detail::requireStructuralMutation(traversing);
     pos = detail::checkedPosition(pos, width, height, toroidal);
     if (!agent.pos) return addAgent(agent, pos);
@@ -37,8 +37,8 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) requires (std::is_same
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent>
-void Field<Agents...>::removeAgent(Agent& agent) requires (std::is_same_v<Agent, Agents> || ...) {
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+void Field<Agents...>::removeAgent(Agent& agent) {
     detail::requireStructuralMutation(traversing);
     if (!agent.pos || outOfBounds(*agent.pos)) return;
     auto& occupied = cell(*agent.pos);
@@ -56,8 +56,8 @@ void Field<Agents...>::removeAgent(const Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F>
-void Field<Agents...>::apply(F&& f) requires (std::invocable<F, Agents&> && ...) {
+template<typename F> requires (std::invocable<F, Agents&> && ...)
+void Field<Agents...>::apply(F&& f) {
     detail::TraversalGuard guard(traversing);
     applyToAll(grid,
                [&](OptAgentT& agent) {
@@ -69,8 +69,8 @@ void Field<Agents...>::apply(F&& f) requires (std::invocable<F, Agents&> && ...)
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F>
-void Field<Agents...>::transform(F&& f) requires (std::invocable<F, Point, Agents&> && ...) {
+template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
+void Field<Agents...>::transform(F&& f) {
     detail::TraversalGuard guard(traversing);
     transformAll(grid,
                  [&](Point p, OptAgentT& agent) {

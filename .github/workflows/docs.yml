@@ -2,7 +2,7 @@ name: C++ documentation
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, fix/cpp-library-stabilization]
   workflow_run:
     workflows: [C++ CI]
     branches: [master]
@@ -22,7 +22,7 @@ jobs:
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_repository.full_name == github.repository)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6.1.0
         with:
@@ -55,7 +55,7 @@ jobs:
   deploy:
     if: github.event_name == 'workflow_run'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pages: write
