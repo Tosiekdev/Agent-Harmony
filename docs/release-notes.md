@@ -2,6 +2,8 @@
 
 Versions follow [Semantic Versioning](https://semver.org/). The newest version
 below matches the `AgentHarmony` project version in `CMakeLists.txt`.
+See the [release process](documentation.md#versions-and-releases) for preparing
+new versions and automatic publication.
 
 ## 0.1.0
 
