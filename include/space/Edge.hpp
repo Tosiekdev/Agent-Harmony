@@ -14,12 +14,12 @@ struct EdgeOptions {
     std::optional<double> weight;
 };
 
-/** @brief Non-owning edge between live read-only node iterators from one network.
+/** @brief Non-owning edge between live node iterators from one network.
  * @tparam N Node type. @tparam L Label type. */
 template<Node N, Label L> requires std::equality_comparable<N> && std::equality_comparable<L>
 struct Edge {
-    /** @brief Iterator to a read-only network node. */
-    using NodeIter = typename std::list<N>::const_iterator;
+    /** @brief Iterator to a mutable network node; preserve hash/equality identity. */
+    using NodeIter = typename std::list<N>::iterator;
 
     /** @brief Construct an unlabeled, unweighted edge.
      * @param fromNode Source iterator. @param toNode Destination iterator. */

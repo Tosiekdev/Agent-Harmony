@@ -227,8 +227,8 @@ TEST(NetworkSafetyTest, MissingOperationsDoNotInsertNodes) {
     agh::Network<int, int> graph;
     graph.addNode(1);
     EXPECT_THROW(graph.getEdges(99), std::out_of_range);
-    graph.removeEdge(1, 99);
-    graph.removeEdge(98, 99);
+    EXPECT_THROW(graph.removeEdge(1, 99), std::out_of_range);
+    EXPECT_THROW(graph.removeEdge(98, 99), std::out_of_range);
     graph.removeEdges(99);
     EXPECT_EQ(graph.getNodes().size(), 1);
     EXPECT_EQ(graph.getEdge(1, 99, 1), nullptr);
@@ -318,9 +318,24 @@ template<typename Space, typename Agent> constexpr bool acceptsAnyMembership =
 
 
 template<typename T> constexpr bool exposesClear = requires(T value) { value.clear(); };
-static_assert(std::is_const_v<std::remove_reference_t<decltype(*std::declval<agh::Network<int, int>::NodeIter>())>>);
-TEST(ApiContractTest, StructuralAccessorsAreReadOnlyNetwork) {
-    EXPECT_TRUE((std::is_const_v<std::remove_reference_t<decltype(std::declval<agh::Network<int, int>&>().getNodes())>>));
-    EXPECT_TRUE((std::is_const_v<std::remove_reference_t<decltype(*std::declval<agh::Network<int, int>::NodeIter>())>>));
+static_assert(!std::is_const_v<std::remove_reference_t<decltype(*std::declval<agh::Network<int, int>::NodeIter>())>>);
+TEST(ApiContractTest, NetworkAccessAllowsMutableNodes) {
+    EXPECT_FALSE((std::is_const_v<std::remove_reference_t<decltype(std::declval<agh::Network<int, int>&>().getNodes())>>));
+    EXPECT_TRUE((std::is_const_v<std::remove_reference_t<decltype(std::declval<const agh::Network<int, int>&>().getNodes())>>));
+    EXPECT_FALSE((std::is_const_v<std::remove_reference_t<decltype(*std::declval<agh::Network<int, int>::NodeIter>())>>));
 }
+}
+
+TEST(NetworkTest, MutableNodeDataAndLookupUpdatesPreserveEdges) {
+    agh::Network<X, int> graph;
+    graph.addEdge(X{1}, X{2});
+    auto node = graph.addNode(X{1});
+    node->value = 3;
+    graph.getNodes().front().value = 4;
+    X replacement{1};
+    replacement.value = 9;
+    graph.updateNode(replacement);
+    EXPECT_EQ(node->value, 9);
+    EXPECT_EQ(graph.getEdges(X{1}).size(), 1);
+    EXPECT_EQ(graph.addNode(X{1}), node);
 }

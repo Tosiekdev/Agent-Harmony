@@ -19,7 +19,7 @@ instances can be removed together. Invalid stored positions return without throw
 Moving an unpositioned agent adds it. A same-position
 move is a successful no-op. A rejected destination leaves the source intact.
 
-Container accessors protect structure while pointers/references allow updates to
+Spatial and model container accessors protect structure while pointers/references allow updates to
 agent data. Do not modify `pos` directly while registered. Use the space's
 add/move/remove methods. `apply` and `transform` require callbacks accepting every
 agent type. Callbacks may update ordinary data and perform nested read/traversal
@@ -32,8 +32,9 @@ Standalone `Model` and `ValueLayer` retain value-copy semantics. Copying a model
 does not clone its spaces, schedules, or any connected world. Do not shallow-copy
 registered spatial containers or schedules as a simulation snapshot. Rebuild all
 registrations explicitly. Copying `Network` is disabled; moves transfer its nodes
-and relationships. Public node iterators are read-only. `updateNode` changes data
-of an equivalent node, so equality and hash identity must remain stable. An edge
+and relationships. Public node iterators and `getNodes()` on mutable graphs permit data updates;
+preserve list structure and node hash/equality identity. `updateNode` changes data
+of an equivalent node, so equality and hash identity must remain stable. Missing endpoints in `removeEdge(from, to)` throw `std::out_of_range`. An edge
 passed to `removeEdge` must have live endpoints from that same network. Deleting
 nodes invalidates their iterators and incident edge references; removing an edge
 invalidates its reference.

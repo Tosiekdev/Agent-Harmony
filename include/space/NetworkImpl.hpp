@@ -33,9 +33,7 @@ void Network<N, L>::deleteNode(const N& node) {
 
 template<Node N, Label L>
 const typename Network<N, L>::EdgeSet& Network<N, L>::getEdges(const N& node) const {
-    auto it = lookup.find(node);
-    if (it == lookup.end()) throw std::out_of_range("Network node does not exist");
-    return edges.at(it->second);
+    return edges.at(lookup.at(node));
 }
 
 template<Node N, Label L>
@@ -82,16 +80,12 @@ void Network<N, L>::updateNode(const N& node) {
     if (it == lookup.end()) {
         return;
     }
-    auto writable = std::find(nodes.begin(), nodes.end(), node);
-    *writable = node;
+    *it->second = node;
 }
 
 template<Node N, Label L>
 void Network<N, L>::removeEdge(const N& from, const N& to) {
-    auto fromIt = lookup.find(from);
-    auto toIt = lookup.find(to);
-    if (fromIt == lookup.end() || toIt == lookup.end()) return;
-    removeEdge(EdgeT(fromIt->second, toIt->second));
+    removeEdge(EdgeT(lookup.at(from), lookup.at(to)));
 }
 
 template<Node N, Label L>

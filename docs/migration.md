@@ -19,9 +19,9 @@ tests with ASan/UBSan on GCC/Clang.
 Replace `model.getAgents<T>().push_back(value)` with `model.addAgent<T>(value)` or
 `model.emplaceAgent<T>(arguments...)`. Iteration still provides mutable agent
 references; const models provide const references. Obtain a fresh range after
-inserting agents. Field cell accessors and graph node lists are read-only views
-of structure. Replace cell assignment and direct list insertion/erasure with the
-container's controlled operations.
+inserting agents. Field cell accessors protect cell structure. Graph node lists remain mutable, but
+callers must preserve list structure and node hash/equality identity; use graph
+methods for insertion and deletion.
 
 Remove an agent before adding it elsewhere. Adding a positioned agent is rejected;
 use `moveAgent` to move an existing member. Field removal compares addresses. MultiagentField and ContinuousSpace movement/removal
@@ -31,9 +31,10 @@ requested by callbacks until traversal completes. Callbacks must accept all stor
 types; use a generic lambda or an overload set.
 
 `Network` no longer copies. Move it to transfer ownership or construct a new graph
-and explicitly recreate nodes and edges. Node iterators are const; update equivalent
-node data through `updateNode`. For directed graphs, `removeEdges(node)` removes
-outgoing edges; `deleteNode` removes all incident edges. Missing removals are no-ops,
+and explicitly recreate nodes and edges. Node iterators are writable; preserve hash/equality identity when updating data
+directly or through `updateNode`. For directed graphs, `removeEdges(node)` removes
+outgoing edges; `deleteNode` removes all incident edges. Missing endpoints in `removeEdge(from, to)` throw `std::out_of_range`; other
+missing removals remain no-ops,
 `getEdge` returns null when absent, and `getEdges` throws `std::out_of_range` for an
 absent node.
 

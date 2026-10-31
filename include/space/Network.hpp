@@ -36,7 +36,7 @@ public:
     /**
      * Type of the node iterator.
      */
-    using NodeIter = typename std::list<N>::const_iterator;
+    using NodeIter = typename std::list<N>::iterator;
 
     /**
      * Creates new empty network.
@@ -67,11 +67,11 @@ public:
      */
     void deleteNode(const N& node);
 
-    /**
-     * Returns reference to the const std::list containing all the network nodes. Real nodes, not pointer to them, or
-     * something like that.
-     * @return Reference to the constant list with all nodes.
-     */
+    /** @brief Access mutable nodes; preserve list structure and node hash/equality identity.
+     * @return Node list. Use graph methods for insertion and removal. */
+    std::list<N>& getNodes() { return nodes; }
+
+    /** @brief Access the node list through a const network. @return Constant node list. */
     const std::list<N>& getNodes() const { return nodes; }
 
     /**
@@ -123,6 +123,7 @@ public:
      * from the second node to the first.
      * @param from Node where the edge starts.
      * @param to Node where the edge ends.
+     * @throws std::out_of_range If either endpoint is absent.
      */
     void removeEdge(const N& from, const N& to);
 
