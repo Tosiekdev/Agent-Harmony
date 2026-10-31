@@ -34,7 +34,8 @@ files. Edit those sources and their surrounding guide text together.
 
 ## GitHub Pages
 
-CI runs only for pull requests targeting `master` and pushes to `master`.
+CI and documentation checks run for every pull request, regardless of its target
+branch. Push validation runs only on `master`.
 Documentation PRs build and upload the complete HTML site for review without
 publishing. A successful C++ CI run for a `master` push triggers documentation
 publication through GitHub Pages. Failed CI does not publish. Deployments have

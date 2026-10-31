@@ -9,11 +9,12 @@ nodes; adding an existing node returns its current iterator.
 
 `removeEdges(node)` removes outgoing edges in directed graphs and incident edges
 in undirected graphs. `deleteNode(node)` removes every incident edge and all indexes.
-Missing removals do nothing. Missing `getEdge` returns null; missing `getEdges`
-throws `std::out_of_range`.
+Missing endpoints in `removeEdge(from, to)` throw `std::out_of_range`; other
+missing removals do nothing. Missing `getEdge` returns null; missing `getEdges` throws.
 
-Nodes and returned iterators are read-only. Use `updateNode` for data updates that
-preserve equality/hash identity. Edges borrowed from the graph become invalid when
+Mutable graphs expose mutable node lists and iterators. Preserve list structure
+and equality/hash identity; use graph methods for insertion/deletion and `updateNode`
+for lookup-based data updates. Edges borrowed from the graph become invalid when
 erased; node deletion invalidates its iterator and all incident edge references.
 Iterator-based edge removal requires live endpoints from the same graph.
 

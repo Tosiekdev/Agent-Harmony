@@ -5,8 +5,6 @@ recursive: true
 exclude:
   - ../include/experimental
 exclude-symbols:
-  - agh::detail
-  - agh::detail::*
   - agh::action
   - agh::action::*
   - std

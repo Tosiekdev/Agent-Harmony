@@ -1,7 +1,7 @@
 # Build and install
 
 Requirements: CMake 3.29 or later and a C++20 compiler. CI covers GCC and Clang on
-Linux, Apple Clang on macOS, and MSVC on Windows. Core requires neither SFML nor
+Linux (Clang 22 is selected explicitly), Apple Clang on macOS, and MSVC on Windows. Core requires neither SFML nor
 Python/documentation tools.
 
 The main unit suite runs on every platform. Linux additionally checks isolated

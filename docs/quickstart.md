@@ -11,5 +11,5 @@ install](building.md). The repository builds this exact example when
 `AGENT_HARMONY_BUILD_EXAMPLES=ON`. The documentation build executes it and includes
 the source above automatically, so the displayed program stays in sync.
 
-`step()` updates an agent; an optional `advance()` commits staged state after all
-scheduled agents have stepped. See the [scheduler guide](guides/schedule.md).
+`step()` updates an agent; when every scheduled agent type supports `advance()`,
+it commits staged state after all selected agents have stepped. See the [scheduler guide](guides/schedule.md).

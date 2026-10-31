@@ -17,7 +17,7 @@ same-type equal agents in the indicated cell, and movement removes then adds.
 Callers must provide a valid position and stable equality identity; equal distinct
 instances can be removed together. Invalid stored positions return without throwing.
 Moving an unpositioned agent adds it. A same-position
-move is a successful no-op. A rejected destination leaves the source intact.
+Field move is a successful no-op; multiagent spaces remove then reinsert. A rejected destination leaves the source intact.
 
 Spatial and model container accessors protect structure while pointers/references allow updates to
 agent data. Do not modify `pos` directly while registered. Use the space's

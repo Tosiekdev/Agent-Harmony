@@ -3,25 +3,28 @@
 Use `Field` for one agent per discrete cell, `MultiagentField` for several, and
 `ContinuousSpace` for real coordinates and metric-based queries. Agent types expose
 `std::optional<agh::Point> pos` or `std::optional<agh::RealPoint> pos` respectively.
-No value-equality operator is required for membership operations.
+Movement/removal in MultiagentField and ContinuousSpace require value equality.
 
 <!-- example: spaces.cpp -->
 
 A registered agent has one membership. Remove it before transferring between
-spaces; use movement for an existing member. Operations identify instances by
-address. Invalid destinations leave existing membership intact. Cell accessors
+spaces; use movement for an existing member. Field identifies instances by address;
+MultiagentField and ContinuousSpace erase same-type equal agents from the recorded cell. Invalid destinations leave existing membership intact. Cell accessors
 protect container structure while retaining access to ordinary agent data.
 
 ## Coordinates and queries
 
 Bounded domains are half-open: `[0,width)` × `[0,height)`. Toroidal operations wrap
-coordinates, including negative values, consistently across access, addition,
-movement and queries. Dimensions/discretization must be positive and finite;
+nonnegative discrete coordinates across access, addition, movement and queries.
+Discrete coordinates, dimensions, radii, and bucket counts use `std::size_t`;
+continuous coordinates remain floating point and may be negative before wrapping. Dimensions/discretization must be positive and finite;
 radii must be nonnegative and finite.
 
-Discrete neighborhoods use Moore or von Neumann distance and return each cell
-once. Excluding the center happens after normalization, so a `1×1` torus has no
-neighbors when `center=false`.
+Discrete neighborhoods use Moore or von Neumann distance. Queries centered outside
+a bounded grid return its overlapping cells. Toroidal offset traversal can return
+a cell more than once; unique local traversal is deferred to a separate PR.
+Excluding the center happens after normalization, so a `1×1` torus has no neighbors
+when `center=false`.
 
 Continuous neighborhoods use Euclidean or Chebyshev distance. Periodic queries
 measure minimum periodic differences, including across a partial final bucket.
