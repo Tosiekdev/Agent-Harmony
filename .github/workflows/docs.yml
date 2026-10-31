@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: docs-${{ github.event_name }}-${{ github.event.pull_request.number || 'master' }}
-  cancel-in-progress: true
+  group: docs-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.workflow_run.head_sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -20,13 +20,19 @@ jobs:
       github.event_name == 'pull_request' ||
       (github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'master' &&
        github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.release-metadata.outputs.version }}
     steps:
       - uses: actions/checkout@v6.1.0
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
+      - name: Validate release metadata
+        id: release-metadata
+        run: python3 tools/release.py check
       - name: Install pinned documentation tools
         run: |
           python3 -m venv "$RUNNER_TEMP/docs-venv"
@@ -50,6 +56,31 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: build/docs/site
+
+  release:
+    needs: build
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ needs.build.outputs.version }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6.1.0
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Publish reviewed version from the validated commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: python3 tools/release.py publish --sha "$RELEASE_SHA"
 
   deploy:
     if: github.event_name == 'workflow_run'

@@ -1,8 +1,12 @@
 """Validate reviewed CMake versions and publish their documented releases."""
 import argparse
 from dataclasses import dataclass
+import json
+import os
 from pathlib import Path
 import re
+import subprocess
+from urllib.parse import urljoin, urlsplit
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,15 +58,99 @@ def read_release(root=ROOT):
     return Release(version, notes + "\n")
 
 
+def gh(*args, input=None):
+    return subprocess.run(["gh", *args], input=input, text=True,
+                          capture_output=True, check=True).stdout
+
+
+def github_items(repository, resource):
+    pages = json.loads(gh("api", "--paginate", "--slurp",
+                          f"repos/{repository}/{resource}?per_page=100"))
+    return [item for page in pages for item in page]
+
+
+def github_notes(metadata, repository, sha):
+    # The same Markdown is shown on Pages and GitHub Releases. Resolve its local
+    # documentation links against the released source, not the release URL.
+    base = f"https://github.com/{repository}/blob/{sha}/docs/"
+
+    def link(match):
+        target = match[2]
+        if urlsplit(target).scheme or target.startswith(("/", "#")):
+            return match[0]
+        return match[1] + urljoin(base, target) + ")"
+
+    return re.sub(r"(\[[^\]\n]+\]\()([^\s)]+)\)", link, metadata.notes)
+
+
+def publish(metadata, sha, repository, dry_run=False, root=ROOT):
+    if not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise ValueError("Publication requires a full lowercase commit SHA")
+    head = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+    if head != sha:
+        raise ValueError("Checked-out HEAD must match the validated release SHA")
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+        raise ValueError("Repository must be OWNER/REPO")
+    tags = {item["name"]: item["commit"]["sha"] for item in github_items(repository, "tags")}
+    releases = github_items(repository, "releases")
+    versions = [version_key(tag[1:]) for tag in tags if re.fullmatch("v" + VERSION, tag)]
+    versions.extend(version_key(item["tag_name"][1:]) for item in releases
+                    if not item["draft"] and re.fullmatch("v" + VERSION, item["tag_name"]))
+    if versions and version_key(metadata.version) < max(versions):
+        raise ValueError(f"Version {metadata.version} is older than an existing release tag")
+    existing = next((item for item in releases if item["tag_name"] == metadata.tag), None)
+    if existing:
+        if existing["draft"] or existing["prerelease"]:
+            raise ValueError(f"Resolve the existing draft or prerelease for {metadata.tag} manually")
+        if metadata.tag not in tags:
+            raise ValueError(f"Published release {metadata.tag} has a missing tag")
+        return "already released"
+    if metadata.tag in tags and tags[metadata.tag] != sha:
+        raise ValueError(f"Tag {metadata.tag} points to a different commit; refusing to move it")
+    if dry_run:
+        return "dry run: would release"
+    if metadata.tag not in tags:
+        # Create the ref first: the API rejects a concurrently created tag rather
+        # than silently publishing from a different commit.
+        gh("api", "--method", "POST", f"repos/{repository}/git/refs",
+           "-f", "ref=refs/tags/" + metadata.tag, "-f", "sha=" + sha)
+    gh("release", "create", metadata.tag, "--repo", repository,
+       "--verify-tag", "--target", sha, "--title", metadata.tag, "--notes-file", "-",
+       input=github_notes(metadata, repository, sha))
+    return "released"
+
+
+def summary(message):
+    print(message)
+    if os.environ.get("GITHUB_STEP_SUMMARY"):
+        with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
+            output.write("## Release\n\n" + message + "\n")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("check",))
+    commands = parser.add_subparsers(dest="command", required=True)
+    commands.add_parser("check", help="Check CMake and documented release metadata")
+    release = commands.add_parser("publish", help="Publish reviewed metadata from a validated commit")
+    release.add_argument("--sha", required=True)
+    release.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY"))
+    release.add_argument("--dry-run", action="store_true", help="Read remote state without publishing")
     args = parser.parse_args()
     try:
         metadata = read_release()
-    except (OSError, ValueError) as error:
-        parser.exit(1, f"Release validation failed: {error}\n")
-    print(f"CMake and release notes agree: {metadata.version} ({metadata.tag})")
+        if args.command == "check":
+            if os.environ.get("GITHUB_OUTPUT"):
+                with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+                    output.write(f"version={metadata.version}\n")
+            print(f"CMake and release notes agree: {metadata.version} ({metadata.tag})")
+        else:
+            repository = args.repo or gh("repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner").strip()
+            outcome = publish(metadata, args.sha, repository, args.dry_run)
+            summary(f"{metadata.tag}: {outcome} (validated commit {args.sha}).")
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+        detail = error.stderr if isinstance(error, subprocess.CalledProcessError) else str(error)
+        summary(f"Release failed: {detail or error}")
+        parser.exit(1)
 
 
 if __name__ == "__main__":
