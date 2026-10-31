@@ -78,36 +78,26 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
     detail::validateRadius(r);
     pos = detail::checkedPosition(pos, width, height, toroidal);
     auto candidates = [&](double coordinate, double extent, int count) {
-        auto interval = [&](double low, double high) {
+        std::vector<int> buckets;
+        auto append = [&](double low, double high) {
             const int first = std::min(count - 1, static_cast<int>(std::floor(low / discretization)));
             const int last = std::min(count - 1, static_cast<int>(std::floor(high / discretization)));
-            return std::pair{first, last + 1};
+            for (int i = first; i <= last; ++i) buckets.push_back(i);
         };
-        detail::NeighborhoodRanges ranges{};
         const double low = coordinate - r, high = coordinate + r;
-        if (!toroidal) ranges[0] = interval(std::max(0.0, low), std::min(extent, high));
-        else if (static_cast<double>(r) >= extent / 2) ranges[0] = {0, count};
-        else if (low < 0) {
-            ranges[0] = interval(0, high);
-            ranges[1] = interval(extent + low, extent);
-        } else if (high >= extent) {
-            ranges[0] = interval(0, high - extent);
-            ranges[1] = interval(low, extent);
-        } else ranges[0] = interval(low, high);
-        // Coarse or partial buckets can occur in both wrapped intervals.
-        // Merge them while retaining the existing sorted bucket traversal.
-        if (ranges[1].second && ranges[0].second >= ranges[1].first) {
-            ranges[0].second = std::max(ranges[0].second, ranges[1].second);
-            ranges[1] = {0, 0};
-        }
-        return ranges;
+        if (!toroidal) append(std::max(0.0, low), std::min(extent, high));
+        else if (static_cast<double>(r) >= extent / 2) append(0, extent);
+        else if (low < 0) { append(0, high); append(extent + low, extent); }
+        else if (high >= extent) { append(low, extent); append(0, high - extent); }
+        else append(low, high);
+        std::sort(buckets.begin(), buckets.end());
+        buckets.erase(std::unique(buckets.begin(), buckets.end()), buckets.end());
+        return buckets;
     };
     const auto xs = candidates(pos.x, width, cols);
     const auto ys = candidates(pos.y, height, rows);
-    const double radiusSquared = static_cast<double>(r) * r;
     std::vector<AgentT> neighbors;
-    for (const auto& [yBegin, yEnd] : ys) for (int y = yBegin; y < yEnd; ++y)
-    for (const auto& [xBegin, xEnd] : xs) for (int x = xBegin; x < xEnd; ++x) {
+    for (int y : ys) for (int x : xs) {
         for (auto agent : getCell(Point{x, y})) {
             const RealPoint location = std::visit(Pos, agent);
             if (!center && location == pos) continue;
@@ -117,17 +107,8 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
                 dx = std::min(dx, static_cast<double>(width) - dx);
                 dy = std::min(dy, static_cast<double>(height) - dy);
             }
-            bool inside;
-            if (euclidean) {
-                const double distanceSquared = dx * dx + dy * dy;
-                const double roundingBand = 8 * std::numeric_limits<double>::epsilon()
-                                            * std::max(distanceSquared, radiusSquared);
-                // Preserve the old hypot decision near a rounded circle boundary.
-                // This band selects the calculation; it does not enlarge the radius.
-                inside = std::abs(distanceSquared - radiusSquared) <= roundingBand
-                             ? std::hypot(dx, dy) <= r : distanceSquared <= radiusSquared;
-            } else inside = std::max(dx, dy) <= r;
-            if (inside) neighbors.push_back(agent);
+            const double distance = euclidean ? std::hypot(dx, dy) : std::max(dx, dy);
+            if (distance <= r) neighbors.push_back(agent);
         }
     }
     return neighbors;
