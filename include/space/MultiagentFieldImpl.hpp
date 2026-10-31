@@ -29,34 +29,27 @@ void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
     requireStructuralMutation(traversing);
     pos = checkedPosition(pos, width, height, toroidal);
-    if (!agent.pos) { addAgent(agent, pos); return; }
-    if (outOfBounds(*agent.pos))
-        throw std::logic_error("Agent does not belong to this space");
-    auto& source = cell(*agent.pos);
-    auto found = std::find(source.begin(), source.end(), AgentT{&agent});
-    if (found == source.end()) throw std::logic_error("Agent does not belong to this space");
-    auto& destination = cell(pos);
-    if (&source != &destination) {
-        destination.push_back(&agent);
-        source.erase(found);
-    }
-    agent.pos = pos;
+    if (agent.pos && (outOfBounds(*agent.pos))) return;
+    removeAgent(agent);
+    addAgent(agent, pos);
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void MultiagentField<Agents...>::removeAgent(Agent& agent) {
     requireStructuralMutation(traversing);
-    if (!agent.pos) return;
-    if (outOfBounds(*agent.pos)) return;
-    auto& source = cell(*agent.pos);
-    auto found = std::find(source.begin(), source.end(), AgentT{&agent});
-    if (found == source.end()) return;
-    source.erase(found);
+    if (!agent.pos || (outOfBounds(*agent.pos))) return;
+    std::erase_if(cell(*agent.pos), [&](const AgentT& stored) {
+        return std::visit([&](auto pointer) {
+            if constexpr (std::is_same_v<std::remove_reference_t<decltype(*pointer)>, Agent>)
+                return *pointer == agent;
+            else return false;
+        }, stored);
+    });
     agent.pos.reset();
 }
 

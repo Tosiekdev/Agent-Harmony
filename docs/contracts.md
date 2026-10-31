@@ -11,9 +11,12 @@ range afterward.
 
 A positioned agent has one spatial membership. Remove it before transferring it
 to another space. `addAgent` rejects a set `pos`: `Field` returns `false`, and
-`MultiagentField`/`ContinuousSpace` throw `std::logic_error`. Removal uses pointer
-identity. Removing a nonmember does nothing and preserves its position. Moving a
-positioned nonmember throws; moving an unpositioned agent adds it. A same-position
+`MultiagentField`/`ContinuousSpace` throw `std::logic_error`. Field removal uses pointer identity; a foreign Field move throws. MultiagentField
+and ContinuousSpace movement/removal require value equality: removal erases all
+same-type equal agents in the indicated cell, and movement removes then adds.
+Callers must provide a valid position and stable equality identity; equal distinct
+instances can be removed together. Invalid stored positions return without throwing.
+Moving an unpositioned agent adds it. A same-position
 move is a successful no-op. A rejected destination leaves the source intact.
 
 Container accessors protect structure while pointers/references allow updates to

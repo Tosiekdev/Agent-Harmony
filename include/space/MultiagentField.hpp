@@ -89,10 +89,10 @@ public:
      * @tparam Agent Type of the agent we want to move.
      * @param agent Agent to be moved.
      * @param pos Position we want to move agent to.
-     * @throws std::logic_error If the positioned agent is not a member or traversal is active.
+     * @throws std::logic_error If traversal is active.
      * @throws std::out_of_range If a bounded destination is outside the domain.
      */
-    template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+    template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
     void moveAgent(Agent& agent, Point pos);
 
     /**
@@ -100,7 +100,7 @@ public:
      * @tparam Agent Type of the agent we want to remove.
      * @param agent Agent to be removed.
      */
-    template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+    template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
     void removeAgent(Agent& agent);
 
     /**

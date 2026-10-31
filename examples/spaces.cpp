@@ -2,7 +2,7 @@
 #include <space/MultiagentField.hpp>
 #include <space/ContinuousSpace.hpp>
 
-struct GridAgent { std::optional<agh::Point> pos; };
+struct GridAgent { std::optional<agh::Point> pos; bool operator==(const GridAgent&) const = default; };
 struct RealAgent { std::optional<agh::RealPoint> pos; };
 int main() {
     GridAgent a;

@@ -63,7 +63,7 @@ TEST(ContinuousSpaceTest, GetNeighbours) {
 namespace test::continuous_geometry {
 
 namespace {
-struct Agent { std::optional<agh::RealPoint> pos; };
+struct Agent { std::optional<agh::RealPoint> pos; bool operator==(const Agent&) const = default; };
 }
 
 TEST(ContinuousGeometryTest, OwnBucketBoundariesAndPeriodicSeam) {
@@ -157,44 +157,29 @@ struct RealNoEquality { std::optional<agh::RealPoint> pos; };
 }
 
 
-TEST(MembershipTest, ContinuousRemovalUsesIdentityAndMovesWithinBuckets) {
-    agh::ContinuousSpace<RealAgent> field(2, 2, 1), other(2, 2, 1);
-    RealAgent a, b, foreign;
+TEST(MembershipTest, ContinuousRemovalUsesValueEquality) {
+    agh::ContinuousSpace<RealAgent> field(2, 2, 1);
+    RealAgent a, b;
     field.addAgent(a, {0.1f, 0.1f});
     field.addAgent(b, {0.1f, 0.1f});
-    EXPECT_THROW(field.addAgent(a, {1, 0}), std::logic_error);
-    EXPECT_THROW(other.addAgent(a, {1, 0}), std::logic_error);
-    foreign.pos = agh::RealPoint{0.1f, 0.1f};
-    field.removeAgent(foreign);
-    EXPECT_TRUE(foreign.pos);
-    EXPECT_THROW(field.moveAgent(foreign, {1, 0}), std::logic_error);
-    EXPECT_THROW(field.moveAgent(a, {2, 0}), std::out_of_range);
-    EXPECT_EQ(field.agentCount({0.1f, 0.1f}), 2);
-    field.moveAgent(a, {0.2f, 0.2f});
-    EXPECT_EQ(field.agentCount({0.1f, 0.1f}), 1);
     field.removeAgent(a);
-    EXPECT_EQ(field.agentCount({0.1f, 0.1f}), 1);
-    EXPECT_TRUE(b.pos);
     EXPECT_FALSE(a.pos);
-    other.addAgent(a, {1, 1});
-    field.moveAgent(b, {1, 0});
-    EXPECT_EQ(field.agentCount({1, 0}), 1);
+    EXPECT_EQ(field.agentCount({0.1f, 0.1f}), 0);
+    field.moveAgent(a, {1, 1});
+    EXPECT_EQ(*a.pos, (agh::RealPoint{1, 1}));
+    field.moveAgent(a, {1, 1});
+    EXPECT_EQ(field.agentCount({1, 1}), 1);
+    field.removeAgent(a);
+    field.removeAgent(a);
+    EXPECT_FALSE(a.pos);
 }
 
-TEST(MembershipTest, MovingAndRemovalDoNotRequireValueEqualityContinuous) {    agh::ContinuousSpace<RealNoEquality> space(2, 2, 1);
-    RealNoEquality b;
-    space.moveAgent(b, {0, 0});
-    space.moveAgent(b, {1, 1});
-    space.removeAgent(b);
-    EXPECT_FALSE(b.pos);
-
-}
 }
 
 namespace test::spatial_safety_continuous {
 namespace {
-struct GridAgent { std::optional<agh::Point> pos; int value{}; };
-struct RealAgent { std::optional<agh::RealPoint> pos; int value{}; };
+struct GridAgent { std::optional<agh::Point> pos; int value{}; bool operator==(const GridAgent&) const = default; };
+struct RealAgent { std::optional<agh::RealPoint> pos; int value{}; bool operator==(const RealAgent&) const = default; };
 }
 
 
@@ -239,10 +224,10 @@ TEST(SpaceSafetyTest, ValidateContinuousInputsAndNormalizeToroidalAccess) {
 
 namespace test::api_continuousspace {
 namespace {
-struct A { std::optional<agh::Point> pos; int value{}; bool isActive() const { return true; } };
-struct B { std::optional<agh::Point> pos; int value{}; };
-struct R { std::optional<agh::RealPoint> pos; int value{}; };
-struct S { std::optional<agh::RealPoint> pos; int value{}; };
+struct A { std::optional<agh::Point> pos; int value{}; bool isActive() const { return true; } bool operator==(const A&) const = default; };
+struct B { std::optional<agh::Point> pos; int value{}; bool operator==(const B&) const = default; };
+struct R { std::optional<agh::RealPoint> pos; int value{}; bool operator==(const R&) const = default; };
+struct S { std::optional<agh::RealPoint> pos; int value{}; bool operator==(const S&) const = default; };
 struct OnlyA { void operator()(A&) const {} };
 struct OnlyR { void operator()(R&) const {} };
 struct EveryAgent { void operator()(auto&) const {} };
@@ -275,5 +260,28 @@ TEST(ApiContractTest, ContinuousTraversalRejectStructuralMutations) {    agh::Co
     space.removeAgent(r);
     EXPECT_FALSE(r.pos);
 
+}
+}
+
+namespace test::membership_continuous {
+template<typename Space, typename T>
+concept CanMove = requires(Space& space, T& agent) { space.moveAgent(agent, {}); space.removeAgent(agent); };
+static_assert(!CanMove<agh::ContinuousSpace<RealNoEquality>, RealNoEquality>);
+
+TEST(MembershipTest, ContinuousSpaceEqualityIsTypeScopedAndInvalidPositionsAreNoOps) {
+    struct Other { std::optional<agh::RealPoint> pos; bool operator==(const Other&) const = default; };
+    agh::ContinuousSpace<RealAgent, Other> space(2, 2, 1);
+    RealAgent a, foreign;
+    Other b;
+    space.addAgent(a, {0, 0});
+    space.addAgent(b, {0, 0});
+    foreign.pos = agh::RealPoint{0, 0};
+    EXPECT_NO_THROW(space.removeAgent(foreign));
+    EXPECT_EQ(space.agentCount({0, 0}), 1);
+    EXPECT_TRUE(b.pos);
+    a.pos = agh::RealPoint{3, 3};
+    EXPECT_NO_THROW(space.removeAgent(a));
+    EXPECT_NO_THROW(space.moveAgent(a, {1, 1}));
+    EXPECT_EQ(*a.pos, (agh::RealPoint{3, 3}));
 }
 }

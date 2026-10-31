@@ -18,34 +18,27 @@ void ContinuousSpace<Agents...>::addAgent(Agent& agent, RealPoint pos) {
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void ContinuousSpace<Agents...>::moveAgent(Agent& agent, RealPoint pos) {
     requireStructuralMutation(traversing);
     pos = checkedPosition(pos, width, height, toroidal);
-    if (!agent.pos) { addAgent(agent, pos); return; }
-    if (agent.pos->x < 0 || agent.pos->y < 0 || agent.pos->x >= width || agent.pos->y >= height)
-        throw std::logic_error("Agent does not belong to this space");
-    auto& source = getCell(*agent.pos);
-    auto found = std::find(source.begin(), source.end(), AgentT{&agent});
-    if (found == source.end()) throw std::logic_error("Agent does not belong to this space");
-    auto& destination = getCell(pos);
-    if (&source != &destination) {
-        destination.push_back(&agent);
-        source.erase(found);
-    }
-    agent.pos = pos;
+    if (agent.pos && (!std::isfinite(agent.pos->x) || !std::isfinite(agent.pos->y) || agent.pos->x < 0 || agent.pos->y < 0 || agent.pos->x >= width || agent.pos->y >= height)) return;
+    removeAgent(agent);
+    addAgent(agent, pos);
 }
 
 template<RealPositionable ... Agents> requires (sizeof...(Agents) > 0)
-template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
+template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void ContinuousSpace<Agents...>::removeAgent(Agent& agent) {
     requireStructuralMutation(traversing);
-    if (!agent.pos) return;
-    if (agent.pos->x < 0 || agent.pos->y < 0 || agent.pos->x >= width || agent.pos->y >= height) return;
-    auto& source = getCell(*agent.pos);
-    auto found = std::find(source.begin(), source.end(), AgentT{&agent});
-    if (found == source.end()) return;
-    source.erase(found);
+    if (!agent.pos || (!std::isfinite(agent.pos->x) || !std::isfinite(agent.pos->y) || agent.pos->x < 0 || agent.pos->y < 0 || agent.pos->x >= width || agent.pos->y >= height)) return;
+    std::erase_if(getCell(*agent.pos), [&](const AgentT& stored) {
+        return std::visit([&](auto pointer) {
+            if constexpr (std::is_same_v<std::remove_reference_t<decltype(*pointer)>, Agent>)
+                return *pointer == agent;
+            else return false;
+        }, stored);
+    });
     agent.pos.reset();
 }
 

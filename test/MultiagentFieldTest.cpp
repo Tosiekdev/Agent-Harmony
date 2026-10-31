@@ -218,45 +218,29 @@ struct RealNoEquality { std::optional<agh::RealPoint> pos; };
 }
 
 
-TEST(MembershipTest, MultiagentRemovalUsesIdentity) {
-    agh::MultiagentField<Agent> field(2, 2), other(2, 2);
-    Agent a, b, foreign;
+TEST(MembershipTest, MultiagentRemovalUsesValueEquality) {
+    agh::MultiagentField<Agent> field(2, 2);
+    Agent a, b;
     field.addAgent(a, {0, 0});
     field.addAgent(b, {0, 0});
-    EXPECT_THROW(field.addAgent(a, {1, 0}), std::logic_error);
-    EXPECT_THROW(other.addAgent(a, {1, 0}), std::logic_error);
-    foreign.pos = agh::Point{0, 0};
-    field.removeAgent(foreign);
-    EXPECT_TRUE(foreign.pos);
-    EXPECT_THROW(field.moveAgent(foreign, {1, 0}), std::logic_error);
-    EXPECT_THROW(field.moveAgent(a, {2, 0}), std::out_of_range);
-    EXPECT_EQ(field.agentCount({0, 0}), 2);
-    field.moveAgent(a, {0, 0});
     field.removeAgent(a);
-    ASSERT_EQ(field.getAgents({0, 0}).size(), 1);
-    EXPECT_EQ(std::get<Agent*>(field.getAgents({0, 0})[0]), &b);
-    EXPECT_TRUE(b.pos);
     EXPECT_FALSE(a.pos);
-    other.addAgent(a, {1, 1});
-    field.moveAgent(b, {1, 0});
-    EXPECT_TRUE(field.isEmpty({0, 0}));
+    EXPECT_EQ(field.agentCount({0, 0}), 0);
+    field.moveAgent(a, {1, 1});
+    EXPECT_EQ(*a.pos, (agh::Point{1, 1}));
+    field.moveAgent(a, {1, 1});
+    EXPECT_EQ(field.agentCount({1, 1}), 1);
+    field.removeAgent(a);
+    field.removeAgent(a);
+    EXPECT_FALSE(a.pos);
 }
 
-TEST(MembershipTest, MovingAndRemovalDoNotRequireValueEqualityMultiagent) {
-    agh::MultiagentField<NoEquality> grid(2, 2);
-    NoEquality a;
-    grid.moveAgent(a, {0, 0});
-    grid.moveAgent(a, {1, 1});
-    grid.removeAgent(a);
-    EXPECT_FALSE(a.pos);
-
-}
 }
 
 namespace test::spatial_safety_multi {
 namespace {
-struct GridAgent { std::optional<agh::Point> pos; int value{}; };
-struct RealAgent { std::optional<agh::RealPoint> pos; int value{}; };
+struct GridAgent { std::optional<agh::Point> pos; int value{}; bool operator==(const GridAgent&) const = default; };
+struct RealAgent { std::optional<agh::RealPoint> pos; int value{}; bool operator==(const RealAgent&) const = default; };
 }
 
 
@@ -297,10 +281,10 @@ TEST(SpaceSafetyTest, NormalizeDiscreteToroidalAccessMultiagentField) {
 
 namespace test::api_multiagentfield {
 namespace {
-struct A { std::optional<agh::Point> pos; int value{}; bool isActive() const { return true; } };
-struct B { std::optional<agh::Point> pos; int value{}; };
-struct R { std::optional<agh::RealPoint> pos; int value{}; };
-struct S { std::optional<agh::RealPoint> pos; int value{}; };
+struct A { std::optional<agh::Point> pos; int value{}; bool isActive() const { return true; } bool operator==(const A&) const = default; };
+struct B { std::optional<agh::Point> pos; int value{}; bool operator==(const B&) const = default; };
+struct R { std::optional<agh::RealPoint> pos; int value{}; bool operator==(const R&) const = default; };
+struct S { std::optional<agh::RealPoint> pos; int value{}; bool operator==(const S&) const = default; };
 struct OnlyA { void operator()(A&) const {} };
 struct OnlyR { void operator()(R&) const {} };
 struct EveryAgent { void operator()(auto&) const {} };
@@ -341,5 +325,28 @@ TEST(ApiContractTest, MultiagentTraversalRejectStructuralMutations) {
     grid.removeAgent(a);
     EXPECT_FALSE(a.pos);
 
+}
+}
+
+namespace test::membership_multiagent {
+template<typename Space, typename T>
+concept CanMove = requires(Space& space, T& agent) { space.moveAgent(agent, {}); space.removeAgent(agent); };
+static_assert(!CanMove<agh::MultiagentField<NoEquality>, NoEquality>);
+
+TEST(MembershipTest, MultiagentFieldEqualityIsTypeScopedAndInvalidPositionsAreNoOps) {
+    struct Other { std::optional<agh::Point> pos; bool operator==(const Other&) const = default; };
+    agh::MultiagentField<Agent, Other> space(2, 2);
+    Agent a, foreign;
+    Other b;
+    space.addAgent(a, {0, 0});
+    space.addAgent(b, {0, 0});
+    foreign.pos = agh::Point{0, 0};
+    EXPECT_NO_THROW(space.removeAgent(foreign));
+    EXPECT_EQ(space.agentCount({0, 0}), 1);
+    EXPECT_TRUE(b.pos);
+    a.pos = agh::Point{3, 3};
+    EXPECT_NO_THROW(space.removeAgent(a));
+    EXPECT_NO_THROW(space.moveAgent(a, {1, 1}));
+    EXPECT_EQ(*a.pos, (agh::Point{3, 3}));
 }
 }

@@ -24,9 +24,9 @@ of structure. Replace cell assignment and direct list insertion/erasure with the
 container's controlled operations.
 
 Remove an agent before adding it elsewhere. Adding a positioned agent is rejected;
-use `moveAgent` to move an existing member. Removal compares addresses, so value
-equality is no longer required for movement/removal in multiagent spaces. A foreign
-agent's position is never evidence that it owns a cell. Defer membership changes
+use `moveAgent` to move an existing member. Field removal compares addresses. MultiagentField and ContinuousSpace movement/removal
+require `std::equality_comparable` and erase all same-type equal entries in the
+recorded cell. Keep equality identity stable and use valid recorded positions. Defer membership changes
 requested by callbacks until traversal completes. Callbacks must accept all stored
 types; use a generic lambda or an overload set.
 
