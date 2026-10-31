@@ -1,35 +1,68 @@
-if (MY_PROJECT_MRDOCS_BUILD)
-    cmake_minimum_required(VERSION 3.29)
-    project(my_project_mrdocs_target)
-    # Glob all header files
-    set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
-    file(GLOB_RECURSE HEADER_FILES "${INCLUDE_DIR}/**/*.hpp")
+cmake_minimum_required(VERSION 3.29)
+project(AgentHarmony VERSION 0.1.0 LANGUAGES CXX)
 
-    # Create a temporary source file that includes all header files
-    set(TEMP_CPP_FILE "${CMAKE_CURRENT_BINARY_DIR}/all_headers.cpp")
-    file(WRITE ${TEMP_CPP_FILE} "// This file is generated automatically by CMake\n\n")
-    foreach(HEADER_FILE ${HEADER_FILES})
-        file(APPEND ${TEMP_CPP_FILE} "#include \"${HEADER_FILE}\"\n")
-    endforeach()
-    include_directories(SFML/include)
+option(AGENT_HARMONY_BUILD_DOCS "Create a core translation unit for MrDocs" OFF)
+if(MY_PROJECT_MRDOCS_BUILD OR AGENT_HARMONY_BUILD_DOCS)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
 
-    # Create a custom target for MrDocs
-    add_library(my_project_mrdocs_target ${TEMP_CPP_FILE})
+add_library(agent_harmony_core INTERFACE)
+add_library(AgentHarmony::core ALIAS agent_harmony_core)
+set_target_properties(agent_harmony_core PROPERTIES EXPORT_NAME core)
+target_include_directories(agent_harmony_core INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
+target_compile_features(agent_harmony_core INTERFACE cxx_std_20)
 
-    # Set any other target properties here
-    target_include_directories(my_project_mrdocs_target PRIVATE ${INCLUDE_DIR})
-    target_link_libraries(my_project_mrdocs_target PRIVATE sfml-graphics sfml-window sfml-system Agent-Harmony)
+option(AGENT_HARMONY_BUILD_VISUALIZATION "Build experimental SFML visualization" OFF)
+if(AGENT_HARMONY_BUILD_VISUALIZATION)
+    find_package(SFML 3 CONFIG REQUIRED COMPONENTS Graphics Window System)
+    add_library(agent_harmony_visualization STATIC
+        src/experimental/visualization/Visualization.cpp
+        src/experimental/visualization/utils/Control.cpp)
+    add_library(AgentHarmony::visualization ALIAS agent_harmony_visualization)
+    target_link_libraries(agent_harmony_visualization PUBLIC
+        AgentHarmony::core SFML::Graphics SFML::Window SFML::System)
+endif()
 
-    # Don't create any other targets
-    return()
-else ()
-    cmake_minimum_required(VERSION 3.29)
-    project(Agent-Harmony)
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(test)
+endif()
 
-    set(CMAKE_CXX_STANDARD 20)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+install(TARGETS agent_harmony_core EXPORT AgentHarmonyTargets)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    PATTERN "experimental" EXCLUDE)
+install(EXPORT AgentHarmonyTargets NAMESPACE AgentHarmony::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AgentHarmony)
+if(AGENT_HARMONY_BUILD_VISUALIZATION)
+    set_target_properties(agent_harmony_visualization PROPERTIES EXPORT_NAME visualization)
+    install(TARGETS agent_harmony_visualization EXPORT AgentHarmonyVisualizationTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(DIRECTORY include/experimental/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/experimental)
+    install(EXPORT AgentHarmonyVisualizationTargets NAMESPACE AgentHarmony::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AgentHarmony)
+endif()
+configure_package_config_file(cmake/AgentHarmonyConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/AgentHarmonyConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AgentHarmony)
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/AgentHarmonyConfigVersion.cmake
+    VERSION ${PROJECT_VERSION} COMPATIBILITY SameMajorVersion)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AgentHarmonyConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/AgentHarmonyConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/AgentHarmony)
 
-    include_directories(SFML/include)
+if(MY_PROJECT_MRDOCS_BUILD OR AGENT_HARMONY_BUILD_DOCS)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/all_headers.cpp "#include <AgentHarmony.hpp>\n")
+    add_library(agent_harmony_documentation OBJECT ${CMAKE_CURRENT_BINARY_DIR}/all_headers.cpp)
+    target_link_libraries(agent_harmony_documentation PRIVATE AgentHarmony::core)
+endif()
 
-    add_library(Agent-Harmony STATIC src/experimental/visualization/Visualization.cpp
-            src/experimental/visualization/utils/Control.cpp)
+option(AGENT_HARMONY_BUILD_EXAMPLES "Build the executable documentation examples" OFF)
+if(AGENT_HARMONY_BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()

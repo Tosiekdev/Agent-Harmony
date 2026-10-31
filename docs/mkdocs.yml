@@ -1,0 +1,34 @@
+site_name: Agent Harmony
+site_description: C++20 agent-based simulation library
+site_url: https://tosiekdev.github.io/Agent-Harmony/
+repo_url: https://github.com/Tosiekdev/Agent-Harmony
+repo_name: Tosiekdev/Agent-Harmony
+docs_dir: .
+site_dir: ../build/docs/site
+theme:
+  name: mkdocs
+  color_mode: auto
+  nav_style: primary
+plugins:
+  - search
+nav:
+  - Overview: index.md
+  - Quickstart: quickstart.md
+  - Build and install: building.md
+  - Guides:
+      - Models: guides/models.md
+      - Scheduling: guides/schedule.md
+      - Networks: guides/network.md
+      - Agent spaces: guides/spaces.md
+      - Value layers: guides/value-layer.md
+  - Contracts: contracts.md
+  - Migration: migration.md
+  - Experimental visualization: visualization.md
+  - API reference: api/index.html
+  - Documentation development: documentation.md
+validation:
+  nav:
+    omitted_files: ignore
+  links:
+    not_found: warn
+    anchors: warn

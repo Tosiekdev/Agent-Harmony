@@ -1,68 +1,54 @@
 #pragma once
 
-#include <chrono>
+#include <limits>
+#include <stdexcept>
 
 namespace agh {
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t order) {
-    actions.emplace(agent, time, order);
+    if (time < epochs) throw std::invalid_argument("Cannot schedule an event in the past");
+    enqueue(agent, time, order, 0);
 }
 
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, const size_t order,
                                                const size_t interval) {
-    actions.emplace(agent, time, order, interval);
+    if (time < epochs || interval == 0)
+        throw std::invalid_argument("Repeating events require a current/future time and positive interval");
+    enqueue(agent, time, order, interval);
+}
+
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
+void Schedule<M, Agents...>::enqueue(auto& agent, size_t time, size_t order, size_t interval) {
+    if (nextSequence == std::numeric_limits<size_t>::max()) throw std::overflow_error("Event sequence exhausted");
+    actions.emplace(agent, time, order, interval, nextSequence);
+    ++nextSequence;
 }
 
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::step() {
-    model.beforeStep();
     if (actions.empty()) {
-        epochs += 1;
+        ++epochs;
+        model.beforeStep();
         model.afterStep();
         return;
     }
-
     epochs = actions.top().time;
-
     std::vector<ActionItem> events;
     events.reserve(actions.size());
-    while (true) {
-        if (actions.empty()) {
-            break;
-        }
-
-        if (actions.top().time > epochs) {
-            break;
-        }
-
-        if (!actions.top().isActive()) {
-            actions.pop();
-            continue;
-        }
-
+    while (!actions.empty() && actions.top().time == epochs) {
         events.push_back(actions.top());
         actions.pop();
     }
-
-    for (auto& event : events) {
-        event.step(model);
-    }
-
+    model.beforeStep();
+    for (auto& event : events) event.step(model);
     if constexpr ((Advanceable<Agents, M> && ...)) {
-        for (auto& event : events) {
-            event.advance(model);
-        }
+        for (auto& event : events) event.advance(model);
     }
-
     for (auto& event : events) {
-        std::visit([&](auto agent) {
-            if (agent->isActive() && event.interval) {
-                scheduleRepeating(event.agent, epochs + event.interval, event.order, event.interval);
-            }
-        }, event.agent);
+        if (event.interval && event.isActive())
+            enqueue(event.agent, epochs + event.interval, event.order, event.interval);
     }
-
     model.afterStep();
 }
 

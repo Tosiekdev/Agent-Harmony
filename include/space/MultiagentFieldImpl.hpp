@@ -4,25 +4,36 @@
 
 namespace agh {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-auto MultiagentField<Agents...>::getAgents(const Point pos) -> SquareT& {
-    return grid[pos.y * width + pos.x];
+auto MultiagentField<Agents...>::cell(Point pos) -> SquareT& {
+    return grid[checkedIndex(pos, width, height, toroidal)];
+}
+
+template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
+auto MultiagentField<Agents...>::getAgents(const Point pos) -> const SquareT& {
+    return grid[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto MultiagentField<Agents...>::getAgents(const Point pos) const -> const SquareT& {
-    return grid[pos.y * width + pos.x];
+    return grid[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
+    requireStructuralMutation(traversing);
+    if (agent.pos) throw std::logic_error("Agent is already positioned; remove it before adding");
+    pos = checkedPosition(pos, width, height, toroidal);
+    cell(pos).push_back(&agent);
     agent.pos = pos;
-    getAgents(pos).push_back(&agent);
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
+    requireStructuralMutation(traversing);
+    pos = checkedPosition(pos, width, height, toroidal);
+    if (agent.pos && (outOfBounds(*agent.pos))) return;
     removeAgent(agent);
     addAgent(agent, pos);
 }
@@ -30,33 +41,31 @@ void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
 void MultiagentField<Agents...>::removeAgent(Agent& agent) {
-    if (agent.pos) {
-        std::erase_if(getAgents(*agent.pos),
-                      [&](AgentT agentVariant) {
-                          return std::visit([&](auto a) {
-                                                if constexpr (std::is_same_v<
-                                                    std::remove_reference_t<decltype(*a)>, Agent>) {
-                                                    return *a == agent;
-                                                }
-                                                return false;
-                                            },
-                                            agentVariant);
-                      });
-        agent.pos = std::nullopt;
-    }
+    requireStructuralMutation(traversing);
+    if (!agent.pos || (outOfBounds(*agent.pos))) return;
+    std::erase_if(cell(*agent.pos), [&](const AgentT& stored) {
+        return std::visit([&](auto pointer) {
+            if constexpr (std::is_same_v<std::remove_reference_t<decltype(*pointer)>, Agent>)
+                return *pointer == agent;
+            else return false;
+        }, stored);
+    });
+    agent.pos.reset();
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 void MultiagentField<Agents...>::removeAgents(const Point pos) {
-    for (auto& agent : getAgents(pos)) {
+    requireStructuralMutation(traversing);
+    for (auto& agent : cell(pos)) {
         std::visit([&](auto a) { a->pos = std::nullopt; }, agent);
     }
-    getAgents(pos).clear();
+    cell(pos).clear();
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Agents&> || ...)
+template<typename F> requires (std::invocable<F, Agents&> && ...)
 void MultiagentField<Agents...>::apply(F&& f) {
+    TraversalGuard guard(traversing);
     applyToAll(grid,
                [&](SquareT& square) {
                    for (auto agent : square) {
@@ -68,8 +77,9 @@ void MultiagentField<Agents...>::apply(F&& f) {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
+template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
 void MultiagentField<Agents...>::transform(F&& f) {
+    TraversalGuard guard(traversing);
     transformAll(grid,
                  [&](Point p, SquareT& agents) {
                      for (auto& agent : agents) {
@@ -91,13 +101,13 @@ size_t MultiagentField<Agents...>::agentCount(const Point p) const {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-std::vector<Point> MultiagentField<Agents...>::getNeighborhood(Point pos, int r, bool moore, bool center) const {
+std::vector<Point> MultiagentField<Agents...>::getNeighborhood(Point pos, std::size_t r, bool moore, bool center) const {
     return visitNeighborhood(*this, pos, r, moore, center, [](Point p) { return p; });
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<typename MultiagentField<Agents...>::AgentT> MultiagentField<Agents...>::getNeighbors(
-    const Point pos, const int r, const bool moore, const bool center) {
+    const Point pos, const std::size_t r, const bool moore, const bool center) {
     auto f = [&](const Point p, std::vector<AgentT>& result) {
         for (auto& agent : getAgents(p)) {
             result.push_back(agent);
@@ -113,7 +123,7 @@ std::vector<typename MultiagentField<Agents...>::AgentT> MultiagentField<Agents.
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 bool MultiagentField<Agents...>::outOfBounds(const Point p) const {
-    return p.x < 0 || p.x >= width || p.y < 0 || p.y >= height;
+    return p.x >= width || p.y >= height;
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
@@ -124,10 +134,10 @@ Point MultiagentField<Agents...>::toToroidal(const Point p) const {
 template<Positionable... Agents> requires (sizeof...(Agents) > 0)
 std::vector<Point> MultiagentField<Agents...>::getEmpty() const {
     std::vector<Point> result;
-    result.reserve(width * height / 2);
+    result.reserve(grid.size() / 2);
 
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < height; ++x) {
+    for (std::size_t y = 0; y < height; ++y) {
+        for (std::size_t x = 0; x < width; ++x) {
             if (isEmpty({x, y})) {
                 result.push_back({x, y});
             }

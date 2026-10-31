@@ -9,22 +9,22 @@
 namespace agh {
 template<typename T>
 T ValueLayer<T>::get(const Point pos) const {
-    return read[pos.y * width + pos.x];
+    return read[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<typename T>
 T ValueLayer<T>::getFromWrite(const Point pos) const {
-    return write[pos.y * width + pos.x];
+    return write[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<typename T>
 void ValueLayer<T>::set(const Point pos, T value) {
-    write[pos.y * width + pos.x] = value;
+    write[checkedIndex(pos, width, height, toroidal)] = value;
 }
 
 template<typename T>
 void ValueLayer<T>::setOnRead(const Point pos, T value) {
-    read[pos.y * width + pos.x] = value;
+    read[checkedIndex(pos, width, height, toroidal)] = value;
 }
 
 template<typename T>
@@ -41,18 +41,18 @@ void ValueLayer<T>::transform(F&& f) {
 
 template<typename T>
 std::vector<Point> ValueLayer<T>::getNeighborhood(
-    const Point pos, const int r, const bool moore, const bool center) const {
+    const Point pos, const std::size_t r, const bool moore, const bool center) const {
     return visitNeighborhood(*this, pos, r, moore, center, [](Point p) { return p; });
 }
 
 template<typename T>
-std::vector<T> ValueLayer<T>::getNeighbors(const Point pos, const int r, const bool moore, const bool center) const {
+std::vector<T> ValueLayer<T>::getNeighbors(const Point pos, const std::size_t r, const bool moore, const bool center) const {
     return visitNeighborhood(*this, pos, r, moore, center, [&](const Point p) { return get(p); });
 }
 
 template<typename T>
 bool ValueLayer<T>::outOfBounds(const Point p) const {
-    return p.x < 0 || p.x >= width || p.y < 0 || p.y >= height;
+    return p.x >= width || p.y >= height;
 }
 
 template<typename T>

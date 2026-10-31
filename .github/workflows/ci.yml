@@ -1,0 +1,97 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpp-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: Linux GCC, os: ubuntu-24.04, cxx: g++}
+          - {name: Linux Clang 22, os: ubuntu-24.04, cxx: clang++-22}
+          - {name: macOS Apple Clang, os: macos-latest, cxx: clang++}
+          - {name: Windows MSVC, os: windows-latest, cxx: cl}
+    runs-on: ${{ matrix.os }}
+    env:
+      CXX: ${{ matrix.cxx }}
+    steps:
+      - uses: actions/checkout@v6.1.0
+        with:
+          persist-credentials: false
+      - name: Install Clang 22
+        if: matrix.cxx == 'clang++-22'
+        run: |
+          curl -fL https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/llvm.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] https://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" | sudo tee /etc/apt/sources.list.d/llvm-22.list
+          sudo apt-get update
+          sudo apt-get install -y clang-22 libclang-rt-22-dev
+          clang++-22 --version
+      - name: Configure core without SFML
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DAGENT_HARMONY_BUILD_EXAMPLES=${{ runner.os == 'Linux' && 'ON' || 'OFF' }}
+      - name: Build main unit suite
+        run: cmake --build build --config Release --target ABMframeworkTest --parallel 4
+      - name: Run main unit suite
+        run: ctest --test-dir build -C Release --output-on-failure --no-tests=error -R "^AllTestsInOneProcess$"
+      - name: Build Linux integration checks and guide examples
+        if: runner.os == 'Linux'
+        run: cmake --build build --config Release --parallel 4
+      - name: Run Linux header, consumer, shuffled, and example checks
+        if: runner.os == 'Linux'
+        run: ctest --test-dir build -C Release --output-on-failure --no-tests=error -E "^AllTestsInOneProcess$"
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    env:
+      CXX: clang++-22
+      ASAN_OPTIONS: detect_leaks=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v6.1.0
+        with:
+          persist-credentials: false
+      - name: Install Clang 22
+        run: |
+          curl -fL https://apt.llvm.org/llvm-snapshot.gpg.key | gpg --dearmor | sudo tee /usr/share/keyrings/llvm.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] https://apt.llvm.org/noble/ llvm-toolchain-noble-22 main" | sudo tee /etc/apt/sources.list.d/llvm-22.list
+          sudo apt-get update
+          sudo apt-get install -y clang-22 libclang-rt-22-dev
+          clang++-22 --version
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DAGENT_HARMONY_SANITIZERS=ON
+      - run: cmake --build build --parallel 4
+      - run: ctest --test-dir build --output-on-failure
+
+  visualization:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6.1.0
+        with:
+          persist-credentials: false
+      - name: Install SFML system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev libudev-dev libgl1-mesa-dev libfreetype-dev
+      - name: Build pinned SFML 3.0.1
+        run: |
+          curl -fL https://codeload.github.com/SFML/SFML/tar.gz/016bea9491ccafc3529019fe1d403885a8b3a6ae -o "$RUNNER_TEMP/sfml.tar.gz"
+          mkdir -p "$RUNNER_TEMP/sfml"
+          tar -xzf "$RUNNER_TEMP/sfml.tar.gz" -C "$RUNNER_TEMP/sfml" --strip-components=1
+          cmake -S "$RUNNER_TEMP/sfml" -B "$RUNNER_TEMP/sfml-build" -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/sfml-install" -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_RPATH='$ORIGIN' -DSFML_BUILD_AUDIO=OFF -DSFML_BUILD_NETWORK=OFF -DSFML_BUILD_EXAMPLES=OFF -DSFML_BUILD_TEST_SUITE=OFF
+          cmake --build "$RUNNER_TEMP/sfml-build" --parallel 4
+          cmake --install "$RUNNER_TEMP/sfml-build"
+      - name: Build and test optional visualization and installed consumer
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DAGENT_HARMONY_BUILD_VISUALIZATION=ON -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/sfml-install"
+          cmake --build build --parallel 4
+          ctest --test-dir build --output-on-failure

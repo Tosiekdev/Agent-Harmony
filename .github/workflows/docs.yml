@@ -1,0 +1,70 @@
+name: C++ documentation
+
+on:
+  pull_request:
+  workflow_run:
+    workflows: [C++ CI]
+    branches: [master]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.event_name }}-${{ github.event.pull_request.number || 'master' }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6.1.0
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - name: Install pinned documentation tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/docs-venv"
+          "$RUNNER_TEMP/docs-venv/bin/python" -m pip install -r docs/requirements.txt
+          curl -fL https://github.com/cppalliance/mrdocs/releases/download/2026.9.29/MrDocs-2026.9.29-Linux.tar.gz -o "$RUNNER_TEMP/mrdocs.tar.gz"
+          echo "dc7e066cda9a16471d59ac5e72a41f8dc908af4ca544856bd9a2223c54c9ccfd  $RUNNER_TEMP/mrdocs.tar.gz" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/mrdocs"
+          tar -xzf "$RUNNER_TEMP/mrdocs.tar.gz" -C "$RUNNER_TEMP/mrdocs" --strip-components=1
+      - name: Build and validate guides, examples, and API reference
+        run: |
+          "$RUNNER_TEMP/docs-venv/bin/python" -m unittest discover -s tools -p 'test_*.py'
+          "$RUNNER_TEMP/docs-venv/bin/python" tools/build_docs.py --mrdocs "$RUNNER_TEMP/mrdocs/bin/mrdocs" --build-dir build/docs
+      - name: Upload downloadable HTML for review
+        uses: actions/upload-artifact@v6.0.0
+        with:
+          name: cpp-documentation
+          path: build/docs/site
+          include-hidden-files: true
+      - name: Package GitHub Pages site
+        if: github.event_name == 'workflow_run'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: build/docs/site
+
+  deploy:
+    if: github.event_name == 'workflow_run'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Publish validated master documentation
+        id: deployment
+        uses: actions/deploy-pages@v4

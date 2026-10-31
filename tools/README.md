@@ -1,0 +1,79 @@
+# Developer tools
+
+These Python tools build and validate the C++ documentation. They are optional
+for library consumers and are not needed to build the core or its C++ tests.
+
+## Tools
+
+| File | Purpose |
+| --- | --- |
+| `build_docs.py` | Configure a dedicated C++ build, compile and run all six guide examples, generate MrDocs HTML/XML, assemble the MkDocs site, and validate its links and template references. |
+| `check_docs.py` | Check generated HTML for missing local pages, anchors, and assets, plus links escaping the project path. External URLs are skipped; this check does not make network requests. |
+| `normalize_api.py` | Internal helper used by `build_docs.py`. Merge MrDocs' split constrained-template signature/member pages using its XML metadata, remove duplicate index entries, and rewrite incoming links. |
+| `test_check_docs.py` | Regression scenarios for valid links, missing files/anchors, escaped paths, and empty output. |
+| `test_normalize_api.py` | Regression scenarios for combining template signatures and members while preserving tables and inbound links, and leaving unaffected output intact. |
+
+## Dependencies and configuration
+
+Use Python 3.9 or later, CMake 3.29 or later, a C++20 compiler, **MrDocs
+2026.9.29**, and **MkDocs 1.6.1**. MrDocs is available from its
+[official release](https://github.com/cppalliance/mrdocs/releases/tag/2026.9.29).
+The build script checks the installed generator versions.
+
+From the repository root, install the Python dependencies into an environment:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r docs/requirements.txt
+```
+
+The tracked generator settings live under `docs/`:
+
+- [MkDocs configuration](../docs/mkdocs.yml): guide navigation, theme, search, and strict link checks.
+- [MrDocs configuration](../docs/mrdocs.yml): public-header extraction, excluded implementation details, HTML generation, and documentation diagnostics treated as errors.
+
+Their paths are relative to `docs/`. `build_docs.py` locates the repository from
+its own location, so its operation does not depend on the current working directory.
+
+## Build the complete documentation
+
+```sh
+.venv/bin/python tools/build_docs.py --mrdocs /path/to/mrdocs
+```
+
+If `mrdocs` is on `PATH`, omit `--mrdocs`. To use another output directory:
+
+```sh
+.venv/bin/python tools/build_docs.py --mrdocs /path/to/mrdocs --build-dir /tmp/agent-harmony-docs
+```
+
+The default output is `build/docs/site/index.html`. Supporting build artifacts
+include `build/docs/core/`, the MrDocs `api.xml` corpus, and a generated
+`build/docs/mkdocs.yml` pointing at temporary assembled sources. Generated files
+are not committed. Config files and dependency manifests are excluded from the
+published site.
+
+The build embeds the actual `examples/*.cpp` sources into their guides, compiles
+and runs those programs, checks complete template reference pages, and adds
+navigation between the guides and API reference.
+
+## Run checks independently
+
+Run the tooling regressions:
+
+```sh
+.venv/bin/python -m unittest discover -s tools -p 'test_*.py'
+```
+
+Check an already generated site without rebuilding it:
+
+```sh
+.venv/bin/python tools/check_docs.py build/docs/site
+```
+
+The checker expects the `/Agent-Harmony/` hosting prefix. For another prefix,
+pass `--base-path /other-project/`. `normalize_api.py` is an imported helper and
+does not provide a standalone command.
+
+See the [documentation development guide](../docs/documentation.md) for the
+GitHub Actions and Pages publishing setup.
