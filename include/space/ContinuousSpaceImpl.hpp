@@ -3,6 +3,7 @@
 #include "../utilities/Utils.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <limits>
 
@@ -71,26 +72,35 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
     validateRadius(r);
     pos = checkedPosition(pos, width, height, toroidal);
     auto candidates = [&](double coordinate, double extent, std::size_t count) {
-        std::vector<std::size_t> buckets;
-        auto append = [&](double low, double high) {
+        auto interval = [&](double low, double high) {
             const std::size_t first = std::min(count - 1, static_cast<std::size_t>(std::floor(low / discretization)));
             const std::size_t last = std::min(count - 1, static_cast<std::size_t>(std::floor(high / discretization)));
-            for (std::size_t i = first; i <= last; ++i) buckets.push_back(i);
+            return std::pair{first, last + 1};
         };
+        std::array<std::pair<std::size_t, std::size_t>, 2> ranges{};
         const double low = coordinate - r, high = coordinate + r;
-        if (!toroidal) append(std::max(0.0, low), std::min(extent, high));
-        else if (static_cast<double>(r) >= extent / 2) append(0, extent);
-        else if (low < 0) { append(0, high); append(extent + low, extent); }
-        else if (high >= extent) { append(low, extent); append(0, high - extent); }
-        else append(low, high);
-        std::sort(buckets.begin(), buckets.end());
-        buckets.erase(std::unique(buckets.begin(), buckets.end()), buckets.end());
-        return buckets;
+        if (!toroidal) ranges[0] = interval(std::max(0.0, low), std::min(extent, high));
+        else if (static_cast<double>(r) >= extent / 2) ranges[0] = {0, count};
+        else if (low < 0) {
+            ranges[0] = interval(0, high);
+            ranges[1] = interval(extent + low, extent);
+        } else if (high >= extent) {
+            ranges[0] = interval(0, high - extent);
+            ranges[1] = interval(low, extent);
+        } else ranges[0] = interval(low, high);
+        // Coarse or partial buckets can occur in both wrapped intervals.
+        // Merge them while retaining the existing sorted bucket traversal.
+        if (ranges[1].second && ranges[0].second >= ranges[1].first) {
+            ranges[0].second = std::max(ranges[0].second, ranges[1].second);
+            ranges[1] = {0, 0};
+        }
+        return ranges;
     };
     const auto xs = candidates(pos.x, width, cols);
     const auto ys = candidates(pos.y, height, rows);
     std::vector<AgentT> neighbors;
-    for (std::size_t y : ys) for (std::size_t x : xs) {
+    for (const auto& [yBegin, yEnd] : ys) for (std::size_t y = yBegin; y < yEnd; ++y)
+    for (const auto& [xBegin, xEnd] : xs) for (std::size_t x = xBegin; x < xEnd; ++x) {
         for (auto agent : getCell(Point{x, y})) {
             const RealPoint location = std::visit(Pos, agent);
             if (!center && location == pos) continue;
