@@ -62,18 +62,19 @@ those exact normalized coordinates, rather than all occupants of its bucket.
 
 Events are ordered by time, priority (`order`, lower first), then insertion order.
 Each call selects a batch, updates the visible epoch, calls `beforeStep`, runs all
-eligible `step` calls, runs supported `advance` calls, reschedules active repeating
-events, and calls `afterStep`. Only events that actually stepped advance; an agent
-that became inactive during its step still completes its advance phase.
+selected `step` calls, runs `advance` only if every agent type supports it, reschedules active repeating
+events, and calls `afterStep`. An agent that became inactive during a batch still completes its selected step and
+its advance phase when the whole schedule supports advance.
 
-Activity is checked immediately before each step. Events added from hooks or
+Activity is checked only after the action phases, when deciding repetition. Events added from hooks or
 agents are deferred to a later call, even at the same epoch. Repeating events get
 fresh insertion order when rescheduled. Empty steps increment time and run both
 hooks; `execute` stops according to `shouldEnd`, not queue emptiness.
 
-Past events and zero repeating intervals throw `std::invalid_argument`. Time and
-sequence overflow throw `std::overflow_error`. Repeat successors in the selected
-batch are checked before hooks run, including currently inactive agents, because
-hooks and earlier events can change activity. User callbacks must not recursively
+Explicit user scheduling rejects past times and zero repeating intervals with
+`std::invalid_argument`. Epoch arithmetic, including repeating successors, wraps
+modulo the `std::size_t` range. Internal wrapped successors are accepted even
+though an explicit past-time scheduling call would be rejected. Sequence exhaustion
+still throws `std::overflow_error`. User callbacks must not recursively
 call `step`/`execute` on the same scheduler. Exceptions from user callbacks
 propagate; completed user side effects are not rolled back.

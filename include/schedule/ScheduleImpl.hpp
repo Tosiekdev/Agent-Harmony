@@ -7,9 +7,7 @@ namespace agh {
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::scheduleOnce(auto& agent, const size_t time, const size_t order) {
     if (time < epochs) throw std::invalid_argument("Cannot schedule an event in the past");
-    if (nextSequence == std::numeric_limits<size_t>::max()) throw std::overflow_error("Event sequence exhausted");
-    actions.emplace(agent, time, order, 0, nextSequence);
-    ++nextSequence;
+    enqueue(agent, time, order, 0);
 }
 
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
@@ -17,6 +15,11 @@ void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, c
                                                const size_t interval) {
     if (time < epochs || interval == 0)
         throw std::invalid_argument("Repeating events require a current/future time and positive interval");
+    enqueue(agent, time, order, interval);
+}
+
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
+void Schedule<M, Agents...>::enqueue(auto& agent, size_t time, size_t order, size_t interval) {
     if (nextSequence == std::numeric_limits<size_t>::max()) throw std::overflow_error("Event sequence exhausted");
     actions.emplace(agent, time, order, interval, nextSequence);
     ++nextSequence;
@@ -25,39 +28,26 @@ void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, c
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::step() {
     if (actions.empty()) {
-        if (epochs == std::numeric_limits<size_t>::max()) throw std::overflow_error("Schedule time exhausted");
         ++epochs;
         model.beforeStep();
         model.afterStep();
         return;
     }
-    const size_t batchTime = actions.top().time;
+    epochs = actions.top().time;
     std::vector<ActionItem> events;
     events.reserve(actions.size());
-    while (!actions.empty() && actions.top().time == batchTime) {
-        if (actions.top().interval > std::numeric_limits<size_t>::max() - batchTime) {
-            for (const auto& event : events) actions.push(event);
-            throw std::overflow_error("Repeating event time exhausted");
-        }
+    while (!actions.empty() && actions.top().time == epochs) {
         events.push_back(actions.top());
         actions.pop();
     }
-    std::vector<bool> executed(events.size(), false);
-    epochs = batchTime;
     model.beforeStep();
-    for (size_t i = 0; i < events.size(); ++i) {
-        if (events[i].isActive()) {
-            events[i].step(model);
-            executed[i] = true;
-        }
+    for (auto& event : events) event.step(model);
+    if constexpr ((Advanceable<Agents, M> && ...)) {
+        for (auto& event : events) event.advance(model);
     }
-    for (size_t i = 0; i < events.size(); ++i) {
-        if (executed[i]) events[i].advance(model);
-    }
-    for (size_t i = 0; i < events.size(); ++i) {
-        const auto& event = events[i];
-        if (executed[i] && event.interval && event.isActive())
-            scheduleRepeating(event.agent, epochs + event.interval, event.order, event.interval);
+    for (auto& event : events) {
+        if (event.interval && event.isActive())
+            enqueue(event.agent, epochs + event.interval, event.order, event.interval);
     }
     model.afterStep();
 }

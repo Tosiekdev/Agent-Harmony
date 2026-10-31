@@ -146,29 +146,28 @@ TEST(ScheduleSafetyTest, RejectPastAndZeroIntervalWithoutChangingQueue) {
     EXPECT_EQ(schedule.getEpochs(), 10);
 }
 
-TEST(ScheduleSafetyTest, EmptyStepCannotWrapTime) {
+TEST(ScheduleSafetyTest, EmptyStepWrapsTime) {
     State model;
     Agent a;
     agh::Schedule<State, Agent> schedule(model);
     schedule.scheduleOnce(a, std::numeric_limits<std::size_t>::max(), 0);
     schedule.step();
-    EXPECT_THROW(schedule.step(), std::overflow_error);
-    EXPECT_EQ(schedule.getEpochs(), std::numeric_limits<std::size_t>::max());
+    EXPECT_NO_THROW(schedule.step());
+    EXPECT_EQ(schedule.getEpochs(), 0);
 }
 
-TEST(ScheduleSafetyTest, RepeatingOverflowLeavesBatchAvailable) {
+TEST(ScheduleSafetyTest, RepeatingSuccessorWrapsTime) {
     State model;
-    Agent a, b;
+    Agent a;
     agh::Schedule<State, Agent> schedule(model);
-    const auto time = std::numeric_limits<std::size_t>::max();
-    schedule.scheduleOnce(a, time, 0);
-    schedule.scheduleRepeating(b, time, 1, 1);
-    EXPECT_THROW(schedule.step(), std::overflow_error);
-    EXPECT_EQ(a.steps, 0);
-    EXPECT_EQ(b.steps, 0);
+    schedule.scheduleRepeating(a, std::numeric_limits<std::size_t>::max(), 0, 1);
+    schedule.step();
+    EXPECT_EQ(a.steps, 1);
+    EXPECT_EQ(schedule.getEpochs(), std::numeric_limits<std::size_t>::max());
+    EXPECT_THROW(schedule.scheduleOnce(a, 0, 0), std::invalid_argument);
+    schedule.step();
+    EXPECT_EQ(a.steps, 2);
     EXPECT_EQ(schedule.getEpochs(), 0);
-    EXPECT_THROW(schedule.step(), std::overflow_error);
-    EXPECT_EQ(a.steps, 0);
 }
 
 TEST(ScheduleSafetyTest, EqualTimeAndPriorityAreFIFO) {
@@ -220,8 +219,8 @@ TEST(ScheduleSafetyTest, MixedAdvanceAndDeactivationPreserveSeparatePhases) {
     schedule.step();
     EXPECT_EQ(first.steps, 1);
     EXPECT_EQ(second.steps, 1);
-    EXPECT_EQ(skipped.steps, 0);
-    EXPECT_EQ(first.advances, 1);
+    EXPECT_EQ(skipped.steps, 1);
+    EXPECT_EQ(first.advances, 0);
     schedule.step();
     EXPECT_EQ(first.steps, 1);
     EXPECT_EQ(schedule.getEpochs(), 2);
@@ -239,22 +238,41 @@ TEST(ScheduleSafetyTest, EmptyStepsStillRunHooksAndExecuteUsesShouldEnd) {
     EXPECT_EQ(after, 10);
 }
 
-TEST(ScheduleSafetyTest, ActivityChangesCannotBypassRepeatOverflowValidation) {
+TEST(ScheduleSafetyTest, InactiveSelectedEventsExecuteButDoNotRepeat) {
     State model;
-    Agent dormant, other;
+    Agent dormant;
     dormant.active = false;
-    int hooks = 0;
-    model.before = [&] { ++hooks; dormant.active = true; };
     agh::Schedule<State, Agent> schedule(model);
-    const auto maximum = std::numeric_limits<std::size_t>::max();
-    schedule.scheduleOnce(other, maximum, 0);
-    schedule.scheduleRepeating(dormant, maximum, 1, 1);
-    EXPECT_THROW(schedule.step(), std::overflow_error);
-    EXPECT_EQ(schedule.getEpochs(), 0);
-    EXPECT_EQ(hooks, 0);
-    EXPECT_EQ(other.steps, 0);
-    EXPECT_EQ(dormant.steps, 0);
-    EXPECT_THROW(schedule.step(), std::overflow_error);
+    schedule.scheduleRepeating(dormant, 1, 0, 1);
+    schedule.step();
+    EXPECT_EQ(dormant.steps, 1);
+    schedule.step();
+    EXPECT_EQ(dormant.steps, 1);
+    EXPECT_EQ(schedule.getEpochs(), 2);
+}
+
+template<typename T>
+concept CanAdvanceAction = requires(T& action, State& state) { action.advance(state); };
+static_assert(CanAdvanceAction<agh::action::Action<State, AdvancingAgent>>);
+static_assert(!CanAdvanceAction<agh::action::Action<State, Agent, AdvancingAgent>>);
+
+TEST(ScheduleSafetyTest, AllAdvanceCallsFollowAllSteps) {
+    struct PhasedAgent : Agent {
+        std::function<void()> advancement = [] {};
+        void advance(State&) { advancement(); }
+    };
+    State state;
+    PhasedAgent first, second;
+    std::vector<int> trace;
+    first.action = [&] { trace.push_back(1); first.active = false; };
+    second.action = [&] { trace.push_back(2); };
+    first.advancement = [&] { trace.push_back(3); };
+    second.advancement = [&] { trace.push_back(4); };
+    agh::Schedule<State, PhasedAgent> schedule(state);
+    schedule.scheduleOnce(first, 1, 0);
+    schedule.scheduleOnce(second, 1, 1);
+    schedule.step();
+    EXPECT_EQ(trace, (std::vector<int>{1, 2, 3, 4}));
 }
 
 }

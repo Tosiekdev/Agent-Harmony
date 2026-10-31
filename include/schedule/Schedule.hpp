@@ -23,10 +23,8 @@ struct Action {
         std::visit([&](auto agent) { agent->step(model); }, agent);
     }
 
-    void advance(M& model) {
-        std::visit([&](auto pointer) {
-            if constexpr (Advanceable<std::remove_pointer_t<decltype(pointer)>, M>) pointer->advance(model);
-        }, agent);
+    void advance(M& model) requires (Advanceable<Agents, M> && ...) {
+        std::visit([&](auto agent) { agent->advance(model); }, agent);
     }
 
     [[nodiscard]] bool isActive() const {
@@ -94,7 +92,7 @@ public:
      * Executes one step of the simulation. It consists of calling beforeStep method of the model, executing step
      * method for every agent scheduled for that time step, potentially calling advance method for mentioned agents and
      * finally, calling afterStep on the model. Hooks observe the selected new epoch.
-     * @throws std::overflow_error If time or the repeating successor is not representable.
+     * @throws std::overflow_error If insertion sequence is exhausted during rescheduling.
      */
     void step();
 
@@ -117,6 +115,7 @@ public:
     [[nodiscard]] bool isActive() const;
 
 private:
+    void enqueue(auto& agent, size_t time, size_t order, size_t interval);
     M& model;
     size_t epochs;
     size_t nextSequence = 0;

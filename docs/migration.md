@@ -60,12 +60,12 @@ geometric behavior, including the corrected Chebyshev example returning three.
 ## Scheduler results may change
 
 Equal-time/equal-priority events now run in insertion order. Hooks see the selected
-new epoch. Mixed schedules call `advance` for each supporting type after all step
-calls. An event deactivated before its turn is skipped; an event that executed
-still completes its advance phase. Events added during hooks or agent execution
+new epoch. Schedules call `advance` after all step calls only when every agent type supports
+it. Deactivation does not cancel an action already selected for the batch; activity
+is checked afterward for repeating events. Events added during hooks or agent execution
 wait for a subsequent call, including those at the current epoch.
 
-Past events and zero repeat intervals are rejected. Time/sequence overflow throws
-`std::overflow_error`. Empty schedules still advance time and invoke hooks until
+Past events and zero repeat intervals are rejected. Epochs and repeating successors wrap as unsigned arithmetic; sequence exhaustion
+still throws `std::overflow_error`. Empty schedules still advance time and invoke hooks until
 `shouldEnd` terminates execution. Review simulations that depended on the former
 unspecified ordering or phase behavior. See [the full contracts](contracts.md).
