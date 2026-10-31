@@ -202,11 +202,11 @@ TEST(SpaceSafetyTest, ContinuousRectangularCellsDoNotAlias) {
     for (auto size : {agh::Point{4, 2}, agh::Point{2, 4}}) {
         agh::ContinuousSpace<RealAgent> space(size.x, size.y, 1);
         std::array<RealAgent, 8> agents{};
-        for (int y = 0; y < size.y; ++y)
-            for (int x = 0; x < size.x; ++x)
+        for (std::size_t y = 0; y < size.y; ++y)
+            for (std::size_t x = 0; x < size.x; ++x)
                 space.addAgent(agents[y * size.x + x], {x + 0.25f, y + 0.25f});
-        for (int y = 0; y < size.y; ++y)
-            for (int x = 0; x < size.x; ++x)
+        for (std::size_t y = 0; y < size.y; ++y)
+            for (std::size_t x = 0; x < size.x; ++x)
                 EXPECT_EQ(space.agentCount({x + 0.25f, y + 0.25f}), 1);
     }
 }

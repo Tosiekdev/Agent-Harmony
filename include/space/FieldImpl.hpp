@@ -5,14 +5,14 @@
 namespace agh {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto Field<Agents...>::cell(Point pos) -> OptAgentT& {
-    return grid[detail::checkedIndex(pos, width, height, toroidal)];
+    return grid[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
-    detail::requireStructuralMutation(traversing);
-    pos = detail::checkedPosition(pos, width, height, toroidal);
+    requireStructuralMutation(traversing);
+    pos = checkedPosition(pos, width, height, toroidal);
     if (agent.pos || cell(pos)) return false;
     cell(pos) = &agent;
     agent.pos = pos;
@@ -22,8 +22,8 @@ bool Field<Agents...>::addAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
-    detail::requireStructuralMutation(traversing);
-    pos = detail::checkedPosition(pos, width, height, toroidal);
+    requireStructuralMutation(traversing);
+    pos = checkedPosition(pos, width, height, toroidal);
     if (!agent.pos) return addAgent(agent, pos);
     if (outOfBounds(*agent.pos) || !cell(*agent.pos) ||
         *cell(*agent.pos) != AgentT{&agent})
@@ -39,7 +39,7 @@ bool Field<Agents...>::moveAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void Field<Agents...>::removeAgent(Agent& agent) {
-    detail::requireStructuralMutation(traversing);
+    requireStructuralMutation(traversing);
     if (!agent.pos || outOfBounds(*agent.pos)) return;
     auto& occupied = cell(*agent.pos);
     if (!occupied || *occupied != AgentT{&agent}) return;
@@ -49,7 +49,7 @@ void Field<Agents...>::removeAgent(Agent& agent) {
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 void Field<Agents...>::removeAgent(const Point pos) {
-    detail::requireStructuralMutation(traversing);
+    requireStructuralMutation(traversing);
     if (OptAgentT& square = cell(pos)) {
         std::visit([&](auto agent) { removeAgent(*agent); }, *square);
     }
@@ -58,7 +58,7 @@ void Field<Agents...>::removeAgent(const Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<typename F> requires (std::invocable<F, Agents&> && ...)
 void Field<Agents...>::apply(F&& f) {
-    detail::TraversalGuard guard(traversing);
+    TraversalGuard guard(traversing);
     applyToAll(grid,
                [&](OptAgentT& agent) {
                    if (!agent.has_value()) return;
@@ -71,7 +71,7 @@ void Field<Agents...>::apply(F&& f) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
 void Field<Agents...>::transform(F&& f) {
-    detail::TraversalGuard guard(traversing);
+    TraversalGuard guard(traversing);
     transformAll(grid,
                  [&](Point p, OptAgentT& agent) {
                      if (!agent.has_value()) return;
@@ -83,12 +83,12 @@ void Field<Agents...>::transform(F&& f) {
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto Field<Agents...>::getAgent(const Point pos) -> const OptAgentT& {
-    return grid[detail::checkedIndex(pos, width, height, toroidal)];
+    return grid[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto Field<Agents...>::getAgent(const Point pos) const -> const OptAgentT& {
-    return grid[detail::checkedIndex(pos, width, height, toroidal)];
+    return grid[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
@@ -97,13 +97,13 @@ bool Field<Agents...>::isEmpty(const Point p) const {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-std::vector<Point> Field<Agents...>::getNeighborhood(Point pos, int r, bool moore, bool center) const {
+std::vector<Point> Field<Agents...>::getNeighborhood(Point pos, std::size_t r, bool moore, bool center) const {
     return visitNeighborhood(*this, pos, r, moore, center, [](Point p) { return p; });
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<typename Field<Agents...>::AgentT> Field<Agents...>::getNeighbors(
-    const Point pos, int r, const bool moore, const bool center) {
+    const Point pos, std::size_t r, const bool moore, const bool center) {
     auto f = [&](const Point p, std::vector<AgentT>& result) {
         if (!isEmpty(p)) result.push_back(*getAgent(p));
     };
@@ -112,7 +112,7 @@ std::vector<typename Field<Agents...>::AgentT> Field<Agents...>::getNeighbors(
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 bool Field<Agents...>::outOfBounds(const Point p) const {
-    return p.x < 0 || p.x >= width || p.y < 0 || p.y >= height;
+    return p.x >= width || p.y >= height;
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
@@ -125,8 +125,8 @@ std::vector<Point> Field<Agents...>::getEmpty() const {
     std::vector<Point> result;
     result.reserve(grid.size() / 2);
 
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
+    for (std::size_t y = 0; y < height; ++y) {
+        for (std::size_t x = 0; x < width; ++x) {
             if (isEmpty({x,y})) {
                 result.push_back({x, y});
             }

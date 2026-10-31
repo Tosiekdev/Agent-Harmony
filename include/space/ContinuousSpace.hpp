@@ -3,7 +3,7 @@
 #include "../utilities/Concepts.hpp"
 
 #include <cmath>
-#include "../utilities/Validation.hpp"
+#include "../utilities/GridUtils.hpp"
 #include <variant>
 
 namespace agh {
@@ -32,9 +32,9 @@ public:
      */
     explicit ContinuousSpace(const float pWidth, const float pHeight, const float dx, const bool torus = false)
         : width(pWidth), height(pHeight), discretization(dx)
-          , rows(detail::checkedBucketCount(pHeight, dx))
-          , cols(detail::checkedBucketCount(pWidth, dx))
-          , grid(detail::checkedCellCount<SquareT>(cols, rows))
+          , rows(checkedBucketCount(pHeight, dx))
+          , cols(checkedBucketCount(pWidth, dx))
+          , grid(checkedCellCount<SquareT>(cols, rows))
           , toroidal(torus) {}
 
     /**
@@ -125,8 +125,8 @@ private:
     float width;
     float height;
     float discretization;
-    int rows;
-    int cols;
+    std::size_t rows;
+    std::size_t cols;
     GridT grid;
     bool toroidal;
 

@@ -42,9 +42,12 @@ be nonnegative and finite. Invalid parameters throw `std::invalid_argument`;
 unrepresentable bucket/storage sizes throw `std::length_error`. Allocation can
 still throw `std::bad_alloc` for a representable size that exceeds available memory.
 
-Bounded spaces reject coordinates outside `[0,width)` × `[0,height)` with
+Discrete `Point` coordinates, dimensions, radii, and bucket counts are `std::size_t`;
+negative discrete coordinates are unsupported. Continuous coordinates remain floating point.
+Bounded cell access rejects coordinates outside `[0,width)` × `[0,height)` with
 `std::out_of_range`. Toroidal access, insertion, movement and queries normalize
-coordinates into that domain. Discrete queries visit neighborhood offsets; toroidal wrapping can return a cell more than once. Unique-cell traversal and its local-range optimization are deferred to a separate PR.
+coordinates into that domain. Bounded discrete neighborhood queries return the overlap even when the center is outside.
+Discrete queries visit neighborhood offsets; toroidal wrapping can return a cell more than once. Unique-cell traversal and its local-range optimization are deferred to a separate PR.
 
 Continuous queries use Euclidean or Chebyshev distance, with minimum periodic
 axis differences on a torus. They return each registered instance once and make

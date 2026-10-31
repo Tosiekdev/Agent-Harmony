@@ -79,19 +79,19 @@ TEST(FieldTest, ToToroidal) {
     using FieldT = agh::Field<MyAgent>;
     const FieldT field(2,2);
 
-    agh::Point p = field.toToroidal({-2, -2});
+    agh::Point p = field.toToroidal({2, 2});
     EXPECT_EQ(p.x, 0);
     EXPECT_EQ(p.y, 0);
 
-    p = field.toToroidal({-3, -3});
+    p = field.toToroidal({3, 3});
     EXPECT_EQ(p.x, 1);
     EXPECT_EQ(p.y, 1);
 
-    p = field.toToroidal({-4, -4});
+    p = field.toToroidal({4, 4});
     EXPECT_EQ(p.x, 0);
     EXPECT_EQ(p.y, 0);
 
-    p = field.toToroidal({-5, -4});
+    p = field.toToroidal({5, 4});
     EXPECT_EQ(p.x, 1);
     EXPECT_EQ(p.y, 0);
 }
@@ -148,8 +148,8 @@ TEST(SpaceSafetyTest, RectangularEmptySetsField) {
     for (auto size : {agh::Point{1, 1}, agh::Point{4, 2}, agh::Point{2, 4}}) {
         agh::Field<GridAgent> single(size.x, size.y);
         std::vector<agh::Point> expected;
-        for (int y = 0; y < size.y; ++y)
-            for (int x = 0; x < size.x; ++x) expected.push_back({x, y});
+        for (std::size_t y = 0; y < size.y; ++y)
+            for (std::size_t x = 0; x < size.x; ++x) expected.push_back({x, y});
         EXPECT_EQ(single.getEmpty(), expected);
         GridAgent a, b;
         single.addAgent(a, {0, 0});
@@ -169,16 +169,15 @@ TEST(SpaceSafetyTest, RejectInvalidCoordinatesWithoutChangingMembershipField) {
     EXPECT_THROW(field.addAgent(a, {2, 0}), std::out_of_range);
     EXPECT_FALSE(a.pos);
     EXPECT_THROW(std::as_const(field).getAgent({0, 4}), std::out_of_range);
-    EXPECT_THROW((void)field.getNeighborhood({0, 0}, -1), std::invalid_argument);
 }
 
 TEST(SpaceSafetyTest, NormalizeDiscreteToroidalAccessField) {
     agh::Field<GridAgent> field(4, 2, true);
     GridAgent a, b;
-    field.addAgent(a, {-1, -1});
+    field.addAgent(a, {7, 3});
     EXPECT_EQ(*a.pos, (agh::Point{3, 1}));
-    EXPECT_FALSE(field.isEmpty({-1, -1}));
-    EXPECT_EQ(field.toToroidal({INT_MIN, INT_MAX}), (agh::Point{0, 1}));
+    EXPECT_FALSE(field.isEmpty({7, 3}));
+    EXPECT_EQ(field.toToroidal({4, 3}), (agh::Point{0, 1}));
 }
 }
 
@@ -266,4 +265,11 @@ TEST(ApiContractTest, NeighborhoodUtilitiesPreserveRvalueQualifiedCallbacks) {
     EXPECT_EQ(points.size(), 9);
     EXPECT_EQ(values.size(), 9);
 }
+}
+
+TEST(FieldTest, OutsideCenterReturnsOnlyOverlappingNeighborhood) {
+    agh::Field<test::field::MyAgent> field(4, 2);
+    EXPECT_EQ(field.getNeighborhood({4, 0}, 1, true, false),
+              (std::vector<agh::Point>{{3, 0}, {3, 1}}));
+    EXPECT_TRUE(field.getNeighborhood({8, 0}, 1, true, false).empty());
 }

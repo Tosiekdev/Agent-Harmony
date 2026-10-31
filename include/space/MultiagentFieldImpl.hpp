@@ -5,25 +5,25 @@
 namespace agh {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto MultiagentField<Agents...>::cell(Point pos) -> SquareT& {
-    return grid[detail::checkedIndex(pos, width, height, toroidal)];
+    return grid[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto MultiagentField<Agents...>::getAgents(const Point pos) -> const SquareT& {
-    return grid[detail::checkedIndex(pos, width, height, toroidal)];
+    return grid[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 auto MultiagentField<Agents...>::getAgents(const Point pos) const -> const SquareT& {
-    return grid[detail::checkedIndex(pos, width, height, toroidal)];
+    return grid[checkedIndex(pos, width, height, toroidal)];
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
-    detail::requireStructuralMutation(traversing);
+    requireStructuralMutation(traversing);
     if (agent.pos) throw std::logic_error("Agent is already positioned; remove it before adding");
-    pos = detail::checkedPosition(pos, width, height, toroidal);
+    pos = checkedPosition(pos, width, height, toroidal);
     cell(pos).push_back(&agent);
     agent.pos = pos;
 }
@@ -31,8 +31,8 @@ void MultiagentField<Agents...>::addAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
-    detail::requireStructuralMutation(traversing);
-    pos = detail::checkedPosition(pos, width, height, toroidal);
+    requireStructuralMutation(traversing);
+    pos = checkedPosition(pos, width, height, toroidal);
     if (!agent.pos) { addAgent(agent, pos); return; }
     if (outOfBounds(*agent.pos))
         throw std::logic_error("Agent does not belong to this space");
@@ -50,7 +50,7 @@ void MultiagentField<Agents...>::moveAgent(Agent& agent, Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
 void MultiagentField<Agents...>::removeAgent(Agent& agent) {
-    detail::requireStructuralMutation(traversing);
+    requireStructuralMutation(traversing);
     if (!agent.pos) return;
     if (outOfBounds(*agent.pos)) return;
     auto& source = cell(*agent.pos);
@@ -62,7 +62,7 @@ void MultiagentField<Agents...>::removeAgent(Agent& agent) {
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 void MultiagentField<Agents...>::removeAgents(const Point pos) {
-    detail::requireStructuralMutation(traversing);
+    requireStructuralMutation(traversing);
     for (auto& agent : cell(pos)) {
         std::visit([&](auto a) { a->pos = std::nullopt; }, agent);
     }
@@ -72,7 +72,7 @@ void MultiagentField<Agents...>::removeAgents(const Point pos) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<typename F> requires (std::invocable<F, Agents&> && ...)
 void MultiagentField<Agents...>::apply(F&& f) {
-    detail::TraversalGuard guard(traversing);
+    TraversalGuard guard(traversing);
     applyToAll(grid,
                [&](SquareT& square) {
                    for (auto agent : square) {
@@ -86,7 +86,7 @@ void MultiagentField<Agents...>::apply(F&& f) {
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
 void MultiagentField<Agents...>::transform(F&& f) {
-    detail::TraversalGuard guard(traversing);
+    TraversalGuard guard(traversing);
     transformAll(grid,
                  [&](Point p, SquareT& agents) {
                      for (auto& agent : agents) {
@@ -108,13 +108,13 @@ size_t MultiagentField<Agents...>::agentCount(const Point p) const {
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
-std::vector<Point> MultiagentField<Agents...>::getNeighborhood(Point pos, int r, bool moore, bool center) const {
+std::vector<Point> MultiagentField<Agents...>::getNeighborhood(Point pos, std::size_t r, bool moore, bool center) const {
     return visitNeighborhood(*this, pos, r, moore, center, [](Point p) { return p; });
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 std::vector<typename MultiagentField<Agents...>::AgentT> MultiagentField<Agents...>::getNeighbors(
-    const Point pos, const int r, const bool moore, const bool center) {
+    const Point pos, const std::size_t r, const bool moore, const bool center) {
     auto f = [&](const Point p, std::vector<AgentT>& result) {
         for (auto& agent : getAgents(p)) {
             result.push_back(agent);
@@ -130,7 +130,7 @@ std::vector<typename MultiagentField<Agents...>::AgentT> MultiagentField<Agents.
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
 bool MultiagentField<Agents...>::outOfBounds(const Point p) const {
-    return p.x < 0 || p.x >= width || p.y < 0 || p.y >= height;
+    return p.x >= width || p.y >= height;
 }
 
 template<Positionable ... Agents> requires (sizeof...(Agents) > 0)
@@ -143,8 +143,8 @@ std::vector<Point> MultiagentField<Agents...>::getEmpty() const {
     std::vector<Point> result;
     result.reserve(grid.size() / 2);
 
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
+    for (std::size_t y = 0; y < height; ++y) {
+        for (std::size_t x = 0; x < width; ++x) {
             if (isEmpty({x, y})) {
                 result.push_back({x, y});
             }

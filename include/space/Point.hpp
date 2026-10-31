@@ -1,12 +1,14 @@
 #pragma once
 
+#include <cstddef>
+
 namespace agh {
 /** @brief Integer coordinates of a discrete cell. */
 struct Point {
     /** @brief Horizontal coordinate. */
-    int x{};
+    std::size_t x{};
     /** @brief Vertical coordinate. */
-    int y{};
+    std::size_t y{};
 
     /** @brief Compare both coordinates exactly. @param other Position to compare. */
     bool operator==(const Point& other) const {

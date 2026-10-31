@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utilities/Validation.hpp"
+#include "../utilities/GridUtils.hpp"
 
 #include "../utilities/Concepts.hpp"
 #include "Point.hpp"
@@ -39,8 +39,8 @@ public:
      * @throws std::invalid_argument If dimensions are not positive.
      * @throws std::length_error If storage size is not representable.
      */
-    explicit MultiagentField(const int pWidth, const int pHeight, const bool torus = false)
-        : width(pWidth), height(pHeight), grid(detail::checkedCellCount<SquareT>(width, height)), toroidal(torus) {}
+    explicit MultiagentField(const std::size_t pWidth, const std::size_t pHeight, const bool torus = false)
+        : width(pWidth), height(pHeight), grid(checkedCellCount<SquareT>(width, height)), toroidal(torus) {}
 
     /**
      * Crates empty grid that has specified attributes. Additionally, it reserves requested space for agents per grid.
@@ -51,8 +51,8 @@ public:
      * @throws std::invalid_argument If dimensions are not positive.
      * @throws std::length_error If storage size is not representable.
      */
-    explicit MultiagentField(const int pWidth, const int pHeight, size_t reservation, const bool torus = false)
-        : width(pWidth), height(pHeight), grid(detail::checkedCellCount<SquareT>(width, height)), toroidal(torus) {
+    explicit MultiagentField(const std::size_t pWidth, const std::size_t pHeight, size_t reservation, const bool torus = false)
+        : width(pWidth), height(pHeight), grid(checkedCellCount<SquareT>(width, height)), toroidal(torus) {
         for (auto& cell : grid) {
             cell.reserve(reservation);
         }
@@ -147,7 +147,7 @@ public:
      * @param center If set to true, also the central point will be returned.
      * @return Vector of points neighbouring the specified one.
      */
-    [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
+    [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, std::size_t r, bool moore, bool center) const;
 
     /**
      * Get agents neighboring (according to the specified criteria) the chosen central point.
@@ -157,7 +157,7 @@ public:
      * @param center If set to true, also the central point will be returned.
      * @return Vector of pointers to agents neighbouring with the specified grid cell.
      */
-    [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r, bool moore, bool center);
+    [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, std::size_t r, bool moore, bool center);
 
     /**
      * Checks if given point is beyond the grid.
@@ -183,13 +183,13 @@ public:
      * Gets with of the grid. Equivalent to the maximum x coordinate plus one.
      * @return Width of the grid.
      */
-    [[nodiscard]] int getWidth() const { return width; }
+    [[nodiscard]] std::size_t getWidth() const { return width; }
 
     /**
      * Gets height of the grid. Equivalent to the maximum y coordinate plus one.
      * @return Height of the grid.
      */
-    [[nodiscard]] int getHeight() const { return height; }
+    [[nodiscard]] std::size_t getHeight() const { return height; }
 
     /**
      * Checks if grid is wrapped (top edge is connected with bottom edge, and left edge is connected with right edge).
@@ -200,8 +200,8 @@ public:
 private:
     bool traversing = false;
     SquareT& cell(Point pos);
-    int width;
-    int height;
+    std::size_t width;
+    std::size_t height;
     GridT grid;
     bool toroidal;
 };

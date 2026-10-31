@@ -111,8 +111,8 @@ std::array<MyAgent, 9> agents{};
 Field field{3, 3};
 
 void SetUp() override {
-    for (int y = 0; y < 3; ++y) {
-        for (int x = 0; x < 3; ++x) {
+    for (std::size_t y = 0; y < 3; ++y) {
+        for (std::size_t x = 0; x < 3; ++x) {
             field.addAgent(agents[y * 3 + x], {x, y});
             agents[y * 3 + x].id = y * 3 + x;
         }
@@ -129,8 +129,8 @@ TEST_F(NeighborhoodTest, GetMooreNeighbors) {
     };
 
     ASSERT_EQ(moore.size(), 8);
-    for (int y = 0; y < 3; ++y) {
-        for (int x = 0; x < 3; ++x) {
+    for (std::size_t y = 0; y < 3; ++y) {
+        for (std::size_t x = 0; x < 3; ++x) {
             const auto index = y * 3 + x;
             if (index < 4) {
                 EXPECT_TRUE(equalityCheck(moore[index], agents[index]));
@@ -150,8 +150,8 @@ TEST_F(NeighborhoodTest, GetMooreNeighborsNoCenter) {
     };
 
     ASSERT_EQ(mooreCenter.size(), 9);
-    for (int y = 0; y < 3; ++y) {
-        for (int x = 0; x < 3; ++x) {
+    for (std::size_t y = 0; y < 3; ++y) {
+        for (std::size_t x = 0; x < 3; ++x) {
             const auto index = y * 3 + x;
             EXPECT_TRUE(equalityCheck(mooreCenter[index], agents[index]));
         }
@@ -264,8 +264,8 @@ TEST(SpaceSafetyTest, RectangularEmptySetsMultiagentField) {
     for (auto size : {agh::Point{1, 1}, agh::Point{4, 2}, agh::Point{2, 4}}) {
         agh::MultiagentField<GridAgent> multi(size.x, size.y);
         std::vector<agh::Point> expected;
-        for (int y = 0; y < size.y; ++y)
-            for (int x = 0; x < size.x; ++x) expected.push_back({x, y});
+        for (std::size_t y = 0; y < size.y; ++y)
+            for (std::size_t x = 0; x < size.x; ++x) expected.push_back({x, y});
         EXPECT_EQ(multi.getEmpty(), expected);
         GridAgent a, b;
         multi.addAgent(b, {0, 0});
@@ -275,16 +275,15 @@ TEST(SpaceSafetyTest, RectangularEmptySetsMultiagentField) {
 }
 
 TEST(SpaceSafetyTest, RejectInvalidDimensionsAndUnrepresentableSizesMultiagentField) {
-    EXPECT_THROW(agh::MultiagentField<GridAgent>(2, -1), std::invalid_argument);
+    EXPECT_THROW(agh::MultiagentField<GridAgent>(2, 0), std::invalid_argument);
 }
 
 TEST(SpaceSafetyTest, RejectInvalidCoordinatesWithoutChangingMembershipMultiagentField) {
     agh::MultiagentField<GridAgent> multi(2, 4);
     GridAgent a, b;
-    EXPECT_THROW(multi.addAgent(b, {-1, 0}), std::out_of_range);
+    EXPECT_THROW(multi.addAgent(b, {2, 0}), std::out_of_range);
     EXPECT_FALSE(b.pos);
     EXPECT_THROW(std::as_const(multi).getAgents({2, 0}), std::out_of_range);
-    EXPECT_THROW((void)multi.getNeighbors({0, 0}, -1, true, false), std::invalid_argument);
 }
 
 TEST(SpaceSafetyTest, NormalizeDiscreteToroidalAccessMultiagentField) {

@@ -44,9 +44,15 @@ Bounded-space coordinates outside the half-open domain throw `std::out_of_range`
 unrepresentable storage throws `std::length_error`. Validate application inputs or
 catch these exceptions at the application boundary.
 
-All toroidal coordinate operations wrap consistently. Discrete neighborhood
-results contain unique cells; simulations that counted repeated periodic images
-must implement that policy explicitly. Continuous queries now use the selected
+Discrete coordinates, dimensions, radii, and bucket counts use `std::size_t`.
+Replace negative discrete coordinates with nonnegative coordinates before constructing
+`Point`; braced negative coordinates no longer compile. `RealPoint` remains floating
+point and supports negative toroidal coordinates. Toroidal discrete coordinates wrap
+nonnegative inputs. Bounded neighborhood queries may be centered outside the grid
+and return only the overlapping cells; direct cell access still rejects out-of-domain
+coordinates. Unique discrete-cell traversal is deferred to a separate PR.
+
+Continuous queries now use the selected
 metric and periodic distance correctly. With `center=false`, every agent exactly
 at the query point is excluded. Results may therefore differ from earlier buggy
 geometric behavior, including the corrected Chebyshev example returning three.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../utilities/Validation.hpp"
+#include "../utilities/GridUtils.hpp"
 
 #include <vector>
 
@@ -24,8 +24,8 @@ public:
      * @throws std::invalid_argument If dimensions are not positive.
      * @throws std::length_error If storage size is not representable.
      */
-    explicit ValueLayer(const int pWidth, const int pHeight, const bool torus = false, const T initValue = T())
-        : width(pWidth), height(pHeight), read(detail::checkedCellCount<T>(width, height), initValue), write(read.size(), initValue),
+    explicit ValueLayer(const std::size_t pWidth, const std::size_t pHeight, const bool torus = false, const T initValue = T())
+        : width(pWidth), height(pHeight), read(checkedCellCount<T>(width, height), initValue), write(read.size(), initValue),
           toroidal(torus) {}
 
     /**
@@ -81,7 +81,7 @@ public:
      * @param center If set to true, also the central point will be returned.
      * @return Vector of points neighbouring the specified one.
      */
-    [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
+    [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, std::size_t r, bool moore, bool center) const;
 
     /**
      * Get values from the read layer, neighboring (according to the specified criteria) the chosen central point.
@@ -91,7 +91,7 @@ public:
      * @param center If set to true, also agent at the central point will be returned.
      * @return Vector of values neighbouring with the specified grid cell.
      */
-    [[nodiscard]] std::vector<T> getNeighbors(Point pos, int r, bool moore, bool center) const;
+    [[nodiscard]] std::vector<T> getNeighbors(Point pos, std::size_t r, bool moore, bool center) const;
 
     /**
      * Checks if given point is beyond the grid.
@@ -116,13 +116,13 @@ public:
      * Gets with of the grid. Equivalent to the maximum x coordinate plus one.
      * @return Width of the grid.
      */
-    [[nodiscard]] int getWidth() const { return width; }
+    [[nodiscard]] std::size_t getWidth() const { return width; }
 
     /**
      * Gets height of the grid. Equivalent to the maximum y coordinate plus one.
      * @return Height of the grid.
      */
-    [[nodiscard]] int getHeight() const { return height; }
+    [[nodiscard]] std::size_t getHeight() const { return height; }
 
     /**
      * Checks if grid is wrapped (top edge is connected with bottom edge, and left edge is connected with right edge).
@@ -131,8 +131,8 @@ public:
     [[nodiscard]] bool isToroidal() const { return toroidal; }
 
 private:
-    int width;
-    int height;
+    std::size_t width;
+    std::size_t height;
 
     std::vector<T> read;
     std::vector<T> write;

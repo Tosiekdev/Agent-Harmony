@@ -7,7 +7,7 @@ struct RealAgent { std::optional<agh::RealPoint> pos; };
 int main() {
     GridAgent a;
     agh::Field<GridAgent> field(4, 2, true);
-    if (!field.addAgent(a, {-1, -1}) || *a.pos != agh::Point{3, 1}) return 1;
+    if (!field.addAgent(a, {7, 3}) || *a.pos != agh::Point{3, 1}) return 1;
     field.removeAgent(a); // Explicit transfer between spaces.
     agh::MultiagentField<GridAgent> multi(4, 2);
     multi.addAgent(a, {0, 0});
