@@ -23,6 +23,7 @@ nav:
       - Value layers: guides/value-layer.md
   - Contracts: contracts.md
   - Migration: migration.md
+  - Release notes: release-notes.md
   - Experimental visualization: visualization.md
   - API reference: api/index.html
   - Documentation development: documentation.md

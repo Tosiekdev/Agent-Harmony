@@ -6,6 +6,7 @@ Header-only C++20 tools for agent-based simulations, with optional SFML 3 visual
 - [Build and installation](docs/building.md)
 - [API and behavior contracts](docs/contracts.md)
 - [Migration guide](docs/migration.md)
+- [Release notes and versioning](docs/release-notes.md)
 - [Build the documentation site](docs/documentation.md)
 - [Developer tools](tools/README.md)
 
