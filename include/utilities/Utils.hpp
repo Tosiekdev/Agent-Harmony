@@ -4,6 +4,7 @@
 #include "GridUtils.hpp"
 #include "../space/Point.hpp"
 
+#include <array>
 #include <cmath>
 #include <concepts>
 #include <functional>
@@ -29,72 +30,94 @@ concept Grid = requires(const T& t) {
     { t.toToroidal(Point{}) } -> std::same_as<Point>;
 };
 
-/** @brief Map a callback over neighboring cell offsets.
- * Traverses only the Moore square or von Neumann diamond, clipped or wrapped to the domain.
- * @tparam T Discrete grid type. @tparam F Callback type.
- * @param layer Grid being queried. @param pos Center coordinates. @param r Nonnegative radius.
- * @param moore Select Moore rather than von Neumann distance. @param center Include normalized center.
- * @param f Callback mapping each position to a result. @return Collected callback results. */
+/** @brief Two sorted disjoint half-open intervals on a grid axis. */
+using NeighborhoodRanges = std::array<std::pair<std::size_t, std::size_t>, 2>;
+
+/** @brief Find clipped or wrapped axis intervals without radius arithmetic overflow.
+ * @param coordinate Center, normalized for a torus. @param radius Axis radius.
+ * @param extent Positive axis extent. @param toroidal Whether to wrap.
+ * @return Sorted intervals, with unused intervals empty. */
+inline NeighborhoodRanges neighborhoodRanges(std::size_t coordinate, std::size_t radius,
+                                            std::size_t extent, bool toroidal) {
+    if (!toroidal) {
+        const auto low = coordinate > radius ? coordinate - radius : 0;
+        const auto high = coordinate >= extent || radius >= extent - 1 - coordinate
+                              ? extent : coordinate + radius + 1;
+        if (low >= high) return {};
+        return {{{low, high}, {0, 0}}};
+    }
+    if (radius >= extent / 2) return {{{0, extent}, {0, 0}}};
+    if (coordinate < radius)
+        return {{{0, coordinate + radius + 1}, {extent - (radius - coordinate), extent}}};
+    if (radius >= extent - 1 - coordinate)
+        return {{{0, radius - (extent - 1 - coordinate)}, {coordinate - radius, extent}}};
+    return {{{coordinate - radius, coordinate + radius + 1}, {0, 0}}};
+}
+
+/** @brief Reserve a small bounded buffer without speculative large allocations.
+ * @tparam A Result type. @tparam T Grid type. @param result Output buffer.
+ * @param layer Queried grid. @param radius Query radius. */
+template<typename A, Grid T>
+void reserveNeighborhood(std::vector<A>& result, const T& layer, std::size_t radius) {
+    const auto span = radius >= 32 ? std::size_t{64} : 2 * radius + 1;
+    const auto width = std::min(layer.getWidth(), span), height = std::min(layer.getHeight(), span);
+    result.reserve(std::min(std::size_t{64}, width * height));
+}
+
+/** @brief Visit each local neighboring cell once in row-major order.
+ * @tparam T Grid type. @tparam F Point callback. @param layer Queried grid.
+ * @param pos Query center. @param radius Query radius. @param moore Select Moore distance.
+ * @param center Include the normalized center. @param f Point callback.
+ * @throws std::invalid_argument If a grid dimension is zero. */
 template<Grid T, std::invocable<Point> F>
-auto visitNeighborhood(const T& layer, Point pos, const std::size_t r, const bool moore,
-                       const bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
+void forEachNeighborhoodPoint(const T& layer, Point pos, std::size_t radius,
+                              bool moore, bool center, F&& f) {
     const auto width = layer.getWidth(), height = layer.getHeight();
     if (width == 0 || height == 0) throw std::invalid_argument("Spatial dimensions must be positive");
-    if (r > (std::numeric_limits<std::size_t>::max() - 1) / 2)
-        throw std::length_error("Neighborhood diameter is not representable");
     const bool toroidal = layer.isToroidal();
     if (toroidal) pos = layer.toToroidal(pos);
-    std::vector<std::invoke_result_t<F, Point>> result;
-    const std::size_t diameter = 2 * r + 1;
-    for (std::size_t oy = 0; oy < diameter; ++oy) {
-        const auto y = offsetCoordinate(pos.y, oy, r, height, toroidal);
-        if (!y) continue;
-        for (std::size_t ox = 0; ox < diameter; ++ox) {
-            const auto dx = ox > r ? ox - r : r - ox;
-            const auto dy = oy > r ? oy - r : r - oy;
-            if (!moore && dx + dy > r) continue;
-            const auto x = offsetCoordinate(pos.x, ox, r, width, toroidal);
-            if (!x) continue;
-            const Point p{*x, *y};
-            if (!center && p == pos) continue;
-            result.push_back(std::invoke(std::forward<F>(f), p));
+    const auto ys = neighborhoodRanges(pos.y, radius, height, toroidal);
+    const auto xs = neighborhoodRanges(pos.x, radius, width, toroidal);
+    for (const auto& [yBegin, yEnd] : ys) for (std::size_t y = yBegin; y < yEnd; ++y) {
+        auto dy = y > pos.y ? y - pos.y : pos.y - y;
+        if (toroidal) dy = std::min(dy, height - dy);
+        if (dy > radius) continue;
+        const auto row = moore ? xs : neighborhoodRanges(pos.x, radius - dy, width, toroidal);
+        for (const auto& [xBegin, xEnd] : row) for (std::size_t x = xBegin; x < xEnd; ++x) {
+            const Point point{x, y};
+            if (!center && point == pos) continue;
+            std::invoke(std::forward<F>(f), point);
         }
     }
+}
 
+/** @brief Map a callback over unique local neighbors in row-major order.
+ * @tparam T Grid type. @tparam F Point callback. @param layer Queried grid.
+ * @param pos Center, possibly outside a bounded grid. @param r Query radius.
+ * @param moore Select Moore distance. @param center Include the normalized center.
+ * @param f Point callback. @return Callback results. */
+template<Grid T, std::invocable<Point> F>
+auto visitNeighborhood(const T& layer, Point pos, std::size_t r, bool moore,
+                       bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
+    std::vector<std::invoke_result_t<F, Point>> result;
+    reserveNeighborhood(result, layer, r);
+    forEachNeighborhoodPoint(layer, pos, r, moore, center,
+        [&](Point point) { result.push_back(std::invoke(std::forward<F>(f), point)); });
     return result;
 }
 
-/** @brief Accumulate agent results from neighboring cell offsets.
- * @tparam T Discrete grid type. @tparam A Result element type. @tparam F Callback type.
- * @param layer Grid being queried. @param pos Center coordinates. @param r Nonnegative radius.
- * @param moore Select Moore rather than von Neumann distance. @param center Include normalized center.
- * @param f Callback appending each cell's agents. @return Collected agents. */
+/** @brief Accumulate agents from unique local neighboring cells.
+ * @tparam T Grid type. @tparam A Result type. @tparam F Accumulation callback.
+ * @param layer Queried grid. @param pos Query center. @param r Query radius.
+ * @param moore Select Moore distance. @param center Include the normalized center.
+ * @param f Accumulation callback. @return Collected results. */
 template<Grid T, typename A, std::invocable<Point, std::vector<A>&> F>
-auto visitNeighbors(const T& layer, Point pos, const std::size_t r, const bool moore,
-                    const bool center, F&& f) -> std::vector<A> {
-    const auto width = layer.getWidth(), height = layer.getHeight();
-    if (width == 0 || height == 0) throw std::invalid_argument("Spatial dimensions must be positive");
-    if (r > (std::numeric_limits<std::size_t>::max() - 1) / 2)
-        throw std::length_error("Neighborhood diameter is not representable");
-    const bool toroidal = layer.isToroidal();
-    if (toroidal) pos = layer.toToroidal(pos);
+auto visitNeighbors(const T& layer, Point pos, std::size_t r, bool moore,
+                    bool center, F&& f) -> std::vector<A> {
     std::vector<A> result;
-    const std::size_t diameter = 2 * r + 1;
-    for (std::size_t oy = 0; oy < diameter; ++oy) {
-        const auto y = offsetCoordinate(pos.y, oy, r, height, toroidal);
-        if (!y) continue;
-        for (std::size_t ox = 0; ox < diameter; ++ox) {
-            const auto dx = ox > r ? ox - r : r - ox;
-            const auto dy = oy > r ? oy - r : r - oy;
-            if (!moore && dx + dy > r) continue;
-            const auto x = offsetCoordinate(pos.x, ox, r, width, toroidal);
-            if (!x) continue;
-            const Point p{*x, *y};
-            if (!center && p == pos) continue;
-            std::invoke(std::forward<F>(f), p, result);
-        }
-    }
-
+    reserveNeighborhood(result, layer, r);
+    forEachNeighborhoodPoint(layer, pos, r, moore, center,
+        [&](Point point) { std::invoke(std::forward<F>(f), point, result); });
     return result;
 }
 
