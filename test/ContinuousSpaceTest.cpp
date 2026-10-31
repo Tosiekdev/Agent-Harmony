@@ -285,3 +285,47 @@ TEST(MembershipTest, ContinuousSpaceEqualityIsTypeScopedAndInvalidPositionsAreNo
     EXPECT_EQ(*a.pos, (agh::RealPoint{3, 3}));
 }
 }
+
+namespace test::continuous_geometry {
+TEST(ContinuousGeometryTest, PreserveHypotRoundingAtCircleBoundary) {
+    for (int exponent : {-120, 0, 100}) for (bool torus : {false, true}) {
+        const float radius = std::ldexp(1.f, exponent);
+        const float offset = std::ldexp(radius, -26);
+        agh::ContinuousSpace<Agent> space(4 * radius, 4 * radius, radius / 2, torus);
+        std::array<Agent, 4> agents;
+        const std::array<agh::RealPoint, 4> points{{
+            {radius, 0}, {radius, offset},
+            {radius, std::nextafter(offset, std::numeric_limits<float>::infinity())},
+            {std::nextafter(radius, std::numeric_limits<float>::infinity()), 0}}};
+        std::set<Agent*> expected, actual;
+        for (std::size_t i = 0; i < agents.size(); ++i) {
+            space.addAgent(agents[i], points[i]);
+            // Keep the current classification even when hypot rounds to the radius
+            // but the sum of squares rounds above radius squared.
+            if (std::hypot(double(points[i].x), double(points[i].y)) <= radius)
+                expected.insert(&agents[i]);
+        }
+        const auto neighbors = space.getNeighbors({0, 0}, radius, true, true);
+        for (auto entry : neighbors) actual.insert(std::get<Agent*>(entry));
+        EXPECT_EQ(neighbors.size(), expected.size());
+        EXPECT_EQ(actual, expected) << "exponent=" << exponent << " torus=" << torus;
+    }
+}
+
+TEST(ContinuousGeometryTest, SquaredDistanceHandlesFiniteFloatExtremes) {
+    for (float extent : {std::numeric_limits<float>::max(),
+                         8 * std::numeric_limits<float>::denorm_min()}) {
+        const bool large = extent == std::numeric_limits<float>::max();
+        const float radius = large ? extent : std::numeric_limits<float>::denorm_min();
+        const float coordinate = large ? std::nextafter(extent, 0.f) : radius;
+        agh::ContinuousSpace<Agent> space(extent, extent, large ? extent : 2 * radius);
+        Agent axis, diagonal;
+        space.addAgent(axis, {coordinate, 0});
+        space.addAgent(diagonal, {coordinate, coordinate});
+        const auto neighbors = space.getNeighbors({0, 0}, radius, true, true);
+        ASSERT_EQ(neighbors.size(), 1);
+        EXPECT_EQ(std::get<Agent*>(neighbors.front()), &axis);
+    }
+}
+
+}

@@ -32,6 +32,9 @@ Euclidean queries return a circle; Chebyshev queries return an axis-aligned squa
 The constructor's `dx` discretization sets the storage-bucket size, independently
 of the query radius. Buckets group agents for indexing; candidate buckets can
 overlap the query boundary, so each agent is checked against the selected metric.
+Euclidean queries compare squared distances, with a `hypot` fallback near rounded
+circle boundaries to preserve the existing classification. Candidate buckets still
+use sorted/deduplicated index vectors.
 `center=false` excludes all agents at the exact query coordinates; `center=true`
 includes them, including at radius zero. Results have no ordering guarantee.
 `agentCount(point)` counts exact-coordinate matches rather than bucket occupants.

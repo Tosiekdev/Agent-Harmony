@@ -89,6 +89,7 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
     };
     const auto xs = candidates(pos.x, width, cols);
     const auto ys = candidates(pos.y, height, rows);
+    const double radiusSquared = static_cast<double>(r) * r;
     std::vector<AgentT> neighbors;
     for (std::size_t y : ys) for (std::size_t x : xs) {
         for (auto agent : getCell(Point{x, y})) {
@@ -100,8 +101,17 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
                 dx = std::min(dx, static_cast<double>(width) - dx);
                 dy = std::min(dy, static_cast<double>(height) - dy);
             }
-            const double distance = euclidean ? std::hypot(dx, dy) : std::max(dx, dy);
-            if (distance <= r) neighbors.push_back(agent);
+            bool inside;
+            if (euclidean) {
+                const double distanceSquared = dx * dx + dy * dy;
+                const double roundingBand = 8 * std::numeric_limits<double>::epsilon()
+                                            * std::max(distanceSquared, radiusSquared);
+                // Preserve the old hypot decision near a rounded circle boundary.
+                // This band selects the calculation; it does not enlarge the radius.
+                inside = std::abs(distanceSquared - radiusSquared) <= roundingBand
+                             ? std::hypot(dx, dy) <= r : distanceSquared <= radiusSquared;
+            } else inside = std::max(dx, dy) <= r;
+            if (inside) neighbors.push_back(agent);
         }
     }
     return neighbors;
