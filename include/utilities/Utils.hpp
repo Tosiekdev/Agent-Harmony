@@ -54,16 +54,6 @@ inline NeighborhoodRanges neighborhoodRanges(std::size_t coordinate, std::size_t
     return {{{coordinate - radius, coordinate + radius + 1}, {0, 0}}};
 }
 
-/** @brief Reserve a small bounded buffer without speculative large allocations.
- * @tparam A Result type. @tparam T Grid type. @param result Output buffer.
- * @param layer Queried grid. @param radius Query radius. */
-template<typename A, Grid T>
-void reserveNeighborhood(std::vector<A>& result, const T& layer, std::size_t radius) {
-    const auto span = radius >= 32 ? std::size_t{64} : 2 * radius + 1;
-    const auto width = std::min(layer.getWidth(), span), height = std::min(layer.getHeight(), span);
-    result.reserve(std::min(std::size_t{64}, width * height));
-}
-
 /** @brief Visit each local neighboring cell once in row-major order.
  * @tparam T Grid type. @tparam F Point callback. @param layer Queried grid.
  * @param pos Query center. @param radius Query radius. @param moore Select Moore distance.
@@ -76,14 +66,14 @@ void forEachNeighborhoodPoint(const T& layer, Point pos, std::size_t radius,
     if (width == 0 || height == 0) throw std::invalid_argument("Spatial dimensions must be positive");
     const bool toroidal = layer.isToroidal();
     if (toroidal) pos = layer.toToroidal(pos);
-    const auto ys = neighborhoodRanges(pos.y, radius, height, toroidal);
-    const auto xs = neighborhoodRanges(pos.x, radius, width, toroidal);
-    for (const auto& [yBegin, yEnd] : ys) for (std::size_t y = yBegin; y < yEnd; ++y) {
+    const auto yRanges = neighborhoodRanges(pos.y, radius, height, toroidal);
+    const auto xRanges = neighborhoodRanges(pos.x, radius, width, toroidal);
+    for (const auto& [yBegin, yEnd] : yRanges) for (std::size_t y = yBegin; y < yEnd; ++y) {
         auto dy = y > pos.y ? y - pos.y : pos.y - y;
         if (toroidal) dy = std::min(dy, height - dy);
         if (dy > radius) continue;
-        const auto row = moore ? xs : neighborhoodRanges(pos.x, radius - dy, width, toroidal);
-        for (const auto& [xBegin, xEnd] : row) for (std::size_t x = xBegin; x < xEnd; ++x) {
+        const auto rowRanges = moore ? xRanges : neighborhoodRanges(pos.x, radius - dy, width, toroidal);
+        for (const auto& [xBegin, xEnd] : rowRanges) for (std::size_t x = xBegin; x < xEnd; ++x) {
             const Point point{x, y};
             if (!center && point == pos) continue;
             std::invoke(std::forward<F>(f), point);
@@ -100,7 +90,6 @@ template<Grid T, std::invocable<Point> F>
 auto visitNeighborhood(const T& layer, Point pos, std::size_t r, bool moore,
                        bool center, F&& f) -> std::vector<std::invoke_result_t<F, Point>> {
     std::vector<std::invoke_result_t<F, Point>> result;
-    reserveNeighborhood(result, layer, r);
     forEachNeighborhoodPoint(layer, pos, r, moore, center,
         [&](Point point) { result.push_back(std::invoke(std::forward<F>(f), point)); });
     return result;
@@ -115,7 +104,6 @@ template<Grid T, typename A, std::invocable<Point, std::vector<A>&> F>
 auto visitNeighbors(const T& layer, Point pos, std::size_t r, bool moore,
                     bool center, F&& f) -> std::vector<A> {
     std::vector<A> result;
-    reserveNeighborhood(result, layer, r);
     forEachNeighborhoodPoint(layer, pos, r, moore, center,
         [&](Point point) { std::invoke(std::forward<F>(f), point, result); });
     return result;
