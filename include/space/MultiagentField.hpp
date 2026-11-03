@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utilities/GridUtils.hpp"
+
 #include "../utilities/Concepts.hpp"
 #include "Point.hpp"
 
@@ -34,9 +36,11 @@ public:
      * @param pWidth Width of the grid.
      * @param pHeight Height of the grid.
      * @param torus Should space wrap.
+     * @throws std::invalid_argument If dimensions are not positive.
+     * @throws std::length_error If storage size is not representable.
      */
-    explicit MultiagentField(const int pWidth, const int pHeight, const bool torus = false)
-        : width(pWidth), height(pHeight), grid(height * width), toroidal(torus) {}
+    explicit MultiagentField(const std::size_t pWidth, const std::size_t pHeight, const bool torus = false)
+        : width(pWidth), height(pHeight), grid(checkedCellCount<SquareT>(width, height)), toroidal(torus) {}
 
     /**
      * Crates empty grid that has specified attributes. Additionally, it reserves requested space for agents per grid.
@@ -44,9 +48,11 @@ public:
      * @param pHeight Height of the grid.
      * @param reservation Number of agents per grid to reserve.
      * @param torus Should space wrap.
+     * @throws std::invalid_argument If dimensions are not positive.
+     * @throws std::length_error If storage size is not representable.
      */
-    explicit MultiagentField(const int pWidth, const int pHeight, size_t reservation, const bool torus = false)
-        : width(pWidth), height(pHeight), grid(height * width), toroidal(torus) {
+    explicit MultiagentField(const std::size_t pWidth, const std::size_t pHeight, size_t reservation, const bool torus = false)
+        : width(pWidth), height(pHeight), grid(checkedCellCount<SquareT>(width, height)), toroidal(torus) {
         for (auto& cell : grid) {
             cell.reserve(reservation);
         }
@@ -57,7 +63,7 @@ public:
      * @param pos Position to get agents from.
      * @return Reference to the specified cell.
      */
-    SquareT& getAgents(Point pos);
+    const SquareT& getAgents(Point pos);
 
     /**
      * Gets all agents present at the given position. Returns empty vector if there is no agent at given position.
@@ -71,6 +77,8 @@ public:
      * @tparam Agent Type of the agent we want to add.
      * @param agent Agent to be added to the field.
      * @param pos Position at which we want to place an agent.
+     * @throws std::logic_error If the agent is positioned or traversal is active.
+     * @throws std::out_of_range If a bounded destination is outside the domain.
      */
     template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
     void addAgent(Agent& agent, Point pos);
@@ -81,6 +89,8 @@ public:
      * @tparam Agent Type of the agent we want to move.
      * @param agent Agent to be moved.
      * @param pos Position we want to move agent to.
+     * @throws std::logic_error If traversal is active.
+     * @throws std::out_of_range If a bounded destination is outside the domain.
      */
     template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...) && std::equality_comparable<Agent>
     void moveAgent(Agent& agent, Point pos);
@@ -104,7 +114,7 @@ public:
      * @tparam F Type of the invoked function.
      * @param f Function to be invoked. It must be invocable with a reference to an agent.
      */
-    template<typename F> requires (std::invocable<F, Agents&> || ...)
+    template<typename F> requires (std::invocable<F, Agents&> && ...)
     void apply(F&& f);
 
     /**
@@ -112,7 +122,7 @@ public:
      * @tparam F Type of the invoked function.
      * @param f Function to be invoked. It must be invocable with an object of type Point and a reference to an agent.
      */
-    template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
+    template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
     void transform(F&& f);
 
     /**
@@ -130,14 +140,14 @@ public:
     [[nodiscard]] size_t agentCount(Point p) const;
 
     /**
-     *
+     * Return unique neighboring cells, optionally including the normalized center.
      * @param pos Point which neighborhood we want to get.
      * @param r Radius of the neighborhood.
      * @param moore Flag indicating if we want a Moore (true), or von Neumann (false) neighborhood.
      * @param center If set to true, also the central point will be returned.
      * @return Vector of points neighbouring the specified one.
      */
-    [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r, bool moore, bool center) const;
+    [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, std::size_t r, bool moore, bool center) const;
 
     /**
      * Get agents neighboring (according to the specified criteria) the chosen central point.
@@ -147,7 +157,7 @@ public:
      * @param center If set to true, also the central point will be returned.
      * @return Vector of pointers to agents neighbouring with the specified grid cell.
      */
-    [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r, bool moore, bool center);
+    [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, std::size_t r, bool moore, bool center);
 
     /**
      * Checks if given point is beyond the grid.
@@ -173,13 +183,13 @@ public:
      * Gets with of the grid. Equivalent to the maximum x coordinate plus one.
      * @return Width of the grid.
      */
-    [[nodiscard]] int getWidth() const { return width; }
+    [[nodiscard]] std::size_t getWidth() const { return width; }
 
     /**
      * Gets height of the grid. Equivalent to the maximum y coordinate plus one.
      * @return Height of the grid.
      */
-    [[nodiscard]] int getHeight() const { return height; }
+    [[nodiscard]] std::size_t getHeight() const { return height; }
 
     /**
      * Checks if grid is wrapped (top edge is connected with bottom edge, and left edge is connected with right edge).
@@ -188,8 +198,10 @@ public:
     [[nodiscard]] bool isToroidal() const { return toroidal; }
 
 private:
-    int width;
-    int height;
+    bool traversing = false;
+    SquareT& cell(Point pos);
+    std::size_t width;
+    std::size_t height;
     GridT grid;
     bool toroidal;
 };

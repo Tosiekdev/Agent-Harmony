@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <tuple>
+#include <ranges>
 
 #include "../utilities/Concepts.hpp"
 
@@ -15,12 +16,16 @@ template<ActiveAgent... Agents> requires (sizeof...(Agents) > 0)
 class Model {
 public:
     /**
-     * Function returning all agents of type T stored by the model.
+     * Returns an iteration range over agents of type T; insertion invalidates the range.
      * @tparam T Type of the agents we want to get.
-     * @return std::deque<T> containing all agents of type T in the model.
+     * @return Range of agent references without structural container operations.
      */
     template<ActiveAgent T>
-    std::deque<T>& getAgents();
+    std::ranges::subrange<typename std::deque<T>::iterator> getAgents();
+
+    /** @brief Iterate agents of a const model. @tparam T Stored agent type. @return Range of const references. */
+    template<ActiveAgent T>
+    std::ranges::subrange<typename std::deque<T>::const_iterator> getAgents() const;
 
     /**
      * Function for adding new agents to the simulation. It differs from emplaceAgent, by adding an agent based on
@@ -55,9 +60,10 @@ public:
      * @return Number of agents of given type.
      */
     template<ActiveAgent T>
-    size_t agentCount();
+    size_t agentCount() const;
 
 protected:
+    /** @brief Owned agent storage; derived classes must preserve registered addresses and memberships. */
     std::tuple<std::deque<Agents>...> agents{};
 };
 }

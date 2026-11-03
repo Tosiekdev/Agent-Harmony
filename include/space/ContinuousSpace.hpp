@@ -3,6 +3,7 @@
 #include "../utilities/Concepts.hpp"
 
 #include <cmath>
+#include "../utilities/GridUtils.hpp"
 #include <variant>
 
 namespace agh {
@@ -13,8 +14,11 @@ namespace agh {
 template<RealPositionable... Agents> requires (sizeof...(Agents) > 0)
 class ContinuousSpace {
 public:
+    /** @brief Variant of non-owning agent pointers. */
     using AgentT = std::variant<Agents*...>;
+    /** @brief Agents registered in one discretization bucket. */
     using SquareT = std::vector<AgentT>;
+    /** @brief Row-major bucket storage. */
     using GridT = std::vector<SquareT>;
 
     /**
@@ -23,12 +27,14 @@ public:
      * @param pHeight Height of the space.
      * @param dx Discretization of the space.
      * @param torus Should space wrap.
+     * @throws std::invalid_argument If dimensions or discretization are not positive and finite.
+     * @throws std::length_error If bucket counts or storage size are not representable.
      */
     explicit ContinuousSpace(const float pWidth, const float pHeight, const float dx, const bool torus = false)
         : width(pWidth), height(pHeight), discretization(dx)
-          , rows(static_cast<int>(std::ceil(pHeight / dx)))
-          , cols(static_cast<int>(std::ceil(pWidth / dx)))
-          , grid(rows * cols)
+          , rows(checkedBucketCount(pHeight, dx))
+          , cols(checkedBucketCount(pWidth, dx))
+          , grid(checkedCellCount<SquareT>(cols, rows))
           , toroidal(torus) {}
 
     /**
@@ -37,6 +43,9 @@ public:
      * @tparam Agent Type of the agent we want to add.
      * @param agent Agent to be added to the field.
      * @param pos Position at which we want to place an agent.
+     * @throws std::logic_error If the agent is positioned or traversal is active.
+     * @throws std::invalid_argument If coordinates are not finite.
+     * @throws std::out_of_range If a bounded destination is outside the domain.
      */
     template<RealPositionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
     void addAgent(Agent& agent, RealPoint pos);
@@ -64,7 +73,7 @@ public:
      * @tparam F Type of the invoked function.
      * @param f Function to be invoked. It must be invocable with a reference to an agent.
      */
-    template<typename F> requires (std::invocable<F, Agents&> || ...)
+    template<typename F> requires (std::invocable<F, Agents&> && ...)
     void apply(F&& f);
 
     /**
@@ -81,6 +90,8 @@ public:
      * @param euclidean Flag indicating if we calculate distance using Euclidean distance or Chebyshev distance.
      * @param center If set to true, also the central point will be returned.
      * @return Vector of pointers to agents neighbouring with the specified grid cell.
+     * @throws std::invalid_argument If coordinates/radius are not finite or radius is negative.
+     * @throws std::out_of_range If a bounded query center is outside the domain.
      */
     [[nodiscard]] std::vector<AgentT> getNeighbors(RealPoint pos, float r, bool euclidean = true, bool center = false);
 
@@ -110,11 +121,12 @@ public:
     [[nodiscard]] bool isToroidal() const { return toroidal; }
 
 private:
+    bool traversing = false;
     float width;
     float height;
     float discretization;
-    int rows;
-    int cols;
+    std::size_t rows;
+    std::size_t cols;
     GridT grid;
     bool toroidal;
 
@@ -123,7 +135,6 @@ private:
     [[nodiscard]] const SquareT& getCell(RealPoint point) const;
     [[nodiscard]] SquareT& getCell(Point point);
     [[nodiscard]] const SquareT& getCell(Point point) const ;
-    [[nodiscard]] bool inRadius(Point point, float radius, RealPoint center) const;
 };
 }
 

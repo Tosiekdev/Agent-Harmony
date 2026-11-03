@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../src/experimental/visualization/utils/Control.hpp"
+#include "detail/Control.hpp"
 #include "Portrayal.hpp"
 #include "../../schedule/Schedule.hpp"
 

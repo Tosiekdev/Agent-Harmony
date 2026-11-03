@@ -44,6 +44,15 @@ public:
      */
     explicit Network(const bool isDirected = false) : directed(isDirected) {};
 
+    /** @brief Copying is disabled because relationships contain node iterators. @param other Source graph. */
+    Network(const Network& other) = delete;
+    /** @brief Copy assignment is disabled. @param other Source graph. */
+    Network& operator=(const Network& other) = delete;
+    /** @brief Transfer nodes and relationships by moving. @param other Source graph. */
+    Network(Network&& other) = default;
+    /** @brief Replace this graph by moving nodes and relationships. @param other Source graph. */
+    Network& operator=(Network&& other) = default;
+
     /**
      * Adds given node to the network, without connecting it to any other node. If node is already present in the
      * network, reference to the existing object will be returned.
@@ -58,18 +67,11 @@ public:
      */
     void deleteNode(const N& node);
 
-    /**
-     * Returns reference to the std::list containing all the network nodes. Real nodes, not pointer to them, or
-     * something like that. However, user should not modify contents of this list.
-     * @return Reference to the list with all nodes.
-     */
+    /** @brief Access mutable nodes; preserve list structure and node hash/equality identity.
+     * @return Node list. Use graph methods for insertion and removal. */
     std::list<N>& getNodes() { return nodes; }
 
-    /**
-     * Returns reference to the const std::list containing all the network nodes. Real nodes, not pointer to them, or
-     * something like that.
-     * @return Reference to the constant list with all nodes.
-     */
+    /** @brief Access the node list through a const network. @return Constant node list. */
     const std::list<N>& getNodes() const { return nodes; }
 
     /**
@@ -77,11 +79,12 @@ public:
      * connected to that node are returned.
      * @param node In this node all the returned nodes have a beginning.
      * @return Reference to a constant set with all the edges starting in the given node.
+     * @throws std::out_of_range If the requested node is absent.
      */
     const EdgeSet& getEdges(const N& node) const;
 
     /**
-     *
+     * Find a labeled edge, returning nullptr when either endpoint or the edge is absent.
      * @param from Source node of the edge.
      * @param to End node of the edge.
      * @param label Label of the edge.
@@ -120,12 +123,14 @@ public:
      * from the second node to the first.
      * @param from Node where the edge starts.
      * @param to Node where the edge ends.
+     * @throws std::out_of_range If either endpoint is absent.
      */
     void removeEdge(const N& from, const N& to);
 
     /**
      * Removes specified edge from the network. If the network is undirected it also removes symmetrical edge from the
      * second node to the first.
+     * @pre Endpoints must be live iterators from this network. The edge may be graph-owned.
      * @param edge Edge to remove.
      */
     void removeEdge(const EdgeT& edge);

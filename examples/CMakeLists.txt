@@ -1,0 +1,7 @@
+foreach(name IN ITEMS quickstart models schedule network spaces value_layer)
+    add_executable(example_${name} ${name}.cpp)
+    target_link_libraries(example_${name} PRIVATE AgentHarmony::core)
+    if(BUILD_TESTING)
+        add_test(NAME Example.${name} COMMAND example_${name})
+    endif()
+endforeach()

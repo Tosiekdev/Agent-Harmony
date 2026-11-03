@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../utilities/GridUtils.hpp"
+
 #include "../utilities/Concepts.hpp"
 #include "Point.hpp"
 
@@ -36,16 +38,18 @@ public:
    * @param pWidth Width of the grid.
    * @param pHeight Height of the grid.
    * @param torus Should space wrap.
+   * @throws std::invalid_argument If dimensions are not positive.
+   * @throws std::length_error If storage size is not representable.
    */
-  explicit Field(const int pWidth, const int pHeight, const bool torus = false)
-    : width(pWidth), height(pHeight), grid(height * width), toroidal(torus) {}
+  explicit Field(const std::size_t pWidth, const std::size_t pHeight, const bool torus = false)
+    : width(pWidth), height(pHeight), grid(checkedCellCount<OptAgentT>(width, height)), toroidal(torus) {}
 
   /**
    * Gets agent at the given position. Returns std::nullopt when at given position there is no agent.
    * @param pos Position to check agent at.
    * @return Reference to the specified cell.
    */
-  OptAgentT& getAgent(Point pos);
+  const OptAgentT& getAgent(Point pos);
 
   /**
    * Gets agent at the given position. Returns std::nullopt when at given position there is no agent.
@@ -61,6 +65,8 @@ public:
    * @param agent Agent to be added to the field.
    * @param pos Position at which we want to place an agent.
    * @return Boolean value indicating if an agent was successfully added.
+   * @throws std::out_of_range If a bounded destination is outside the domain.
+   * @throws std::logic_error If called during traversal.
    */
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
   bool addAgent(Agent& agent, Point pos);
@@ -72,6 +78,8 @@ public:
    * @param agent Agent to be moved.
    * @param pos Position we want to move agent to.
    * @return Boolean value indicating if an agent was successfully moved.
+   * @throws std::out_of_range If a bounded destination is outside the domain.
+   * @throws std::logic_error If the positioned agent is not a member or traversal is active.
    */
   template<Positionable Agent> requires (std::is_same_v<Agent, Agents> || ...)
   bool moveAgent(Agent& agent, Point pos);
@@ -95,7 +103,7 @@ public:
    * @tparam F Type of the invoked function.
    * @param f Function to be invoked. It must be invocable with a reference to an agent.
    */
-  template<typename F> requires (std::invocable<F, Agents&> || ...)
+  template<typename F> requires (std::invocable<F, Agents&> && ...)
   void apply(F&& f);
 
   /**
@@ -103,7 +111,7 @@ public:
    * @tparam F Type of the invoked function.
    * @param f Function to be invoked. It must be invocable with an object of type Point and a reference to an agent.
    */
-  template<typename F> requires (std::invocable<F, Point, Agents&> || ...)
+  template<typename F> requires (std::invocable<F, Point, Agents&> && ...)
   void transform(F&& f);
 
   /**
@@ -120,8 +128,10 @@ public:
    * @param moore Flag indicating if we want a Moore (true), or von Neumann (false) neighborhood.
    * @param center If set to true, also the central point will be returned.
    * @return Vector of points neighbouring the specified one.
+   * @throws std::invalid_argument If the radius is negative.
+   * @throws std::out_of_range If a bounded query center is outside the domain.
    */
-  [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, int r=1, bool moore=true, bool center=false) const;
+  [[nodiscard]] std::vector<Point> getNeighborhood(Point pos, std::size_t r=1, bool moore=true, bool center=false) const;
 
   /**
    * Get agents neighboring (according to the specified criteria) the chosen central point.
@@ -131,7 +141,7 @@ public:
    * @param center If set to true, also agent at the central point will be returned.
    * @return Vector of pointers to agents neighbouring with the specified grid cell.
    */
-  [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, int r=1, bool moore=true, bool center=false);
+  [[nodiscard]] std::vector<AgentT> getNeighbors(Point pos, std::size_t r=1, bool moore=true, bool center=false);
 
   /**
    * Checks if given point is beyond the grid.
@@ -157,13 +167,13 @@ public:
    * Gets with of the grid. Equivalent to the maximum x coordinate plus one.
    * @return Width of the grid.
    */
-  [[nodiscard]] int getWidth() const { return width; }
+  [[nodiscard]] std::size_t getWidth() const { return width; }
 
   /**
    * Gets height of the grid. Equivalent to the maximum y coordinate plus one.
    * @return Height of the grid.
    */
-  [[nodiscard]] int getHeight() const { return height; }
+  [[nodiscard]] std::size_t getHeight() const { return height; }
 
   /**
    * Checks if grid is wrapped (top edge is connected with bottom edge, and left edge is connected with right edge).
@@ -172,8 +182,10 @@ public:
   [[nodiscard]] bool isToroidal() const { return toroidal; }
 
 private:
-  int width;
-  int height;
+    bool traversing = false;
+    OptAgentT& cell(Point pos);
+  std::size_t width;
+  std::size_t height;
   GridT grid;
   bool toroidal;
 };
