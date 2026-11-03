@@ -51,7 +51,7 @@ Replace negative discrete coordinates with nonnegative coordinates before constr
 point and supports negative toroidal coordinates. Toroidal discrete coordinates wrap
 nonnegative inputs. Bounded neighborhood queries may be centered outside the grid
 and return only the overlapping cells; direct cell access still rejects out-of-domain
-coordinates. Unique discrete-cell traversal is deferred to a separate PR.
+coordinates. Discrete neighborhoods return unique cells in row-major order using local ranges.
 
 Continuous queries now use the selected
 metric and periodic distance correctly. With `center=false`, every agent exactly

@@ -51,7 +51,9 @@ negative discrete coordinates are unsupported. Continuous coordinates remain flo
 Bounded cell access rejects coordinates outside `[0,width)` × `[0,height)` with
 `std::out_of_range`. Toroidal access, insertion, movement and queries normalize
 coordinates into that domain. Bounded discrete neighborhood queries return the overlap even when the center is outside.
-Discrete queries visit neighborhood offsets; toroidal wrapping can return a cell more than once. Unique-cell traversal and its local-range optimization are deferred to a separate PR.
+Discrete queries visit each cell at most once in row-major order. Traversal uses only
+local clipped or wrapped axis ranges, so small-radius queries do not scan the full
+domain and large radii remain bounded by domain size.
 
 Continuous queries use Euclidean or Chebyshev distance, with minimum periodic
 axis differences on a torus. They return each registered instance once and make

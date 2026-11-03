@@ -21,8 +21,8 @@ continuous coordinates remain floating point and may be negative before wrapping
 radii must be nonnegative and finite.
 
 Discrete neighborhoods use Moore or von Neumann distance. Queries centered outside
-a bounded grid return its overlapping cells. Toroidal offset traversal can return
-a cell more than once; unique local traversal is deferred to a separate PR.
+a bounded grid return its overlapping cells. Local traversal returns each cell at most once in row-major order, even when the
+radius spans a torus repeatedly.
 Excluding the center happens after normalization, so a `1×1` torus has no neighbors
 when `center=false`.
 
