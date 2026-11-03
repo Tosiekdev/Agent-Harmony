@@ -13,6 +13,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  release-metadata:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6.1.0
+        with:
+          persist-credentials: false
+      - name: Validate reviewed release version and tooling
+        run: |
+          python3 -m unittest discover -s tools -p 'test_*.py'
+          python3 tools/release.py check
+
   test:
     name: ${{ matrix.name }}
     strategy:
