@@ -5,7 +5,7 @@ below matches the `AgentHarmony` project version in `CMakeLists.txt`.
 See the [release process](documentation.md#versions-and-releases) for preparing
 new versions and automatic publication.
 
-## 0.1.0
+## 1.0.0
 
 ### Added
 
@@ -41,5 +41,4 @@ new versions and automatic publication.
   results for simulations relying on previous behavior.
 
 See the [migration guide](migration.md) and [API contracts](contracts.md) for
-required application changes. This `0.x` release is for initial development;
-the public API is not yet stable.
+required application changes.

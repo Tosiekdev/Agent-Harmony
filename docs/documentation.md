@@ -60,11 +60,9 @@ Versions follow [Semantic Versioning](https://semver.org/). Use three numeric
 components without leading zeros; prerelease suffixes, build metadata, and a
 fourth CMake version component are not supported by this release process.
 The public API is described by the [API contracts](contracts.md) and reference.
-For `1.0.0` and later, increment the major version for incompatible API changes,
-the minor version for compatible additions, and the patch version for compatible
-bug fixes. During initial `0.x` development, use a minor increment for API additions
-or breaking changes and a patch increment for compatible fixes. The first release
-is `0.1.0`; the public API is not yet stable.
+The first release is `1.0.0`. Increment the major version for incompatible API
+changes, the minor version for compatible additions, and the patch version for
+compatible bug fixes.
 
 ### Prepare a release PR
 

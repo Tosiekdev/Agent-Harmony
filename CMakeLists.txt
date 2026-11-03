@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.29)
-project(AgentHarmony VERSION 0.1.0 LANGUAGES CXX)
+project(AgentHarmony VERSION 1.0.0 LANGUAGES CXX)
 
 option(AGENT_HARMONY_BUILD_DOCS "Create a core translation unit for MrDocs" OFF)
 if(MY_PROJECT_MRDOCS_BUILD OR AGENT_HARMONY_BUILD_DOCS)
