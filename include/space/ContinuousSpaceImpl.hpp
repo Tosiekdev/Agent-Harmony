@@ -88,9 +88,8 @@ std::vector<typename ContinuousSpace<Agents...>::AgentT> ContinuousSpace<Agents.
             ranges[0] = interval(0, high - extent);
             ranges[1] = interval(low, extent);
         } else ranges[0] = interval(low, high);
-        // Coarse or partial buckets can occur in both wrapped intervals.
-        // Merge them while retaining the existing sorted bucket traversal.
         if (ranges[1].second && ranges[0].second >= ranges[1].first) {
+            ranges[0].first = std::min(ranges[0].first, ranges[1].first);
             ranges[0].second = std::max(ranges[0].second, ranges[1].second);
             ranges[1] = {0, 0};
         }
