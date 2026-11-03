@@ -285,3 +285,48 @@ TEST(MembershipTest, ContinuousSpaceEqualityIsTypeScopedAndInvalidPositionsAreNo
     EXPECT_EQ(*a.pos, (agh::RealPoint{3, 3}));
 }
 }
+
+namespace test::continuous_geometry {
+TEST(ContinuousGeometryTest, PreserveBucketAndAgentOrderAcrossWrappedIntervals) {
+    constexpr agh::RealPoint extent{4.3f, 2.2f};
+    const std::array<agh::RealPoint, 12> locations{{
+        {4.25f, 2.15f}, {0, 0}, {1.5f, 0.1f}, {1.49f, 0.1f},
+        {3, 1.5f}, {2.99f, 1.49f}, {0, 0}, {0.05f, 2.15f},
+        {4.25f, 0.05f}, {1.6f, 1.6f}, {2.1f, 1}, {0.8f, 0.9f}}};
+    for (float discretization : {0.7f, 1.5f, 10.f}) for (bool torus : {false, true}) {
+        agh::ContinuousSpace<Agent> space(extent.x, extent.y, discretization, torus);
+        std::array<Agent, locations.size()> agents;
+        for (std::size_t i = 0; i < agents.size(); ++i) space.addAgent(agents[i], locations[i]);
+        for (auto origin : {agh::RealPoint{0, 0}, agh::RealPoint{0.1f, 0.1f},
+                            agh::RealPoint{4.25f, 2.15f}, agh::RealPoint{2.15f, 1.1f}})
+        for (float radius : {0.f, 0.2f, 0.7f, 1.09f, 1.1f, 2.14f, 2.15f, 3.f,
+                             std::numeric_limits<float>::max()})
+        for (bool euclidean : {false, true}) for (bool center : {false, true}) {
+            std::vector<Agent*> expected, actual;
+            for (auto& agent : agents) {
+                if (!center && *agent.pos == origin) continue;
+                double dx = std::abs(double(agent.pos->x) - origin.x);
+                double dy = std::abs(double(agent.pos->y) - origin.y);
+                if (torus) {
+                    dx = std::min(dx, double(extent.x) - dx);
+                    dy = std::min(dy, double(extent.y) - dy);
+                }
+                if ((euclidean ? std::hypot(dx, dy) : std::max(dx, dy)) <= radius)
+                    expected.push_back(&agent);
+            }
+            // Characterize the existing row-major bucket traversal and insertion order.
+            auto cell = [&](const Agent* agent) {
+                return std::pair{std::floor(double(agent->pos->y) / discretization),
+                                 std::floor(double(agent->pos->x) / discretization)};
+            };
+            std::stable_sort(expected.begin(), expected.end(),
+                             [&](const Agent* a, const Agent* b) { return cell(a) < cell(b); });
+            for (auto entry : space.getNeighbors(origin, radius, euclidean, center))
+                actual.push_back(std::get<Agent*>(entry));
+            ASSERT_EQ(actual, expected) << "torus=" << torus << " dx=" << discretization
+                                       << " radius=" << radius << " euclidean=" << euclidean;
+        }
+    }
+}
+
+}
