@@ -3,7 +3,7 @@ name: C++ documentation
 on:
   pull_request:
   workflow_run:
-    workflows: [C++ CI]
+    workflows: ['C\+\+ CI']
     branches: [master]
     types: [completed]
 
