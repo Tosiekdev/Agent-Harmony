@@ -1,10 +1,9 @@
 #pragma once
 
 #include <variant>
-#include <queue>
+#include <map>
 #include <compare>
 #include <cstddef>
-#include <functional>
 #include <vector>
 
 #include "../utilities/Concepts.hpp"
@@ -119,7 +118,7 @@ private:
     M& model;
     size_t epochs;
     size_t nextSequence = 0;
-    std::priority_queue<ActionItem, std::vector<ActionItem>, std::greater<ActionItem>> actions;
+    std::map<size_t, std::vector<ActionItem>> actions;
 };
 }
 

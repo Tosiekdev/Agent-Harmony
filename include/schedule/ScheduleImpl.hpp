@@ -1,7 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 namespace agh {
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
@@ -21,7 +23,14 @@ void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, c
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::enqueue(auto& agent, size_t time, size_t order, size_t interval) {
     if (nextSequence == std::numeric_limits<size_t>::max()) throw std::overflow_error("Event sequence exhausted");
-    actions.emplace(agent, time, order, interval, nextSequence);
+    const auto bucket = actions.lower_bound(time);
+    if (bucket != actions.end() && bucket->first == time) {
+        bucket->second.emplace_back(agent, time, order, interval, nextSequence);
+    } else {
+        std::vector<ActionItem> events;
+        events.emplace_back(agent, time, order, interval, nextSequence);
+        actions.emplace_hint(bucket, time, std::move(events));
+    }
     ++nextSequence;
 }
 
@@ -33,13 +42,12 @@ void Schedule<M, Agents...>::step() {
         model.afterStep();
         return;
     }
-    epochs = actions.top().time;
-    std::vector<ActionItem> events;
-    events.reserve(actions.size());
-    while (!actions.empty() && actions.top().time == epochs) {
-        events.push_back(actions.top());
-        actions.pop();
-    }
+    const auto bucket = actions.begin();
+    epochs = bucket->first;
+    // Detach the batch so same-time events added by callbacks wait for the next step.
+    auto events = std::move(bucket->second);
+    actions.erase(bucket);
+    std::sort(events.begin(), events.end());
     model.beforeStep();
     for (auto& event : events) event.step(model);
     if constexpr ((Advanceable<Agents, M> && ...)) {
