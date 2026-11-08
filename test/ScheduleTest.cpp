@@ -185,7 +185,7 @@ TEST(ScheduleSafetyTest, EqualTimeAndPriorityAreFIFO) {
 
 TEST(ScheduleSafetyTest, HookSeesNewTimeAndNewEventsWaitForNextCall) {
     State model;
-    Agent first, fromHook, fromAgent;
+    Agent first, pending, fromHook, fromAgent;
     agh::Schedule<State, Agent> schedule(model);
     std::vector<std::string> trace;
     bool added = false;
@@ -196,14 +196,35 @@ TEST(ScheduleSafetyTest, HookSeesNewTimeAndNewEventsWaitForNextCall) {
     };
     model.after = [&] { trace.push_back("after"); };
     first.action = [&] { trace.push_back("first"); schedule.scheduleOnce(fromAgent, 5, 0); };
+    pending.action = [&] { trace.push_back("pending"); };
     fromHook.action = [&] { trace.push_back("hook-event"); };
     fromAgent.action = [&] { trace.push_back("agent-event"); };
-    schedule.scheduleOnce(first, 5, 0);
+    schedule.scheduleOnce(pending, 5, 2);
+    schedule.scheduleOnce(first, 5, 1);
     schedule.step();
-    EXPECT_EQ(trace, (std::vector<std::string>{"before", "first", "after"}));
+    EXPECT_EQ(trace, (std::vector<std::string>{"before", "first", "pending", "after"}));
     trace.clear();
     schedule.step();
     EXPECT_EQ(trace, (std::vector<std::string>{"before", "hook-event", "agent-event", "after"}));
+}
+
+TEST(ScheduleSafetyTest, RepeatingSuccessorGetsFreshInsertionOrder) {
+    State model;
+    Agent repeating, queued;
+    agh::Schedule<State, Agent> schedule(model);
+    std::vector<std::string> trace;
+    repeating.action = [&] { trace.push_back("repeating"); };
+    queued.action = [&] { trace.push_back("queued"); };
+    schedule.scheduleRepeating(repeating, 1, 2, 3);
+    schedule.scheduleOnce(queued, 4, 2);
+
+    schedule.step();
+    EXPECT_EQ(schedule.getEpochs(), 1);
+    EXPECT_EQ(trace, (std::vector<std::string>{"repeating"}));
+
+    schedule.step();
+    EXPECT_EQ(schedule.getEpochs(), 4);
+    EXPECT_EQ(trace, (std::vector<std::string>{"repeating", "queued", "repeating"}));
 }
 
 TEST(ScheduleSafetyTest, MixedAdvanceAndDeactivationPreserveSeparatePhases) {
