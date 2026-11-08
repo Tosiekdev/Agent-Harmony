@@ -5,6 +5,16 @@ below matches the `AgentHarmony` project version in `CMakeLists.txt`.
 See the [release process](documentation.md#versions-and-releases) for preparing
 new versions and automatic publication.
 
+## 1.0.1
+
+### Performance
+
+- The scheduler drains large backlogs with many events at the same tick in sorted batches.
+  Sparse queues continue to drain from the heap. Priority, insertion order, repeat timing,
+  and callback deferral are preserved. In a local benchmark with 262,144 events per workload,
+  median total time fell by about 37% at 256 events per tick and was similar with mostly
+  distinct ticks.
+
 ## 1.0.0
 
 ### Added

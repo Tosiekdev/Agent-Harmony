@@ -115,11 +115,21 @@ public:
     [[nodiscard]] bool isActive() const;
 
 private:
+    struct ActionHeap : std::priority_queue<ActionItem, std::vector<ActionItem>, std::greater<ActionItem>> {
+        std::vector<ActionItem>& storage() { return this->c; }
+    };
+
     void enqueue(auto& agent, size_t time, size_t order, size_t interval);
+    void considerBacklog();
+
+    static constexpr size_t minSampleQueueSize = 8192;
     M& model;
     size_t epochs;
     size_t nextSequence = 0;
-    std::priority_queue<ActionItem, std::vector<ActionItem>, std::greater<ActionItem>> actions;
+    ActionHeap actions;
+    std::vector<ActionItem> backlog;
+    size_t nextBacklog = 0;
+    size_t nextSampleQueueSize = minSampleQueueSize;
 };
 }
 
