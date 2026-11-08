@@ -296,4 +296,56 @@ TEST(ScheduleSafetyTest, AllAdvanceCallsFollowAllSteps) {
     EXPECT_EQ(trace, (std::vector<int>{1, 2, 3, 4}));
 }
 
+TEST(ScheduleSafetyTest, SortedBacklogAndLiveHeapShareTickWithoutMixingBatches) {
+    State model;
+    Agent repeating, sameTick, backlogTie, liveTie, liveHigh, deferred, filler, future;
+    agh::Schedule<State, Agent> schedule(model);
+    std::vector<int> trace;
+    int fillerRuns = 0;
+    repeating.action = [&] {
+        trace.push_back(1);
+        if (schedule.getEpochs() == 5) {
+            schedule.scheduleOnce(sameTick, 5, 0);
+            schedule.scheduleOnce(liveTie, 10, 1);
+            schedule.scheduleOnce(liveHigh, 10, 0);
+        } else {
+            repeating.active = false;
+        }
+    };
+    sameTick.action = [&] { trace.push_back(2); };
+    liveHigh.action = [&] {
+        trace.push_back(3);
+        schedule.scheduleOnce(deferred, 10, 0);
+    };
+    backlogTie.action = [&] { trace.push_back(4); };
+    liveTie.action = [&] { trace.push_back(5); };
+    deferred.action = [&] { trace.push_back(6); };
+    filler.action = [&] { ++fillerRuns; };
+    future.action = [&] { trace.push_back(7); };
+
+    schedule.scheduleRepeating(repeating, 5, 1, 5);
+    schedule.scheduleOnce(backlogTie, 10, 1);
+    schedule.scheduleOnce(future, 20, 0);
+    // Leave enough same-tick events pending to trigger backlog sorting.
+    constexpr int fillerCount = 8192;
+    for (int i = 0; i < fillerCount; ++i) schedule.scheduleOnce(filler, 10, 2);
+
+    schedule.step();
+    EXPECT_EQ(schedule.getEpochs(), 5);
+    EXPECT_EQ(trace, (std::vector<int>{1}));
+    schedule.step();
+    EXPECT_EQ(schedule.getEpochs(), 5);
+    EXPECT_EQ(trace, (std::vector<int>{1, 2}));
+    schedule.step();
+    EXPECT_EQ(schedule.getEpochs(), 10);
+    EXPECT_EQ(trace, (std::vector<int>{1, 2, 3, 4, 5, 1}));
+    EXPECT_EQ(fillerRuns, fillerCount);
+    schedule.step();
+    EXPECT_EQ(schedule.getEpochs(), 10);
+    EXPECT_EQ(trace, (std::vector<int>{1, 2, 3, 4, 5, 1, 6}));
+    schedule.step();
+    EXPECT_EQ(schedule.getEpochs(), 20);
+    EXPECT_EQ(trace, (std::vector<int>{1, 2, 3, 4, 5, 1, 6, 7}));
+}
+
 }

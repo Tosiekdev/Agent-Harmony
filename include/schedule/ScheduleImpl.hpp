@@ -1,9 +1,10 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <limits>
+#include <span>
 #include <stdexcept>
-#include <utility>
 
 namespace agh {
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
@@ -23,31 +24,76 @@ void Schedule<M, Agents...>::scheduleRepeating(auto& agent, const size_t time, c
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::enqueue(auto& agent, size_t time, size_t order, size_t interval) {
     if (nextSequence == std::numeric_limits<size_t>::max()) throw std::overflow_error("Event sequence exhausted");
-    const auto bucket = actions.lower_bound(time);
-    if (bucket != actions.end() && bucket->first == time) {
-        bucket->second.emplace_back(agent, time, order, interval, nextSequence);
-    } else {
-        std::vector<ActionItem> events;
-        events.emplace_back(agent, time, order, interval, nextSequence);
-        actions.emplace_hint(bucket, time, std::move(events));
-    }
+    actions.emplace(agent, time, order, interval, nextSequence);
     ++nextSequence;
 }
 
 template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
+void Schedule<M, Agents...>::considerBacklog() {
+    if (nextBacklog != backlog.size()) return;
+    if (actions.size() < minSampleQueueSize) {
+        nextSampleQueueSize = minSampleQueueSize;
+        return;
+    }
+    if (actions.size() < nextSampleQueueSize) return;
+
+    std::array<size_t, 1024> times;
+    auto& heap = actions.storage();
+    const auto stride = heap.size() / times.size();
+    for (size_t i = 0; i < times.size(); ++i) times[i] = heap[i * stride].time;
+    std::sort(times.begin(), times.end());
+    const auto distinct = static_cast<size_t>(std::unique(times.begin(), times.end()) - times.begin());
+    // Sort only when at least a quarter of sampled times repeat an earlier sample.
+    if (distinct > times.size() * 3 / 4) {
+        nextSampleQueueSize = heap.size() * 2;
+        return;
+    }
+
+    std::sort(heap.begin(), heap.end());
+    backlog.clear();
+    backlog.swap(heap);
+    nextBacklog = 0;
+    nextSampleQueueSize = minSampleQueueSize;
+}
+
+template<SimState M, Schedulable<M>... Agents> requires (sizeof...(Agents) > 0)
 void Schedule<M, Agents...>::step() {
-    if (actions.empty()) {
+    considerBacklog();
+    const bool hasBacklog = nextBacklog != backlog.size();
+    if (actions.empty() && !hasBacklog) {
         ++epochs;
         model.beforeStep();
         model.afterStep();
         return;
     }
-    const auto bucket = actions.begin();
-    epochs = bucket->first;
-    // Detach the batch so same-time events added by callbacks wait for the next step.
-    auto events = std::move(bucket->second);
-    actions.erase(bucket);
-    std::sort(events.begin(), events.end());
+
+    std::span<ActionItem> events;
+    auto backlogEnd = nextBacklog;
+    if (hasBacklog && (actions.empty() || backlog[nextBacklog].time <= actions.top().time)) {
+        epochs = backlog[nextBacklog].time;
+        do { ++backlogEnd; }
+        while (backlogEnd != backlog.size() && backlog[backlogEnd].time == epochs);
+        events = std::span(backlog).subspan(nextBacklog, backlogEnd - nextBacklog);
+    } else {
+        epochs = actions.top().time;
+    }
+
+    std::vector<ActionItem> selected;
+    if (!actions.empty() && actions.top().time == epochs) {
+        selected.reserve(actions.size() + events.size());
+        auto pending = events.begin();
+        do {
+            while (pending != events.end() && *pending < actions.top()) {
+                selected.push_back(*pending++);
+            }
+            selected.push_back(actions.top());
+            actions.pop();
+        } while (!actions.empty() && actions.top().time == epochs);
+        while (pending != events.end()) selected.push_back(*pending++);
+        events = selected;
+    }
+    // Finish selecting before callbacks can enqueue any more events for this tick.
+    nextBacklog = backlogEnd;
     model.beforeStep();
     for (auto& event : events) event.step(model);
     if constexpr ((Advanceable<Agents, M> && ...)) {
